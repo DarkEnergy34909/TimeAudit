@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>TimeAudit</title>
+        <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+        <script src="{{ url_for('static', filename='calendar.js') }}" defer></script>
+    </head>
+
+    <body>
+        <h1 id="main-title">TimeAudit</h1>
+
+        <div class="nav-bar">
+            <nav id="nav">
+                <a href="/">Home</a>
+                <a href="calendar">Calendar</a>
+                <a href="statistics">Statistics</a>
+            </nav>
+
+        </div>
+
+        <div class="top-bar">
+            <button id="add-button" onclick="openAddMenu();">Start/log activity</button>
+        </div>
+
+        <div class="month-bar">
+            <button id="prev-button" onclick="goToPreviousWeek();">&lt;</button>
+
+            <button id="next-button" hidden="true" onclick="goToNextWeek();">&gt;</button>
+
+            <p id="month-year"></p>
+
+            <!--<select id="view">
+                <option value="week">Week</option>
+                <option value="day">Day</option>
+            </select>-->
+        </div>
+        <div class="add-menu" hidden="true">
+            <h2>Start or log an activity</h2>
+            <form action="" method="POST">
+                <label for="activity-name">Activity name</label>
+                <input type="text" id="activity-name" name="activity-name" required><br><br>
+
+                <p class="error-text" id="activity-name-error" hidden>Please enter an activity name</p>
+
+                <label for="category">Category</label>
+                <select id="category" name="category">
+                    <option value="Work/Study">Work/Study</option>
+                    <option value="Exercise">Exercise</option>
+                    <option value="Social">Social</option>
+                    <option value="Chores/Errands">Chores/Errands</option>
+                    <option value="Eat/Drink">Eat/Drink</option>
+                    <option value="Good leisure">Good leisure</option>
+                    <option value="Bad leisure">Bad leisure</option>
+                    <option value="Personal care">Personal care</option>
+                    <option value="Sleep/Napping">Sleep/Napping</option>
+                    <option value="Travel">Travel</option>
+                    <option value="Planning/Reflection">Planning/Reflecting</option>
+                    <option value="Other">Other</option>
+                </select><br><br>
+
+                <label for="start-now">Start now</label>
+                <input type="checkbox" id="start-now" name="start-now" value="Start activity now?" checked onchange="onStartNowCheckboxChange();"><br><br>
+
+                <label for="start-time">Start time</label>
+                <input type="time" id="start-time" class="time-input" name="start-time" disabled><br><br>
+
+                <label for="end-time">End time</label>
+                <input type="time" id="end-time" class="time-input" name="end-time" disabled><br><br>
+
+                <p class="error-text" id="time-input-error" hidden>Please enter a valid pair of times that aren't already occupied by an activity</p>
+
+                <!--<input type="submit" value="Add activity">-->
+                <button type="button" onclick="addActivity();">Add activity</button>
+                <button type="button" onclick="closeAddMenu();">Cancel</button>
+            </form>
+        </div>
+
+        <div id="calendar">
+
+            <div class="header">
+                <div class="time-label"></div>
+                <div class="day">Monday</div>
+                <div class="day">Tuesday</div>
+                <div class="day">Wednesday</div>
+                <div class="day">Thursday</div>
+                <div class="day">Friday</div>
+                <div class="day">Saturday</div>
+                <div class="day">Sunday</div>
+            </div>
+
+            <div class="body">
+                <!-- Calendar body will be populated with JavaScript -->
+                 <div class="time-column"></div>
+                 
+                 <div class="calendar-grid"></div>
+            </div>
+        </div>
+
+        <h2 id="test">Date: </h2>
+    </body>
+</html>
