@@ -2,7 +2,7 @@
 let currentDate = new Date();
 
 // The first day of the current week
-let firstDayOfCurrentWeek = new Date(currentDate.setDate(currentDate.getDate() - currentDate.getDay() + 1)); 
+let firstDayOfCurrentWeek = new Date(currentDate.setDate(currentDate.getDate() - ((currentDate.getDay() + 6) % 7))); 
 
 // The first day of the week displayed on-screen (not necessarily the current week)
 let firstDayOfWeek = new Date(firstDayOfCurrentWeek);
@@ -486,7 +486,7 @@ function saveActivity(activity) {
 
 function isInWeek(firstDay, date) {
     // Get the first day of the week for the date
-    const firstDayOfWeek = new Date(date.setDate(date.getDate() - date.getDay() + 1)); // Set the date to the first day of the week (Monday)
+    const firstDayOfWeek = new Date(date.setDate(date.getDate() - ((date.getDay() + 6) % 7))); // Set the date to the first day of the week (Monday)
 
     // Check if the first days of the weeks are equal
     return firstDay.toDateString() === firstDayOfWeek.toDateString();
@@ -494,8 +494,8 @@ function isInWeek(firstDay, date) {
 
 function isInSameWeek(date1, date2) {
     // Get the first day of the week for both dates
-    const firstDayOfWeek1 = new Date(date1.setDate(date1.getDate() - date1.getDay() + 1)); // Set the date to the first day of the week (Monday)
-    const firstDayOfWeek2 = new Date(date2.setDate(date2.getDate() - date2.getDay() + 1)); // Set the date to the first day of the week (Monday)
+    const firstDayOfWeek1 = new Date(date1.setDate(date1.getDate() - ((date1.getDay() + 6) % 7))); // Set the date to the first day of the week (Monday)
+    const firstDayOfWeek2 = new Date(date2.setDate(date2.getDate() - ((date2.getDay() + 6) % 7))); // Set the date to the first day of the week (Monday)
 
     // Check if the first days of the weeks are equal
     return firstDayOfWeek1.toDateString() === firstDayOfWeek2.toDateString(); 

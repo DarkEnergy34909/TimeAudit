@@ -181,7 +181,7 @@ h1#main-title {
     width: 100%;
     height: 1px; /* Height of the line */
     background-color: red; /* Red line */
-    z-index: 5; /* Ensure it appears above grid cells */
+    z-index: 30; /* Ensure it appears above grid cells and blocks */
 }
 
 /* Calendar Header */

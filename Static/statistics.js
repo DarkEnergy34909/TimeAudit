@@ -48,11 +48,13 @@ function getActivityData() {
 
         // Add the time to the total time tracked
         categoryTimeTracked += time;
-        activityTimeTracked += time;
 
         // Check if the activity date is the current date
         let currentDate = new Date();
         if (activityDate == getIsoString(currentDate)) {
+            // Add the time to the activity time tracked
+            activityTimeTracked += time;
+
             // Push each activity name to the activity names array
             activityNames.push(activityName);
 
@@ -65,12 +67,22 @@ function getActivityData() {
                 console.log("wtf" + category);
             }
             else {
-                categoryTimes[categoryIndex] += time;
-
+                //categoryTimes[categoryIndex] += time;
                 // Add the corresponding colour to the activity colours array
                 activityColours.push(categoryColours[categoryIndex]);
             }
         }
+
+        // Add the time of the activity to the corresponding position ion the category times array
+        const categoryIndex = categories.indexOf(category);
+        if (categoryIndex == -1) {
+            console.log("wtf" + category);
+        }
+        else {
+            categoryTimes[categoryIndex] += time;
+        }
+
+
     }
 }
 
