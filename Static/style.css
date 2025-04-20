@@ -323,6 +323,29 @@ h1#main-title {
     margin: 0 auto; /* Center the chart within the container */
 }
 
+.donut-inner {
+    position: absolute;
+    top: 58%;
+    /*left: 50%;*/
+    /*width: 60%; /* Adjust the size of the inner circle */
+    /*height: 60%; /* Adjust the size of the inner circle */
+    /*background-color: white; /* White background for the inner circle */
+    /*border-radius: 50%; /* Make it circular */
+    /*transform: translate(-50%, -50%); /* Center it within the donut chart */
+    /*margin-top: -100px;
+    margin-bottom: 100px;*/
+    left: 0;
+    right: 0;
+    text-align: center; /* Center the text inside the inner circle */
+    margin-inline: auto; /* Center the inner circle horizontally */
+    width: fit-content; /* Adjust width to fit content */
+}
+
+.donut-inner h5 {
+    margin-bottom: 0px;
+    margin-top: 0;
+}
+
 /* Navigation Bar */
 .nav-bar {
     background-color: #2563eb; /* Blue background */
