@@ -13,6 +13,9 @@ let categoryTimes = [];
 // The total time tracked, to be displayed in the centre of the donut chart
 let categoryTimeTracked = 0;
 
+// The categories pie chart
+let categoryPieChart = createEmptyDonutChart("category-pie-chart", "Activities");
+
 // A list of activity names
 let activityNames = [];
 
@@ -25,6 +28,9 @@ let activityTimes = [];
 // The total time tracked, to be displayed in the centre of the donut chart
 let activityTimeTracked = 0;
 
+// The activity pie chart
+let activityPieChart = createEmptyDonutChart("activity-pie-chart", "Activities");
+
 function loadActivities() {
     let activitiesString = localStorage.getItem("activities");
     if (activitiesString) {
@@ -33,10 +39,6 @@ function loadActivities() {
 }
 
 function getActivityData() {
-    // Fill the category times array with 0s
-    for (let i = 0; i < categories.length; i++) {
-        categoryTimes.push(0);
-    }
 
     // Iterate over all activities
     for (let i = 0; i < activities.length; i++) {
@@ -47,7 +49,7 @@ function getActivityData() {
         const activityDate = activity.date;
 
         // Add the time to the total time tracked
-        categoryTimeTracked += time;
+        //categoryTimeTracked += time;
 
         // Check if the activity date is the current date
         let currentDate = new Date();
@@ -73,22 +75,101 @@ function getActivityData() {
             }
         }
 
-        // Add the time of the activity to the corresponding position ion the category times array
+        /*// Add the time of the activity to the corresponding position in the category times array
         const categoryIndex = categories.indexOf(category);
         if (categoryIndex == -1) {
             console.log("wtf" + category);
         }
         else {
             categoryTimes[categoryIndex] += time;
+        }*/
+    }
+}
+
+function getCategoryData() {
+    // Reset time tracked to 0
+    categoryTimeTracked = 0;
+
+    // Get the currently selected option from the drop-down menu
+    const dropDown = document.querySelector(".by-time");
+    const option = dropDown.value;
+
+    // Fill the category times array with 0s if it is empty, if not then overwrite the existing array with 0s
+    if (categoryTimes.length == 0) {
+        for (let i = 0; i < categories.length; i++) {
+            categoryTimes.push(0);
         }
+    }
+    else {
+        for (let i = 0; i < categories.length; i++) {
+            categoryTimes[i] = 0;
+        }
+    }
 
+    // Iterate over all activities
+    for (let i = 0; i < activities.length; i++) {
+        // Get activity info
+        const activity = activities[i];
+        const category = activity.category;
+        const time = activity.endTime - activity.startTime;
+        const activityDate = activity.date;
 
+        // Get the current date
+        const currentDate = new Date();
+
+        switch (option) {
+            case "Today":
+                // Check if the activity date is the current date
+                if (activityDate == getIsoString(currentDate)) {
+                    // Add the activity time to the time tracked
+                    categoryTimeTracked += time;
+
+                    // Add the time of the activity to the corresponding position in the category times array
+                    const categoryIndex = categories.indexOf(category);
+                    if (categoryIndex == -1) {
+                        console.log("wtf" + category);
+                    }
+                    else {
+                        categoryTimes[categoryIndex] += time;
+                    }
+                }
+
+                break;
+            case "Past 7 days":
+                // Check if the activity date is in the past 7 days
+                break;
+            case "Past month":
+                // Check if the activity date is in the past month
+                break;
+            case "Past year":
+                // Check if the activity date is in the past year
+                break;
+            case "All time":
+                // Add the activity time to the time tracked
+                categoryTimeTracked += time;
+
+                // Add the time of the activity to the corresponding position in the category times array
+                const categoryIndex = categories.indexOf(category);
+                if (categoryIndex == -1) {
+                    console.log("wtf" + category);
+                }
+                else {
+                    categoryTimes[categoryIndex] += time;
+                }
+    
+    
+                break;
+            default:
+                console.log("Invalid option selected: " + option);
+                break;
+        }
     }
 }
 
 function loadCategoryPieChart() {
     // TODO: Sort the categories
-    new Chart("category-pie-chart", {
+    /*
+    categoryPieChart = new Chart("category-pie-chart", {
         type: "doughnut",
         data: {
             //labels: activities.map(activity => activity.name),
@@ -114,6 +195,13 @@ function loadCategoryPieChart() {
             
         }
     })
+    */
+    // Update pie chart data
+    categoryPieChart.data.labels = categories;
+    categoryPieChart.data.datasets[0].backgroundColor = categoryColours;
+    categoryPieChart.data.datasets[0].data = categoryTimes;
+    categoryPieChart.update();
+
 
     // Display the total time tracked in the centre of the donut chart
     const categoryTimeTrackedElement = document.getElementById("category-time-tracked");
@@ -122,7 +210,8 @@ function loadCategoryPieChart() {
 
 function loadActivityPieChart() {
     // TODO: Sort the activities
-    new Chart("activity-pie-chart", {
+    /*
+    activityPieChart = new Chart("activity-pie-chart", {
         type: "doughnut",
         data: {
             labels: activityNames,
@@ -143,7 +232,13 @@ function loadActivityPieChart() {
                 },
             },
         }
-    })
+    })*/
+
+    // Update pie chart data
+    activityPieChart.data.labels = activityNames;
+    activityPieChart.data.datasets[0].backgroundColor = activityColours;
+    activityPieChart.data.datasets[0].data = activityTimes;
+    activityPieChart.update();
 
     // Display the total time tracked in the centre of the donut chart
     const activityTimeTrackedElement = document.getElementById("activity-time-tracked");
@@ -156,7 +251,44 @@ function getIsoString(date) {
     return isoString; 
 }
 
+function daysBetween(isoDate1, isoDate2) {
+    const year1 = isoDate1.split("-")[0];
+    const month1 = isoDate1.split("-")[1];
+    const day1 = isoDate1.split("-")[2];
+
+    const year2 = isoDate1.split("-")[0];
+    const month2 = isoDate1.split("-")[1];
+    const day2 = isoDate1.split("-")[2];
+}
+
+function createEmptyDonutChart(id, title) {
+    return new Chart(id, {
+        type: "doughnut",
+        data: {
+            labels: [],
+            datasets: [{
+                backgroundColor: [],
+                data: []
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: "top",
+                },
+                title: {
+                    display: true,
+                    text: title,
+                },
+            },
+        }
+    })
+}
+
 loadActivities();
 getActivityData();
 loadActivityPieChart();
+
+getCategoryData();
 loadCategoryPieChart();

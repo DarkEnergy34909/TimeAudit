@@ -442,7 +442,7 @@ function loadActivities() {
 
             // If the activity is in the current week, add it to the calendar
             if (isInWeek(firstDayOfWeek, activityDate)) {
-                console.log("Activity in current week: " + activity.title); 
+                //console.log("Activity in current week: " + activity.title); 
 
                 // Get the date of the activity again - it's being modified so change this shit later
                 activityDate = new Date(activity.date);
@@ -457,8 +457,8 @@ function loadActivities() {
         }
     }
 
-    console.log(activitiesString);
-    console.log(activities);
+    //console.log(activitiesString);
+    //console.log(activities);
 }
 
 function saveActivity(activity) {
@@ -527,8 +527,11 @@ function setTimeLinePosition() {
     // Total ms in a day
     const totalMsInADay = 24 * 60 * 60 * 1000;
 
+    // Get the current date
+    const currentDate = new Date();
+
     // Get the current time in ms (since midnight)
-    const currentTime = ((new Date()).getTime() % totalMsInADay);
+    const currentTime = (currentDate.getHours() * 60 * 60 * 1000) + (currentDate.getMinutes() * 60 * 1000);
 
     // Set the position of the time line to the current time (as a percentage of the total ms in a day)
     timeLine.style.top = (currentTime / totalMsInADay) * 100 + "%"; 

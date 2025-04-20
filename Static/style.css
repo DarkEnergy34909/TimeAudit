@@ -272,7 +272,7 @@ h1#main-title {
 
 .block:hover {
     cursor: pointer;
-    transform: scale(1.05); /* Slightly enlarge the block */
+    /*(transform: scale(1.05); /* Slightly enlarge the block */
     filter: brightness(1.2); /* Brighten the block */
     z-index: 20; /* Bring to the front on hover */
 }

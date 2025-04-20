@@ -47,11 +47,11 @@
 
             <div class="chart-container">
                 <h3>Time spent by category</h3>
-                <select class="by-time">
+                <select class="by-time" onchange="getCategoryData(); loadCategoryPieChart();">
                     <option value="Today">Today</option>
-                    <option value="This week">This week</option>
-                    <option value="This month">This month</option>
-                    <option value="This year">This year</option>
+                    <option value="Past 7 days">This week</option>
+                    <option value="Past month">This month</option>
+                    <option value="Past year">This year</option>
                     <option value="All time">All time</option>
                 </select>
                 <div class="chart" id="category-time-chart-container">
