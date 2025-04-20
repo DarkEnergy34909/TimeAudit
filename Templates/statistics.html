@@ -30,16 +30,16 @@
 
             <div class="chart-container">
                 <h3>Today's activities</h3>
-                <select class="by-time">
+                <!--<select class="by-time">
                     <option value="Today">Today</option>
                     <option value="This week">This week</option>
                     <option value="This month">This month</option>
                     <option value="This year">This year</option>
                     <option value="All time">All time</option>
-                </select>
+                </select>-->
                 <div class="chart" id="">
                     <canvas id="activity-pie-chart" width="200" height="200"></canvas>
-                    <div class="donut-inner">
+                    <div id ="activity-donut-inner" class="donut-inner">
                         <h5 id="activity-time-tracked">Time tracked: 0 hours</h5>
                     </div>
                 </div>
@@ -56,7 +56,7 @@
                 </select>
                 <div class="chart" id="category-time-chart-container">
                     <canvas id="category-pie-chart" width="200" height="200"></canvas>
-                    <div class="donut-inner">
+                    <div id="category-donut-inner" class="donut-inner">
                         <h5 id="category-time-tracked">Time tracked: 0 hours</h5>
                     </div>
                 </div>

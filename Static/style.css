@@ -173,6 +173,17 @@ h1#main-title {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
+/* Time line */
+.time-line {
+    position: absolute;
+    left: 0;
+    top: 50%;
+    width: 100%;
+    height: 1px; /* Height of the line */
+    background-color: red; /* Red line */
+    z-index: 5; /* Ensure it appears above grid cells */
+}
+
 /* Calendar Header */
 .header {
     display: grid;
@@ -325,7 +336,7 @@ h1#main-title {
 
 .donut-inner {
     position: absolute;
-    top: 58%;
+    /*top: 58%;*/
     /*left: 50%;*/
     /*width: 60%; /* Adjust the size of the inner circle */
     /*height: 60%; /* Adjust the size of the inner circle */
@@ -339,6 +350,14 @@ h1#main-title {
     text-align: center; /* Center the text inside the inner circle */
     margin-inline: auto; /* Center the inner circle horizontally */
     width: fit-content; /* Adjust width to fit content */
+}
+
+#activity-donut-inner {
+    top: 56%;
+}
+
+#category-donut-inner {
+    top: 61%;
 }
 
 .donut-inner h5 {

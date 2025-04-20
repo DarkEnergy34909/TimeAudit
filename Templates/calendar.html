@@ -8,7 +8,7 @@
         <script src="{{ url_for('static', filename='calendar.js') }}" defer></script>
     </head>
 
-    <body>
+    <body onresize="removeActivityBlocks(); loadActivities();">
         <h1 id="main-title">TimeAudit</h1>
 
         <div class="nav-bar">
@@ -78,7 +78,6 @@
         </div>
 
         <div id="calendar">
-
             <div class="header">
                 <div class="time-label"></div>
                 <div class="day">Monday</div>
@@ -94,7 +93,9 @@
                 <!-- Calendar body will be populated with JavaScript -->
                  <div class="time-column"></div>
                  
-                 <div class="calendar-grid"></div>
+                 <div class="calendar-grid">
+                    <div class="time-line"></div>
+                 </div>
             </div>
         </div>
 

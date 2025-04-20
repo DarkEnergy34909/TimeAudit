@@ -510,8 +510,39 @@ function removeActivityBlocks() {
     }
 }
 
+function setTimeLinePosition() {
+    
+    // Get the time line element
+    const timeLine = document.querySelector(".time-line");
+    /*
+    timeLine.remove();
+
+    // Get the calendar grid element
+    const calendarGrid = document.querySelector(".calendar-grid");
+
+    // Create a new time line element
+    const newTimeLine = document.createElement("div");
+    newTimeLine.classList.add("time-line");
+    */
+    // Total ms in a day
+    const totalMsInADay = 24 * 60 * 60 * 1000;
+
+    // Get the current time in ms (since midnight)
+    const currentTime = ((new Date()).getTime() % totalMsInADay);
+
+    // Set the position of the time line to the current time (as a percentage of the total ms in a day)
+    timeLine.style.top = (currentTime / totalMsInADay) * 100 + "%"; 
+
+    // Add the time line to the calendar grid
+    //calendarGrid.appendChild(newTimeLine);
+}
+
 populateCalendar();
 setMonthYear(currentDate); 
 setDayHeadings(currentDate);
 onStartNowCheckboxChange(); 
 loadActivities();
+setTimeLinePosition();
+
+// Reset the time line position every second
+setInterval(setTimeLinePosition, 1000);
