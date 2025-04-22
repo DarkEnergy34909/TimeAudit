@@ -117,6 +117,9 @@ function getCategoryData() {
         // Get the current date
         const currentDate = new Date();
 
+        // Get the date of the activity as a Date object
+        const activityDateObj = new Date(activityDate);
+
         switch (option) {
             case "Today":
                 // Check if the activity date is the current date
@@ -137,12 +140,59 @@ function getCategoryData() {
                 break;
             case "Past 7 days":
                 // Check if the activity date is in the past 7 days
+                const date7DaysAgo = (new Date()).getTime() - (7 * 24 * 60 * 60 * 1000);
+
+                if (activityDateObj.getTime() >= date7DaysAgo) {
+                    // Add the activity time to the time tracked
+                    categoryTimeTracked += time;
+
+                    // Add the time of the activity to the corresponding position in the category times array
+                    const categoryIndex = categories.indexOf(category);
+                    if (categoryIndex == -1) {
+                        console.log("wtf" + category);
+                    }
+                    else {
+                        categoryTimes[categoryIndex] += time;
+                    }
+                }
                 break;
             case "Past month":
                 // Check if the activity date is in the past month
+                const date1MonthAgo = (new Date()).getTime() - (30 * 24 * 60 * 60 * 1000);
+
+                if (activityDateObj.getTime() >= date1MonthAgo) {
+                    // Add the activity time to the time tracked
+                    categoryTimeTracked += time;
+
+                    // Add the time of the activity to the corresponding position in the category times array
+                    const categoryIndex = categories.indexOf(category);
+                    if (categoryIndex == -1) {
+                        console.log("wtf" + category);
+                    }
+                    else {
+                        categoryTimes[categoryIndex] += time;
+                    }
+                }
+
                 break;
             case "Past year":
                 // Check if the activity date is in the past year
+                const date1YearAgo = (new Date()).getTime() - (365 * 24 * 60 * 60 * 1000);
+
+                if (activityDateObj.getTime() >= date1YearAgo) {
+                    // Add the activity time to the time tracked
+                    categoryTimeTracked += time;
+
+                    // Add the time of the activity to the corresponding position in the category times array
+                    const categoryIndex = categories.indexOf(category);
+                    if (categoryIndex == -1) {
+                        console.log("wtf" + category);
+                    }
+                    else {
+                        categoryTimes[categoryIndex] += time;
+                    }
+                }
+
                 break;
             case "All time":
                 // Add the activity time to the time tracked
