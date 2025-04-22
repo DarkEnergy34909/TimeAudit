@@ -196,6 +196,9 @@ function loadCategoryPieChart() {
         }
     })
     */
+    // Sort the category data before adding it to the pie chart
+    sortPieChartData(categories, categoryColours, categoryTimes);
+
     // Update pie chart data
     categoryPieChart.data.labels = categories;
     categoryPieChart.data.datasets[0].backgroundColor = categoryColours;
@@ -233,6 +236,9 @@ function loadActivityPieChart() {
             },
         }
     })*/
+
+    // Sort the activity data before adding it to the pie chart
+    sortPieChartData(activityNames, activityColours, activityTimes);
 
     // Update pie chart data
     activityPieChart.data.labels = activityNames;
@@ -284,6 +290,36 @@ function createEmptyDonutChart(id, title) {
             },
         }
     })
+}
+
+// Arrays are pass-by-reference in JS
+function sortPieChartData(labels, colours, data) {
+    // Create an array of objects from the data
+    const dataObjects = [];
+
+    for (let i = 0; i < labels.length; i++) {
+        // Create a new object 
+        const dataObject = {
+            label: labels[i],
+            colour: colours[i],
+            dataPoint: data[i]
+        }
+
+        // Append the object to the array
+        dataObjects.push(dataObject);
+    }
+
+    // Sort the dataObjects array by the data point (descending order)
+    dataObjects.sort(function(a,b){return b.dataPoint - a.dataPoint})
+
+    // Iterate through the sorted dataObjects array and replace the items in the original arrays
+    for (let i = 0; i < labels.length; i++) {
+        labels[i] = dataObjects[i].label;
+        colours[i] = dataObjects[i].colour;
+        data[i] = dataObjects[i].dataPoint;
+    }
+
+    // No need to return anything as arrays are pass-by-reference
 }
 
 loadActivities();
