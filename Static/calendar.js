@@ -296,14 +296,14 @@ function addBlock(title, category, startTime, endTime, day) {
     block.classList.add("block");
     block.textContent = title;
 
-    // Calculate width of block - this is the width of a grid column
-    const blockWidth = gridColumnWidth;
+    // Calculate width of block - this is the width of a grid column - and make it slightly smaller to add a margin
+    const blockWidth = gridColumnWidth * 0.95;
 
     // Calculate height of block - this is the height a grid row multiplied by the end time minus the start time (in hours)
     const blockHeight = gridRowHeight * (endTime - startTime);
 
-    // Calculate x position of block - this is the current day of the week (0-6) multiplied by the width of a grid column
-    const xPosition = day * gridColumnWidth;
+    // Calculate x position of block - this is the current day of the week (0-6) multiplied by the width of a grid column and add a margin
+    const xPosition = (day * gridColumnWidth) + (gridColumnWidth * 0.025);
 
     // Calculate y position of block - this is the start time of the activity (in hours) multiplied by the height of a grid row
     const yPosition = startTime * gridRowHeight;
