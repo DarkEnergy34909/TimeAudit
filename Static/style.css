@@ -270,8 +270,29 @@ h1#main-title {
     border-width: 5px; /* Border width */
 }
 
+.block-text{
+    font-size: 0.9rem; /* Smaller font size for text */
+    color: white; /* White text color */
+    text-align: center; /* Center the text */
+    overflow: hidden; /* Hide overflow */
+    white-space: nowrap; /* Prevent text wrapping */
+    text-overflow: hidden; /* Hide overflow text */
+}
+
+.block button {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    background-color: transparent; /* Transparent background */
+    border: none; /* No border */
+    color: white; /* White text */
+    font-size: 1rem; /* Font size for the button */
+    cursor: pointer; /* Pointer cursor on hover */
+    
+}
+
 .block:hover {
-    cursor: pointer;
+    /*cursor: pointer;*/
     /*(transform: scale(1.05); /* Slightly enlarge the block */
     filter: brightness(1.2); /* Brighten the block */
     z-index: 20; /* Bring to the front on hover */

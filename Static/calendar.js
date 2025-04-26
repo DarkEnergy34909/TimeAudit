@@ -294,7 +294,36 @@ function addBlock(title, category, startTime, endTime, day) {
     // Create a new block
     const block = document.createElement("div");
     block.classList.add("block");
-    block.textContent = title;
+
+    // Show/hide delete button on hover
+    block.onmouseover = function() {
+        // Show the delete button when hovering over the block
+        const deleteButton = block.querySelector("button"); /* Didn't know you could do this lol */
+        deleteButton.hidden = false;
+    }
+    block.onmouseout = function() {
+        // Hide the delete button when not hovering over the block
+        const deleteButton = block.querySelector("button");
+        deleteButton.hidden = true;
+    }
+
+    // Create a delete button for the block
+    const deleteButton = document.createElement("button");
+    deleteButton.textContent = "×";
+
+    // Hide the delete button for now
+    deleteButton.hidden = true; 
+
+    // Create a text label for the block
+    const blockText = document.createElement("span");
+    blockText.classList.add("block-text");
+    blockText.textContent = title; 
+
+    // Add the delete button and the text label to the block
+    block.appendChild(deleteButton);
+    block.appendChild(blockText);
+
+    //block.textContent = title;
 
     // Calculate width of block - this is the width of a grid column - and make it slightly smaller to add a margin
     const blockWidth = gridColumnWidth * 0.95;
