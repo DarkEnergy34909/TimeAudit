@@ -13,9 +13,13 @@ let activities = [];
 // An activity has the following properties
 // title: string (e.g. "Gym")
 // category: string (e.g. "Exercise")
+// startTime: int (e.g. 510 for 08:30)
+// endTime: int (e.g. 600 for 10:00)
+// date: string (e.g. "2023-10-01")
+
+// Putting this here to remind myself what a stupid ass design decision this was
 // startTime: float (e.g. 8.5 for 08:30)
 // endTime: float (e.g. 10.0 for 10:00)
-// date: string (e.g. "2023-10-01")
 
 function populateCalendar() {
     const calendarBody = document.querySelector('.body'); // Returns the body of the calendar, .body because it is a class (CSS selector)
@@ -77,8 +81,12 @@ function addActivity() {
     const endTime = document.getElementById("end-time").value;
 
     // Get the start time and end time as floats (e.g. 8.5 for 08:30)
-    const startTimeFloat = stringTimeToFloat(startTime);
-    const endTimeFloat = stringTimeToFloat(endTime);
+    //const startTimeFloat = stringTimeToFloat(startTime);
+    //const endTimeFloat = stringTimeToFloat(endTime);
+
+    // Get the start time and end time as minutes (e.g. 510 for 08:30)
+    const startTimeMinutes = stringTimeToMinutes(startTime);
+    const endTimeMinutes = stringTimeToMinutes(endTime);
 
     // Get the value of the start now checkbox
     const startNow = document.getElementById("start-now").checked;
@@ -92,7 +100,7 @@ function addActivity() {
     }
 
     // Check if the times are valid and return an error message if not
-    if (startTime == "" || endTime == "" || startTimeFloat >= endTimeFloat) {
+    if (startTime == "" || endTime == "" || startTimeMinutes >= endTimeMinutes) {
         const errorText = document.getElementById("time-input-error");
         errorText.hidden = false; // Show the error message
 
@@ -102,7 +110,7 @@ function addActivity() {
     // Check if the times are already occupied by an activity and return an error message if so
 
     for (let i = 0; i < activities.length; i++) {
-        if (activities[i].date == getIsoString(new Date()) && ((startTimeFloat >= activities[i].startTime && startTimeFloat < activities[i].endTime) || (endTimeFloat > activities[i].startTime && endTimeFloat <= activities[i].endTime))) {
+        if (activities[i].date == getIsoString(new Date()) && ((startTimeMinutes >= activities[i].startTime && startTimeMinutes < activities[i].endTime) || (endTimeMinutes > activities[i].startTime && endTimeMinutes <= activities[i].endTime))) {
             const errorText = document.getElementById("time-input-error");
             errorText.hidden = false; // Show the error message
 
@@ -117,7 +125,7 @@ function addActivity() {
     
     
     // Add the block to the calendar
-    addBlock(activityName, category, startTimeFloat, endTimeFloat, getCurrentDay()); 
+    addBlock(activityName, category, startTimeMinutes, endTimeMinutes, getCurrentDay()); 
 
     // Get the current date as an ISO string
     const currentDate = new Date(); 
@@ -127,8 +135,8 @@ function addActivity() {
     const activity = {
         title: activityName,
         category: category,
-        startTime: startTimeFloat,
-        endTime: endTimeFloat,
+        startTime: startTimeMinutes,
+        endTime: endTimeMinutes,
         date: isoString
     };
 
@@ -310,6 +318,20 @@ function addBlock(title, category, startTime, endTime, day) {
     // Create a delete button for the block
     const deleteButton = document.createElement("button");
     deleteButton.textContent = "×";
+    deleteButton.onclick = function() {
+        // Delete the actual block HTML element
+        block.remove();
+
+        // Remove the activity from the activities array
+        for (let i = 0; i < activities.length; i++) {
+            if (activities[i].title == title && activities[i].startTime == startTime && activities[i].endTime == endTime) {
+                activities.splice(i, 1); // Removes one item from the array at index i
+                break; 
+            }
+        }
+        // Update local storage
+        localStorage.setItem("activities", JSON.stringify(activities));
+    }
 
     // Hide the delete button for now
     deleteButton.hidden = true; 
@@ -329,13 +351,15 @@ function addBlock(title, category, startTime, endTime, day) {
     const blockWidth = gridColumnWidth * 0.95;
 
     // Calculate height of block - this is the height a grid row multiplied by the end time minus the start time (in hours)
-    const blockHeight = gridRowHeight * (endTime - startTime);
+    //const blockHeight = gridRowHeight * (endTime - startTime);
+    const blockHeight = gridRowHeight * (endTime - startTime) / 60;
 
     // Calculate x position of block - this is the current day of the week (0-6) multiplied by the width of a grid column and add a margin
     const xPosition = (day * gridColumnWidth) + (gridColumnWidth * 0.025);
 
     // Calculate y position of block - this is the start time of the activity (in hours) multiplied by the height of a grid row
-    const yPosition = startTime * gridRowHeight;
+    //const yPosition = startTime * gridRowHeight;
+    const yPosition = (startTime * gridRowHeight) / 60; 
 
     // Set the position of the block
     block.style.position = "absolute"; // Set the position to absolute 
@@ -449,6 +473,34 @@ function stringTimeToFloat(timeString) {
 
     return timeFloat;
 }
+
+function stringTimeToMinutes(timeString) {
+    let timeMinutes = 0;
+
+    // Split the time string into hours and minutes
+    const timeParts = timeString.split(":");
+
+    const hours = parseInt(timeParts[0]);
+    const minutes = parseInt(timeParts[1]);
+
+    timeMinutes = (hours * 60) + minutes;
+
+    console.log("Time string: " + timeString + ", Time minutes: " + timeMinutes); // Log the time string and time float
+
+    return timeMinutes;
+}
+
+// Temporary function to migrate from float times in hours to int times in minutes
+/*
+function migrateActivities() {
+    //return Math.floor(timeFloat * 60); 
+    for (let i = 0; i < activities.length; i++) {
+        activities[i].startTime = Math.floor(activities[i].startTime * 60); // Convert to minutes
+        activities[i].endTime = Math.floor(activities[i].endTime * 60); // Convert to minutes
+    }
+
+    localStorage.setItem("activities", JSON.stringify(activities)); // Save the activities to local storage
+}*/
 
 
 
@@ -568,7 +620,6 @@ function setTimeLinePosition() {
     // Add the time line to the calendar grid
     //calendarGrid.appendChild(newTimeLine);
 }
-
 populateCalendar();
 setMonthYear(currentDate); 
 setDayHeadings(currentDate);

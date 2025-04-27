@@ -257,8 +257,10 @@ function loadCategoryPieChart() {
 
 
     // Display the total time tracked in the centre of the donut chart
+    const timeTrackedHoursAndMinutes = minutesToHoursAndMinutes(categoryTimeTracked);
+
     const categoryTimeTrackedElement = document.getElementById("category-time-tracked");
-    categoryTimeTrackedElement.textContent = "Time tracked: " + categoryTimeTracked + " hours";
+    categoryTimeTrackedElement.textContent = timeTrackedHoursAndMinutes[0] + " hours " + timeTrackedHoursAndMinutes[1] + " minutes";
 }
 
 function loadActivityPieChart() {
@@ -297,8 +299,10 @@ function loadActivityPieChart() {
     activityPieChart.update();
 
     // Display the total time tracked in the centre of the donut chart
+    const timeTrackedHoursAndMinutes = minutesToHoursAndMinutes(activityTimeTracked);
+
     const activityTimeTrackedElement = document.getElementById("activity-time-tracked");
-    activityTimeTrackedElement.textContent = "Time tracked: " + activityTimeTracked + " hours";
+    activityTimeTrackedElement.textContent = timeTrackedHoursAndMinutes[0] + " hours " + timeTrackedHoursAndMinutes[1] + " minutes";
 }
 
 function getIsoString(date) {
@@ -338,6 +342,22 @@ function createEmptyDonutChart(id, title) {
                     text: title,
                 },
             },
+            tooltips: {
+                callbacks: {
+                    label: (tooltipItems, data) => {
+                        const label = data.labels[tooltipItems.index] || '';
+                        const value = data.datasets[tooltipItems.datasetIndex].data[tooltipItems.index] || 0;
+                        const hoursAndMinutes = minutesToHoursAndMinutes(value);
+                        // Check if hours are 0 and display only minutes if so
+                        if (hoursAndMinutes[0] == 0) {
+                            return `${label}: ${hoursAndMinutes[1]} minutes`;
+                        } else {
+                            // Display hours and minutes
+                            return `${label}: ${hoursAndMinutes[0]} hours ${hoursAndMinutes[1]} minutes`;
+                        }
+                    }
+                },
+            }
         }
     })
 }
@@ -370,6 +390,12 @@ function sortPieChartData(labels, colours, data) {
     }
 
     // No need to return anything as arrays are pass-by-reference
+}
+
+function minutesToHoursAndMinutes(minutes) {
+    const hours = Math.floor(minutes / 60);
+    const remainingMinutes = minutes % 60;
+    return [hours, remainingMinutes];
 }
 
 loadActivities();
