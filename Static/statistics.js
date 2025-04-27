@@ -1,3 +1,6 @@
+// Disable the default legend for the chart
+//Chart.defaults.global.legend.display = false;
+
 // A list of all activities
 let activities = [];
 
@@ -335,7 +338,9 @@ function createEmptyDonutChart(id, title) {
             responsive: true,
             plugins: {
                 legend: {
-                    position: "top",
+                    position: "bottom",
+                    
+                    //display: false,
                 },
                 title: {
                     display: true,

@@ -371,6 +371,7 @@ h1#main-title {
     text-align: center; /* Center the text inside the inner circle */
     margin-inline: auto; /* Center the inner circle horizontally */
     width: fit-content; /* Adjust width to fit content */
+    z-index: 0; 
 }
 
 #activity-donut-inner {
