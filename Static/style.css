@@ -279,6 +279,18 @@ h1#main-title {
     text-overflow: hidden; /* Hide overflow text */
 }
 
+.block-time {
+    position: absolute;
+    bottom: 0px;
+    left: 5px;
+    font-size: 0.75rem; /* Smaller font size for time */
+    color: white; /* White text color */
+    text-align: left; /* Center the text */
+    overflow: hidden; /* Hide overflow */
+    white-space: nowrap; /* Prevent text wrapping */
+    text-overflow: hidden; /* Hide overflow text */
+}
+
 .block button {
     position: absolute;
     top: 0px;

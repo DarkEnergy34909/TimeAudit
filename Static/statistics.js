@@ -34,6 +34,16 @@ let activityTimeTracked = 0;
 // The activity pie chart
 let activityPieChart = createEmptyDonutChart("activity-pie-chart", "Activities");
 
+// A list of all days in the week
+//let daysInWeek = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+let daysInWeek = [];
+
+// A list of the times of a category for each day of the week
+let categoryTimesByDay = [];
+
+// The category bar chart
+let categoryBarChart = createEmptyBarChart("category-bar-chart", "Activities")
+
 function loadActivities() {
     let activitiesString = localStorage.getItem("activities");
     if (activitiesString) {
@@ -219,6 +229,57 @@ function getCategoryData() {
     }
 }
 
+function getSingleCategoryData(category) {
+    // Reset arrays
+    daysInWeek = [];
+    categoryTimesByDay = [];
+
+    // Iterate over all activities
+    for (let i = 0; i < activities.length; i++) {
+
+        // Get activity info
+        const activity = activities[i];
+        const activityCategory = activity.category;
+        const time = activity.endTime - activity.startTime;
+        const activityDate = activity.date;
+
+        // Get the current date
+        const currentDate = new Date();
+
+        // Get the date of the activity as a Date object
+        const activityDateObj = new Date(activityDate);
+
+        // Get the date 7 days ago
+        const date7DaysAgo = (new Date()).getTime() - (7 * 24 * 60 * 60 * 1000);
+
+        // Get the day of the week 7 days ago in English
+        const dayOfWeek7DaysAgo = new Date(date7DaysAgo).toLocaleString('en-US', { weekday: 'long' });
+
+        // Populate daysInWeek with the days of the week
+        for (let j = 0; j < 7; j++) {
+            daysInWeek.push(new Date(date7DaysAgo + (j * 24 * 60 * 60 * 1000)).toLocaleString('en-US', { weekday: 'long' }));
+        }
+
+
+        // Check if the activity date is in the past 7 days
+        if (activityDateObj.getTime() >= date7DaysAgo) {
+            // Get the index number
+            const index = Math.floor((activityDateObj.getTime() - date7DaysAgo) / (24 * 60 * 60 * 1000));
+
+            // If the category is the same as the one selected, add the time to the array
+            if (activityCategory == category) {
+                // Add the time of the activity to the corresponding position in the category times array
+                if (categoryTimesByDay[index] == undefined) {
+                    categoryTimesByDay[index] = time;
+                }
+                else {
+                    categoryTimesByDay[index] += time;
+                }
+            }
+        }
+    }
+}
+
 function loadCategoryPieChart() {
     // TODO: Sort the categories
     /*
@@ -308,6 +369,21 @@ function loadActivityPieChart() {
     activityTimeTrackedElement.textContent = timeTrackedHoursAndMinutes[0] + " hours " + timeTrackedHoursAndMinutes[1] + " minutes";
 }
 
+function loadCategoryBarChart() {
+    // Get the currently selected option from the drop-down menu
+    const dropDown = document.querySelector("#single-category-select");
+    const option = dropDown.value;
+
+    // Get the category data for the selected option
+    getSingleCategoryData(option);
+
+    // Update the bar chart
+    categoryBarChart.data.labels = daysInWeek;
+    categoryBarChart.data.datasets[0].backgroundColor = categoryColours[categories.indexOf(option)];
+    categoryBarChart.data.datasets[0].data = categoryTimesByDay;
+    categoryBarChart.update();
+}
+
 function getIsoString(date) {
     // Get the date in YYYY-MM-DD format
     const isoString = date.toISOString().split('T')[0]; // Get the date part of the ISO string
@@ -367,6 +443,34 @@ function createEmptyDonutChart(id, title) {
     })
 }
 
+function createEmptyBarChart(id, title) {
+    return new Chart(id, {
+        type: "bar",
+        data: {
+            labels: [],
+            datasets: [{
+                backgroundColor: [],
+                data: []
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            },
+            responsive: true,
+            plugins: {
+                title: {
+                    display: true,
+                    text: title,
+                },
+            },
+
+        }
+    })
+}
+
 // Arrays are pass-by-reference in JS
 function sortPieChartData(labels, colours, data) {
     // Create an array of objects from the data
@@ -403,9 +507,26 @@ function minutesToHoursAndMinutes(minutes) {
     return [hours, remainingMinutes];
 }
 
+function populateBarChartSelectMenu() {
+    const selectMenu = document.querySelector("#single-category-select");
+    for (let i = 0; i < categories.length; i++) {
+
+        // Create a new option
+        const newOption = document.createElement("option");
+        newOption.value = categories[i];
+        newOption.textContent = categories[i];
+
+        // Append the option to the select menu
+        selectMenu.appendChild(newOption);
+    }
+}
+
 loadActivities();
 getActivityData();
 loadActivityPieChart();
 
 getCategoryData();
 loadCategoryPieChart();
+
+populateBarChartSelectMenu();
+loadCategoryBarChart();

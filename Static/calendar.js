@@ -308,11 +308,19 @@ function addBlock(title, category, startTime, endTime, day) {
         // Show the delete button when hovering over the block
         const deleteButton = block.querySelector("button"); /* Didn't know you could do this lol */
         deleteButton.hidden = false;
+
+        // Show the time when hovering over the block
+        const timeLabel = block.querySelector(".block-time");
+        timeLabel.hidden = false;
     }
     block.onmouseout = function() {
         // Hide the delete button when not hovering over the block
         const deleteButton = block.querySelector("button");
         deleteButton.hidden = true;
+
+        // Hide the time when not hovering over the block
+        const timeLabel = block.querySelector(".block-time");
+        timeLabel.hidden = true;
     }
 
     // Create a delete button for the block
@@ -341,9 +349,16 @@ function addBlock(title, category, startTime, endTime, day) {
     blockText.classList.add("block-text");
     blockText.textContent = title; 
 
-    // Add the delete button and the text label to the block
+    // Create a time label for the block
+    const blockTime = document.createElement("span");
+    blockTime.classList.add("block-time");
+    blockTime.textContent = endTime - startTime + "m";
+    blockTime.hidden = true;
+
+    // Add the delete button, the text label and the time label to the block
     block.appendChild(deleteButton);
     block.appendChild(blockText);
+    block.appendChild(blockTime);
 
     //block.textContent = title;
 
