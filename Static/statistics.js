@@ -234,6 +234,14 @@ function getSingleCategoryData(category) {
     daysInWeek = [];
     categoryTimesByDay = [];
 
+    // Get the date 7 days ago
+    const date7DaysAgo = (new Date()).getTime() - (7 * 24 * 60 * 60 * 1000);
+
+    // Populate daysInWeek with the days of the week
+    for (let j = 0; j < 7; j++) {
+        daysInWeek.push(new Date(date7DaysAgo + ((j + 1) * 24 * 60 * 60 * 1000)).toLocaleString('en-US', { weekday: 'long' }));
+    }
+
     // Iterate over all activities
     for (let i = 0; i < activities.length; i++) {
 
@@ -243,23 +251,12 @@ function getSingleCategoryData(category) {
         const time = activity.endTime - activity.startTime;
         const activityDate = activity.date;
 
-        // Get the current date
-        const currentDate = new Date();
-
         // Get the date of the activity as a Date object
         const activityDateObj = new Date(activityDate);
 
-        // Get the date 7 days ago
-        const date7DaysAgo = (new Date()).getTime() - (7 * 24 * 60 * 60 * 1000);
 
         // Get the day of the week 7 days ago in English
         const dayOfWeek7DaysAgo = new Date(date7DaysAgo).toLocaleString('en-US', { weekday: 'long' });
-
-        // Populate daysInWeek with the days of the week
-        for (let j = 0; j < 7; j++) {
-            daysInWeek.push(new Date(date7DaysAgo + (j * 24 * 60 * 60 * 1000)).toLocaleString('en-US', { weekday: 'long' }));
-        }
-
 
         // Check if the activity date is in the past 7 days
         if (activityDateObj.getTime() >= date7DaysAgo) {
@@ -319,12 +316,12 @@ function loadCategoryPieChart() {
     categoryPieChart.data.datasets[0].data = categoryTimes;
     categoryPieChart.update();
 
-
+    /*
     // Display the total time tracked in the centre of the donut chart
     const timeTrackedHoursAndMinutes = minutesToHoursAndMinutes(categoryTimeTracked);
 
     const categoryTimeTrackedElement = document.getElementById("category-time-tracked");
-    categoryTimeTrackedElement.textContent = timeTrackedHoursAndMinutes[0] + " hours " + timeTrackedHoursAndMinutes[1] + " minutes";
+    categoryTimeTrackedElement.textContent = timeTrackedHoursAndMinutes[0] + " hours " + timeTrackedHoursAndMinutes[1] + " minutes";*/
 }
 
 function loadActivityPieChart() {
@@ -362,11 +359,12 @@ function loadActivityPieChart() {
     activityPieChart.data.datasets[0].data = activityTimes;
     activityPieChart.update();
 
+    /*
     // Display the total time tracked in the centre of the donut chart
     const timeTrackedHoursAndMinutes = minutesToHoursAndMinutes(activityTimeTracked);
 
     const activityTimeTrackedElement = document.getElementById("activity-time-tracked");
-    activityTimeTrackedElement.textContent = timeTrackedHoursAndMinutes[0] + " hours " + timeTrackedHoursAndMinutes[1] + " minutes";
+    activityTimeTrackedElement.textContent = timeTrackedHoursAndMinutes[0] + " hours " + timeTrackedHoursAndMinutes[1] + " minutes";*/
 }
 
 function loadCategoryBarChart() {
@@ -381,6 +379,10 @@ function loadCategoryBarChart() {
     categoryBarChart.data.labels = daysInWeek;
     categoryBarChart.data.datasets[0].backgroundColor = categoryColours[categories.indexOf(option)];
     categoryBarChart.data.datasets[0].data = categoryTimesByDay;
+    //categoryBarChart.options.scales.y.title.text = option + " time tracked (minutes)";
+    //categoryBarChart.options.scales.y.title.display = true;
+    //categoryBarChart.options.scales.y.title.font.size = 16;
+    //categoryBarChart.options.scales.y.beginAtZero = true;
     categoryBarChart.update();
 }
 
@@ -455,9 +457,11 @@ function createEmptyBarChart(id, title) {
         },
         options: {
             scales: {
-                y: {
-                    beginAtZero: true
-                }
+                yAxes: [{
+                    ticks: {
+                        beginAtZero: true,
+                    }
+                }]
             },
             responsive: true,
             plugins: {
@@ -466,7 +470,9 @@ function createEmptyBarChart(id, title) {
                     text: title,
                 },
             },
-
+            legend: {
+                display: false,
+            }
         }
     })
 }

@@ -27,58 +27,57 @@
         <div class="statistics-container">
             <h2>Statistics</h2>
             <p id="statistics-text">Here you can see your statistics.</p>
+            <div class="chart-container-wrapper">
+                <div class="chart-container">
+                    <h3>Today's activities</h3>
+                    <!--<select class="by-time">
+                        <option value="Today">Today</option>
+                        <option value="This week">This week</option>
+                        <option value="This month">This month</option>
+                        <option value="This year">This year</option>
+                        <option value="All time">All time</option>
+                    </select>-->
+                    <div class="chart" id="">
+                        <canvas id="activity-pie-chart" width="200" height="200"></canvas>
+                        <div id ="activity-donut-inner" class="donut-inner">
+                            <!--<h5 id="activity-time-tracked">Time tracked: 0 hours</h5>-->
+                        </div>
+                    </div>
+                </div>
 
-            <div class="chart-container">
-                <h3>Today's activities</h3>
-                <!--<select class="by-time">
-                    <option value="Today">Today</option>
-                    <option value="This week">This week</option>
-                    <option value="This month">This month</option>
-                    <option value="This year">This year</option>
-                    <option value="All time">All time</option>
-                </select>-->
-                <div class="chart" id="">
-                    <canvas id="activity-pie-chart" width="200" height="200"></canvas>
-                    <div id ="activity-donut-inner" class="donut-inner">
-                        <h5 id="activity-time-tracked">Time tracked: 0 hours</h5>
+                <div class="chart-container">
+                    <h3>Time spent by category</h3>
+                    <select class="by-time" id="category-time-select" onchange="getCategoryData(); loadCategoryPieChart();">
+                        <option value="Today">Today</option>
+                        <option value="Past week">Past week</option>
+                        <option value="Past month">Past month</option>
+                        <option value="Past year">Past year</option>
+                        <option value="All time">All time</option>
+                    </select>
+                    <div class="chart" id="category-time-chart-container">
+                        <canvas id="category-pie-chart" width="200" height="200"></canvas>
+                        <div id="category-donut-inner" class="donut-inner">
+                            <!--<h5 id="category-time-tracked">Time tracked: 0 hours</h5>-->
+                        </div>
+                    </div>
+                </div>
+
+                <div class="chart-container">
+                    <h3>Time spent on each cateory by day</h3>
+                    <!--<select class="by-time" id="single-category-time-select">
+                        <option value="Past week">Past week</option>
+                        <option value="Past month">Past month</option>
+                    </select> commenting this out for now as it isn't that important, having just a week will probably do for now-->
+
+                    <select class="by-category" id="single-category-select" onchange="loadCategoryBarChart();">
+                        <!--options will be populated with javascript-->
+                    </select>
+
+                    <div class="chart" id="single-category-time-spent-container">
+                        <canvas id="category-bar-chart"></canvas>
                     </div>
                 </div>
             </div>
-
-            <div class="chart-container">
-                <h3>Time spent by category</h3>
-                <select class="by-time" id="category-time-select" onchange="getCategoryData(); loadCategoryPieChart();">
-                    <option value="Today">Today</option>
-                    <option value="Past week">Past week</option>
-                    <option value="Past month">Past month</option>
-                    <option value="Past year">Past year</option>
-                    <option value="All time">All time</option>
-                </select>
-                <div class="chart" id="category-time-chart-container">
-                    <canvas id="category-pie-chart" width="200" height="200"></canvas>
-                    <div id="category-donut-inner" class="donut-inner">
-                        <h5 id="category-time-tracked">Time tracked: 0 hours</h5>
-                    </div>
-                </div>
-            </div>
-
-            <div class="chart-container">
-                <h3>Time spent on each cateory by day</h3>
-                <!--<select class="by-time" id="single-category-time-select">
-                    <option value="Past week">Past week</option>
-                    <option value="Past month">Past month</option>
-                </select> commenting this out for now as it isn't that important, having just a week will probably do for now-->
-
-                <select class="by-category" id="single-category-select">
-                    <!--options will be populated with javascript-->
-                </select>
-
-                <div class="chart" id="single-category-time-spent-container">
-                    <canvas id="category-bar-chart"></canvas>
-                </div>
-            </div>
-
-            
         </div>
     </body>
 </html>

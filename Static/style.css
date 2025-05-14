@@ -330,19 +330,30 @@ h1#main-title {
     text-align: center; /* Center-align text */
 }
 
-/* Chart Container */
+.chart-container-wrapper {
+    display: flex;
+    justify-content: center;
+    gap: 32px;           /* Space between chart containers */
+    flex-wrap: wrap;     /* Allow wrapping on smaller screens */
+    align-items: stretch;/* Make all containers the same height */
+}
+
 .chart-container {
-    position: relative;
-    width: 100%; /* Allow the container to adjust based on its parent */
-    max-width: 500px; /* Set a maximum width for the container */
-    height: auto; /* Allow height to adjust proportionally */
-    margin: 20px auto; /* Center the container horizontally */
-    background-color: #f9f9f9; /* Light background */
-    border-radius: 10px; /* Rounded corners */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow */
-    text-align: center; /* Center-align text */
-    padding: 20px; /* Add padding around the chart */
-    overflow: hidden; /* Prevent overflow */
+    flex: 1 1 350px;     /* Grow, shrink, and set a base width */
+    max-width: 500px;    /* Prevent containers from getting too wide */
+    min-width: 250px;    /* Prevent containers from getting too narrow */
+    height: 500px;       /* Fixed height for consistent proportions */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    margin: 20px 0;      /* Vertical spacing */
+    background-color: #f9f9f9;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    padding: 20px;
+    overflow: hidden;
 }
 
 #category-pie-chart {
