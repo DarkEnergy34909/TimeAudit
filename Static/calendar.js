@@ -10,6 +10,9 @@ let firstDayOfWeek = new Date(firstDayOfCurrentWeek);
 // A list of all activities 
 let activities = [];
 
+// The index of the current activity in the activities array
+let currentActivityIndex = -1;
+
 // An activity has the following properties
 // title: string (e.g. "Gym")
 // category: string (e.g. "Exercise")
@@ -99,14 +102,6 @@ function addActivity() {
         return;
     }
 
-    // Check if the times are valid and return an error message if not
-    if (startTime == "" || endTime == "" || startTimeMinutes >= endTimeMinutes) {
-        const errorText = document.getElementById("time-input-error");
-        errorText.hidden = false; // Show the error message
-
-        return;
-    }
-
     // Check if the times are already occupied by an activity and return an error message if so
 
     for (let i = 0; i < activities.length; i++) {
@@ -120,12 +115,65 @@ function addActivity() {
 
     // If the check now checkbox is checked, return (TODO)
     if (startNow) {
-        return; // TODO
+        // Hide the start activity button 
+        const addButton = document.querySelector("#add-button");
+        addButton.hidden = true;
+
+        // Hide the stop button
+        const stopButton = document.querySelector("#stop-button");
+        stopButton.hidden = false;
+
+        // Add the block to the calendar with a width of SOMETHING
+        addBlock(activityName, category, startTimeMinutes, startTimeMinutes, getCurrentDay(), activities.length);
+
+        // Get the current date as an ISO string
+        const currentDate = new Date(); 
+        const isoString = getIsoString(currentDate);
+
+        // Create a new activity object
+        const activity = {
+            title: activityName,
+            category: category,
+            startTime: startTimeMinutes,
+            endTime: startTimeMinutes,
+            date: isoString
+        };
+
+        // Get the index of the new activity
+        currentActivityIndex = activities.length;
+
+        // Save the activity
+        saveActivity(activity);
+
+        // Close the add menu
+        closeAddMenu();
+
+        // Clear the form inputs
+        document.getElementById("activity-name").value = "";
+        document.getElementById("category").value = "Exercise";
+        document.getElementById("start-time").value = "";
+        document.getElementById("end-time").value = "";
+
+        // Hide the error messages
+        const activityErrorText = document.getElementById("activity-name-error");
+        activityErrorText.hidden = true; // Hide the error message
+
+        const timeErrorText = document.getElementById("time-input-error");
+        timeErrorText.hidden = true; // Hide the error message
+
+        return; 
+    }
+
+    // Check if the times are valid and return an error message if not
+    if (startTime == "" || endTime == "" || startTimeMinutes >= endTimeMinutes) {
+        const errorText = document.getElementById("time-input-error");
+        errorText.hidden = false; // Show the error message
+
+        return;
     }
     
-    
-    // Add the block to the calendar
-    addBlock(activityName, category, startTimeMinutes, endTimeMinutes, getCurrentDay()); 
+    // Add the block to the calendar - activities.length is the index as this will be the index number of the activity when it is added to the array
+    addBlock(activityName, category, startTimeMinutes, endTimeMinutes, getCurrentDay(), activities.length); 
 
     // Get the current date as an ISO string
     const currentDate = new Date(); 
@@ -160,6 +208,21 @@ function addActivity() {
 
     const timeErrorText = document.getElementById("time-input-error");
     timeErrorText.hidden = true; // Hide the error message
+}
+
+function stopActivity() {
+    // Hide the stop button
+    const stopButton = document.querySelector("#stop-button");
+    stopButton.hidden = true;
+
+    // Unhide the add button
+    const addButton = document.querySelector("#add-button");
+    addButton.hidden = false;
+
+    // Set the current activity index to -1
+    currentActivityIndex = -1;
+
+
 }
 
 // Returns 0-6 for Monday-Sunday
@@ -285,7 +348,7 @@ function goToNextWeek() {
 
 }
 // startTime and endTime are FLOATS (e.g. 8.5 for 08:30)
-function addBlock(title, category, startTime, endTime, day) {
+function addBlock(title, category, startTime, endTime, day, index) {
 
 
     const calendarGrid = document.querySelector(".calendar-grid");
@@ -548,7 +611,7 @@ function loadActivities() {
                 activityDay = (activityDay + 6) % 7;
 
                 // Add the block to the calendar
-                addBlock(activity.title, activity.category, activity.startTime, activity.endTime, activityDay);
+                addBlock(activity.title, activity.category, activity.startTime, activity.endTime, activityDay, i);
             }
         }
     }
@@ -635,6 +698,42 @@ function setTimeLinePosition() {
     // Add the time line to the calendar grid
     //calendarGrid.appendChild(newTimeLine);
 }
+
+function updateCurrentActivity() {
+    if (currentActivityIndex != -1) {
+        // Get the activity from the activities array - THIS IS A REFERENCE AND NOT A COPY
+        const currentActivity = activities[currentActivityIndex];
+
+        // Get the current time in minutes
+        const currentDate = new Date();
+        const timeInMinutes = (currentDate.getHours() * 60) + currentDate.getMinutes();
+
+        // Set the endTime of the activity to this time
+        currentActivity.endTime = timeInMinutes;
+
+        /*
+        // Get the element corresponding with this activity
+        const blocks = document.querySelectorAll(".block");
+
+        const currentActivityBlock = null;
+
+        // Iterate over all items in the blocks array
+        for (let i = 0; i < blocks.length; i++) {
+        */
+
+        // Reset all activities onscreen (may change this later if its too chopped)
+        removeActivityBlocks();
+        loadActivities();
+
+        console.log("updated");
+    }
+}
+
+function updateCalendar() {
+    updateCurrentActivity();
+    setTimeLinePosition();
+}
+
 populateCalendar();
 setMonthYear(currentDate); 
 setDayHeadings(currentDate);
@@ -643,4 +742,5 @@ loadActivities();
 setTimeLinePosition();
 
 // Reset the time line position every second
-setInterval(setTimeLinePosition, 1000);
+//setInterval(setTimeLinePosition, 1000);
+setInterval(updateCalendar, 1000);

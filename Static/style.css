@@ -35,6 +35,17 @@ h1#main-title {
     transition: background-color 0.3s ease;
 }
 
+#stop-button {
+    background-color: #dc2626; /* Red */
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 0.3s ease;
+}
+
 #add-button:hover {
     background-color: #1d4ed8; /* Darker Blue */
 }
