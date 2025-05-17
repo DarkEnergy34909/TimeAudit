@@ -124,7 +124,7 @@ function addActivity() {
         stopButton.hidden = false;
 
         // Add the block to the calendar with a width of SOMETHING
-        addBlock(activityName, category, startTimeMinutes, startTimeMinutes, getCurrentDay(), activities.length);
+        addBlock(activityName, category, startTimeMinutes, startTimeMinutes, getCurrentDay(), true);
 
         // Get the current date as an ISO string
         const currentDate = new Date(); 
@@ -173,7 +173,7 @@ function addActivity() {
     }
     
     // Add the block to the calendar - activities.length is the index as this will be the index number of the activity when it is added to the array
-    addBlock(activityName, category, startTimeMinutes, endTimeMinutes, getCurrentDay(), activities.length); 
+    addBlock(activityName, category, startTimeMinutes, endTimeMinutes, getCurrentDay(), false); 
 
     // Get the current date as an ISO string
     const currentDate = new Date(); 
@@ -222,6 +222,10 @@ function stopActivity() {
     // Set the current activity index to -1
     currentActivityIndex = -1;
 
+
+    // Reset the activity blocks
+    removeActivityBlocks();
+    loadActivities();
 
 }
 
@@ -348,7 +352,7 @@ function goToNextWeek() {
 
 }
 // startTime and endTime are FLOATS (e.g. 8.5 for 08:30)
-function addBlock(title, category, startTime, endTime, day, index) {
+function addBlock(title, category, startTime, endTime, day, ongoing) {
 
 
     const calendarGrid = document.querySelector(".calendar-grid");
@@ -365,6 +369,11 @@ function addBlock(title, category, startTime, endTime, day, index) {
     // Create a new block
     const block = document.createElement("div");
     block.classList.add("block");
+
+    // If the activity is ongoing, set the block to be flashing
+    if (ongoing) {
+        block.classList.add("flash");
+    }
 
     // Show/hide delete button on hover
     block.onmouseover = function() {
@@ -611,7 +620,16 @@ function loadActivities() {
                 activityDay = (activityDay + 6) % 7;
 
                 // Add the block to the calendar
-                addBlock(activity.title, activity.category, activity.startTime, activity.endTime, activityDay, i);
+
+                // If the activity is the current activity, add the block with ongoing=true
+                if (i == currentActivityIndex) {
+                    addBlock(activity.title, activity.category, activity.startTime, activity.endTime, activityDay, true);
+                }
+                // If the activity is not the current activity, add the block with no flash
+                else {
+                    addBlock(activity.title, activity.category, activity.startTime, activity.endTime, activityDay, false);
+                }
+                
             }
         }
     }

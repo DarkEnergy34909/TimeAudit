@@ -1,6 +1,6 @@
 /* General Styles */
 body {
-    font-family: 'Arial', sans-serif;
+    font-family: sans-serif;
     margin: 0;
     padding: 0;
     background-color: #f9f9f9;
@@ -448,4 +448,29 @@ h1#main-title {
 .nav-bar a.active {
     background-color: #93c5fd; /* Highlighted color for the active page */
     color: #1e3a8a; /* Darker text for contrast */
+}
+
+.flash {
+    animation: flash-brightness 1s linear infinite;
+}
+
+@keyframes flash-brightness {
+    0% {
+        filter: brightness(1);
+    }
+    50% {
+        filter: brightness(1.5);
+    }
+    100% {
+        filter: brightness(1);
+    }
+}
+
+.home-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: calc(100vh - 150px); /* Adjust height to fit the screen */
+    text-align: center;
 }
