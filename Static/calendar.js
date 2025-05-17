@@ -711,6 +711,9 @@ function updateCurrentActivity() {
         // Set the endTime of the activity to this time
         currentActivity.endTime = timeInMinutes;
 
+        // Save the activities array to local storage
+        localStorage.setItem("activities", JSON.stringify(activities));
+
         /*
         // Get the element corresponding with this activity
         const blocks = document.querySelectorAll(".block");
