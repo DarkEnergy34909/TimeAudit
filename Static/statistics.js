@@ -151,7 +151,7 @@ function getCategoryData() {
                 }
 
                 break;
-            case "Past 7 days":
+            case "Past week":
                 // Check if the activity date is in the past 7 days
                 const date7DaysAgo = (new Date()).getTime() - (7 * 24 * 60 * 60 * 1000);
 
