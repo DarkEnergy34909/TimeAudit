@@ -17,6 +17,7 @@
                 <a href="/">Home</a>
                 <a href="calendar">Calendar</a>
                 <a href="statistics">Statistics</a>
+                <a href="goals">Goals</a>
             </nav>
 
         </div>
@@ -44,7 +45,7 @@
                 <label for="activity-name">Activity name</label>
                 <input type="text" id="activity-name" name="activity-name" required><br><br>
 
-                <p class="error-text" id="activity-name-error" hidden>Please enter an activity name</p>
+                <p class="error-text" id="activity-name-error" hidden>Please enter an activity name.</p>
 
                 <label for="category">Category</label>
                 <select id="category" name="category">
@@ -71,7 +72,7 @@
                 <label for="end-time">End time</label>
                 <input type="time" id="end-time" class="time-input" name="end-time" disabled><br><br>
 
-                <p class="error-text" id="time-input-error" hidden>Please enter a valid pair of times that aren't already occupied by an activity</p>
+                <p class="error-text" id="time-input-error" hidden>Please enter a valid pair of times that aren't already occupied by an activity.</p>
 
                 <!--<input type="submit" value="Add activity">-->
                 <button type="button" onclick="addActivity();">Add activity</button>

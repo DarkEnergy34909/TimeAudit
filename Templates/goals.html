@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>TimeAudit</title>
+        <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+        <!--<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto">-->
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Poppins">
+        <script src="{{ url_for('static', filename='goals.js') }}" defer></script>
+    </head>
+    <body style="font-family: 'Poppins';">
+        <h1 id="main-title">TimeAudit</h1>
+
+        <div class="nav-bar">
+            <nav id="nav">
+                <a href="/">Home</a>
+                <a href="calendar">Calendar</a>
+                <a href="statistics">Statistics</a>
+                <a href="goals">Goals</a>
+            </nav>
+
+        </div>
+
+        <div class="top-bar">
+            <button id="add-button" onclick="openAddMenu();">Add goal</button>
+        </div>
+
+        <div class="goals-container">
+            <div id="goals-title">
+                <h2>Today's goals</h2>
+            </div>
+
+            <div id="goals-list">
+                <!--Goal cards will go here-->
+            </div>
+        </div>
+
+        <div class="add-menu" hidden="true">
+            <h2>Add a goal</h2>
+            <form action="" method="POST">
+                <label for="goal-name">Goal name</label>
+                <input type="text" id="goal-name" name="goal-name" required><br><br>
+
+                <p class="error-text" id="goal-name-error" hidden>Please enter a goal name.</p>
+
+                <label for="goal-duration">Duration (minutes)</label>
+                <input type="number" id="goal-duration" name="goal-duration" min="1" required><br><br>
+
+                <p class="error-text" id="duration-error" hidden>Please enter a duration.</p>
+
+                <button type="button" onclick="addGoal();">Add goal</button>
+                <button type="button" onclick="closeAddMenu();">Cancel</button>
+            </form>
+        </div>
+    </body>
+</html>

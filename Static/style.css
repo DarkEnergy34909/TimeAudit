@@ -92,7 +92,7 @@ h1#main-title {
     padding: 20px;
     width: 400px; /* Fixed width for consistency */
     z-index: 1000; /* Ensure it appears above other elements */
-    font-family: Arial, sans-serif;
+    /*font-family: Arial, sans-serif;*/
     color: #333; /* Dark text color */
 }
 
@@ -477,4 +477,19 @@ h1#main-title {
     justify-content: center;
     height: calc(100vh - 150px); /* Adjust height to fit the screen */
     text-align: center;
+}
+
+.goals-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: calc(100vh - 150px); /* Adjust height to fit the screen */
+    text-align: center;
+    margin: 20px;
+    padding: 20px;
+    background-color: #f9f9f9; /* Light background */
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+    width: 100%; /* Full width */
 }

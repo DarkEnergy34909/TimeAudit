@@ -14,5 +14,9 @@ def statistics():
 def calendar():
     return render_template("calendar.html")
 
+@app.route("/goals", methods = ["GET", "POST"])
+def goals():
+    return render_template("goals.html")
+
 if (__name__ == "__main__"):
     app.run(debug=True, host="0.0.0.0", port=5000)
