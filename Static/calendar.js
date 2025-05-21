@@ -54,6 +54,10 @@ function populateCalendar() {
     for (let i = 0; i < 7 * 24; i++) {
         const gridDiv = document.createElement("div");
         gridDiv.classList.add("grid-item");
+        // Set the calendar grid to be slightly darker if it is on the current day
+        if (i % 7 == getCurrentDay()) {
+            gridDiv.classList.add("grid-item-today");
+        }
         calendarGrid.appendChild(gridDiv);
     }
     //let test = document.getElementById("test");
@@ -283,7 +287,7 @@ function setDayHeadings(date) {
 
         // If the day is today, highlight it in red
         if (i == getCurrentDay()) {
-            dayLabels[i].style.color = "red"; // Highlight the current day label in red
+            dayLabels[i].style.color = "#f73a2d"; // Highlight the current day label in red
         } 
         else {
             dayLabels[i].style.color = "white"; // Reset color for other days
@@ -319,6 +323,14 @@ function goToPreviousWeek() {
     const nextButton = document.getElementById("next-button");
     nextButton.hidden = false; 
 
+    // Uncolour the grid divs with the current day
+    const gridDivs = document.querySelectorAll(".grid-item-today");
+    if (gridDivs.length != 0) {
+        for (let i = 0; i < gridDivs.length; i++) {
+            gridDivs[i].classList.remove("grid-item-today");
+        }
+    }
+
     // Reset displayed activities by removing all blocks and then reloading
     removeActivityBlocks();
     loadActivities();
@@ -342,6 +354,16 @@ function goToNextWeek() {
         // Hide the next button
         const nextButton = document.getElementById("next-button");
         nextButton.hidden = true;
+
+        // Colour the grid divs with the current day
+        const gridDivs = document.querySelectorAll(".grid-item");
+
+        for (let i = 0; i < gridDivs.length; i++) {
+            if (i % 7 == getCurrentDay()) {
+                gridDivs[i].classList.add("grid-item-today");
+            }
+        }
+
     }
     else {
         // Unhighlight the current day label

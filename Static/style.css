@@ -256,6 +256,10 @@ h1#main-title {
     transition: background-color 0.3s ease;
 }
 
+.grid-item-today {
+    background-color: #e0eeff; /* Light Blue */
+}
+
 .grid-item:hover {
     background-color: #bfdbfe; /* Light Blue Hover */
 }
