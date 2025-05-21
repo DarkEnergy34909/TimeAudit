@@ -119,8 +119,9 @@ function addActivity() {
         const addButton = document.querySelector("#add-button");
         addButton.hidden = true;
 
-        // Hide the stop button
+        // Show the stop button and modify the text to the current activity
         const stopButton = document.querySelector("#stop-button");
+        stopButton.textContent = "Stop '" + activityName + "'";
         stopButton.hidden = false;
 
         // Add the block to the calendar with a width of SOMETHING
@@ -139,8 +140,9 @@ function addActivity() {
             date: isoString
         };
 
-        // Get the index of the new activity
+        // Get the index of the new activity and save to local storage
         currentActivityIndex = activities.length;
+        localStorage.setItem("current_activity", currentActivityIndex)
 
         // Save the activity
         saveActivity(activity);
@@ -219,8 +221,9 @@ function stopActivity() {
     const addButton = document.querySelector("#add-button");
     addButton.hidden = false;
 
-    // Set the current activity index to -1
+    // Set the current activity index to -1 and update local storage
     currentActivityIndex = -1;
+    localStorage.setItem("current_activity", currentActivityIndex);
 
 
     // Reset the activity blocks
@@ -406,8 +409,23 @@ function addBlock(title, category, startTime, endTime, day, ongoing) {
         for (let i = 0; i < activities.length; i++) {
             if (activities[i].title == title && activities[i].startTime == startTime && activities[i].endTime == endTime) {
                 activities.splice(i, 1); // Removes one item from the array at index i
-                break; 
+
+                // If the activity is currently running, reset the index
+                if (i == currentActivityIndex) {
+                    currentActivityIndex = -1;
+                    localStorage.setItem("current_activity", -1);
+
+                    // Hide the stop button and show the add button (at the top of the page)
+                    const addButton = document.querySelector("#add-button");
+                    const stopButton = document.querySelector("#stop-button");
+
+                    addButton.hidden = false;
+                    stopButton.hidden = true;
+                }
+
+                break;
             }
+
         }
         // Update local storage
         localStorage.setItem("activities", JSON.stringify(activities));
@@ -596,6 +614,9 @@ function loadActivities() {
     // Load activities from local storage
     const activitiesString = localStorage.getItem("activities");
 
+    // Set the current activity index to the one stored 
+    currentActivityIndex = parseInt(localStorage.getItem("current_activity"));
+
     // Check if there are any activities saved first
     if (activitiesString) {
         activities = JSON.parse(activitiesString);
@@ -750,6 +771,25 @@ function updateCurrentActivity() {
     }
 }
 
+function initialiseTopButton() {
+    const addButton = document.querySelector("#add-button");
+    const stopButton = document.querySelector("#stop-button");
+
+    // Show the delete button if there is an activity running, and set its text
+    if (currentActivityIndex != -1) {
+        addButton.hidden = true;
+
+        const activityName = activities[currentActivityIndex].title;
+        stopButton.textContent = "Stop '" + activityName + "'";
+        stopButton.hidden = false;
+    }
+    else {
+        addButton.hidden = false;
+
+        stopButton.hidden = true;
+    }
+}
+
 function updateCalendar() {
     updateCurrentActivity();
     setTimeLinePosition();
@@ -760,6 +800,7 @@ setMonthYear(currentDate);
 setDayHeadings(currentDate);
 onStartNowCheckboxChange(); 
 loadActivities();
+initialiseTopButton();
 setTimeLinePosition();
 
 // Reset the time line position every second
