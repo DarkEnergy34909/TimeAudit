@@ -479,6 +479,11 @@ h1#main-title {
     text-align: center;
 }
 
+.goals-body{
+    align-items: center;
+    align-content: center;
+}
+
 #goals-title {
     font-size: 1rem;
     text-align: center;
@@ -488,6 +493,7 @@ h1#main-title {
 }
 
 .goals-container {
+    max-width: 1000px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -498,8 +504,7 @@ h1#main-title {
     padding: 20px;
     background-color: #f9f9f9; /* Light background */
     border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow */
-    width: 100%; /* Full width */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5); /* Subtle shadow */
 }
 
 .goal-card {

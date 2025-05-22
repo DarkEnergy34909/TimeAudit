@@ -544,6 +544,9 @@ function addBlock(title, category, startTime, endTime, day, ongoing) {
 }
 
 function openAddMenu() {
+    // Make sure the start time is correct if the checkbox is checked
+    onStartNowCheckboxChange();
+
     const addMenu = document.querySelector(".add-menu");
     addMenu.hidden = false; 
 }
