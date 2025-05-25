@@ -1,6 +1,91 @@
 // Disable the default legend for the chart
 //Chart.defaults.global.legend.display = false;
 
+// Code to add text to donut chart
+Chart.pluginService.register({
+  beforeDraw: function(chart) {
+    if (chart.config.options.elements.center) {
+      // Get ctx from string
+      var ctx = chart.chart.ctx;
+
+      // Get options from the center object in options
+      var centerConfig = chart.config.options.elements.center;
+      var fontStyle = centerConfig.fontStyle || 'Arial';
+      var txt = centerConfig.text;
+      var color = centerConfig.color || '#000';
+      var maxFontSize = centerConfig.maxFontSize || 75;
+      var sidePadding = centerConfig.sidePadding || 20;
+      var sidePaddingCalculated = (sidePadding / 100) * (chart.innerRadius * 2)
+      // Start with a base font of 30px
+      ctx.font = "30px " + fontStyle;
+
+      // Get the width of the string and also the width of the element minus 10 to give it 5px side padding
+      var stringWidth = ctx.measureText(txt).width;
+      var elementWidth = (chart.innerRadius * 2) - sidePaddingCalculated;
+
+      // Find out how much the font can grow in width.
+      var widthRatio = elementWidth / stringWidth;
+      var newFontSize = Math.floor(30 * widthRatio);
+      var elementHeight = (chart.innerRadius * 2);
+
+      // Pick a new font size so it will not be larger than the height of label.
+      var fontSizeToUse = Math.min(newFontSize, elementHeight, maxFontSize);
+      var minFontSize = centerConfig.minFontSize;
+      var lineHeight = centerConfig.lineHeight || 25;
+      var wrapText = false;
+
+      if (minFontSize === undefined) {
+        minFontSize = 20;
+      }
+
+      if (minFontSize && fontSizeToUse < minFontSize) {
+        fontSizeToUse = minFontSize;
+        wrapText = true;
+      }
+
+      // Set font settings to draw it correctly.
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      var centerX = ((chart.chartArea.left + chart.chartArea.right) / 2);
+      var centerY = ((chart.chartArea.top + chart.chartArea.bottom) / 2);
+      ctx.font = fontSizeToUse + "px " + fontStyle;
+      ctx.fillStyle = color;
+
+      if (!wrapText) {
+        ctx.fillText(txt, centerX, centerY);
+        return;
+      }
+
+      var words = txt.split(' ');
+      var line = '';
+      var lines = [];
+
+      // Break words up into multiple lines if necessary
+      for (var n = 0; n < words.length; n++) {
+        var testLine = line + words[n] + ' ';
+        var metrics = ctx.measureText(testLine);
+        var testWidth = metrics.width;
+        if (testWidth > elementWidth && n > 0) {
+          lines.push(line);
+          line = words[n] + ' ';
+        } else {
+          line = testLine;
+        }
+      }
+
+      // Move the center up depending on line height and number of lines
+      centerY -= (lines.length / 2) * lineHeight;
+
+      for (var n = 0; n < lines.length; n++) {
+        ctx.fillText(lines[n], centerX, centerY);
+        centerY += lineHeight;
+      }
+      //Draw text in center
+      ctx.fillText(line, centerX, centerY);
+    }
+  }
+});
+
 // A list of all activities
 let activities = [];
 
@@ -39,7 +124,7 @@ let activityPieChart = createEmptyDonutChart("activity-pie-chart", "Activities")
 let daysInWeek = [];
 
 // A list of the times of a category for each day of the week
-let categoryTimesByDay = [];
+//let categoryTimesByDay = [];
 
 // The category bar chart
 let categoryBarChart = createEmptyBarChart("category-bar-chart", "Activities")
@@ -232,7 +317,7 @@ function getCategoryData() {
 function getSingleCategoryData(category) {
     // Reset arrays
     daysInWeek = [];
-    categoryTimesByDay = [];
+    const categoryTimesByDay = [];
 
     // Get the date 7 days ago
     const date7DaysAgo = (new Date()).getTime() - (7 * 24 * 60 * 60 * 1000);
@@ -275,6 +360,7 @@ function getSingleCategoryData(category) {
             }
         }
     }
+    return categoryTimesByDay
 }
 
 function loadCategoryPieChart() {
@@ -314,6 +400,12 @@ function loadCategoryPieChart() {
     categoryPieChart.data.labels = categories;
     categoryPieChart.data.datasets[0].backgroundColor = categoryColours;
     categoryPieChart.data.datasets[0].data = categoryTimes;
+
+    // Get the total time tracked and update the pie chart
+    const timeTrackedHoursAndMinutes = minutesToHoursAndMinutes(categoryTimeTracked);
+    categoryPieChart.options.elements.center.text = timeTrackedHoursAndMinutes[0] + " hours " + timeTrackedHoursAndMinutes[1] + " minutes";
+
+    // Update the donut chart
     categoryPieChart.update();
 
     /*
@@ -357,6 +449,12 @@ function loadActivityPieChart() {
     activityPieChart.data.labels = activityNames;
     activityPieChart.data.datasets[0].backgroundColor = activityColours;
     activityPieChart.data.datasets[0].data = activityTimes;
+
+    // Get the total time tracked and update the pie chart
+    const timeTrackedHoursAndMinutes = minutesToHoursAndMinutes(activityTimeTracked);
+    activityPieChart.options.elements.center.text = timeTrackedHoursAndMinutes[0] + " hours " + timeTrackedHoursAndMinutes[1] + " minutes";
+
+    // Update the donut chart
     activityPieChart.update();
 
     /*
@@ -372,18 +470,43 @@ function loadCategoryBarChart() {
     const dropDown = document.querySelector("#single-category-select");
     const option = dropDown.value;
 
-    // Get the category data for the selected option
-    getSingleCategoryData(option);
+    // Reset the bar chart
+    categoryBarChart.data.labels = [];
+    categoryBarChart.data.datasets = [{}];
 
-    // Update the bar chart
-    categoryBarChart.data.labels = daysInWeek;
-    categoryBarChart.data.datasets[0].backgroundColor = categoryColours[categories.indexOf(option)];
-    categoryBarChart.data.datasets[0].data = categoryTimesByDay;
-    //categoryBarChart.options.scales.y.title.text = option + " time tracked (minutes)";
-    //categoryBarChart.options.scales.y.title.display = true;
-    //categoryBarChart.options.scales.y.title.font.size = 16;
-    //categoryBarChart.options.scales.y.beginAtZero = true;
-    categoryBarChart.update();
+    // Get the category data for the selected option
+    if (option != "All") {
+        const categoryTimesByDay = getSingleCategoryData(option);
+
+        // Update the bar chart
+        categoryBarChart.data.labels = daysInWeek;
+        categoryBarChart.data.datasets[0].backgroundColor = categoryColours[categories.indexOf(option)];
+        categoryBarChart.data.datasets[0].data = categoryTimesByDay;
+        //categoryBarChart.options.scales.y.title.text = option + " time tracked (minutes)";
+        //categoryBarChart.options.scales.y.title.display = true;
+        //categoryBarChart.options.scales.y.title.font.size = 16;
+        //categoryBarChart.options.scales.y.beginAtZero = true;
+        categoryBarChart.update();
+    }
+    else {
+        // The list of datasets to be used for the stacked bar chart
+        //const datasets = [];
+
+        // Add data for each category to the array
+        for (let i = 0; i < categories.length; i++) {
+            categoryBarChart.data.datasets.push({
+                backgroundColor: categoryColours[i],
+                data: getSingleCategoryData(categories[i])
+            })
+        }
+
+        // Set the labels for the bar chart
+        categoryBarChart.data.labels = daysInWeek;
+
+        // Update the bar chart
+        categoryBarChart.update();
+
+    }
 }
 
 function getIsoString(date) {
@@ -440,6 +563,16 @@ function createEmptyDonutChart(id, title) {
                         }
                     }
                 },
+            },
+            elements: {
+                center: {
+                    text: "",
+                    // color:
+                    // fontStyle
+                    // sidePadding
+                    // minFontSize
+                    // lineHeight
+                }
             }
         }
     })
@@ -460,8 +593,12 @@ function createEmptyBarChart(id, title) {
                 yAxes: [{
                     ticks: {
                         beginAtZero: true,
-                    }
-                }]
+                    },
+                    stacked: true
+                }],
+                xAxes: [{
+                    stacked: true
+                }],
             },
             responsive: true,
             plugins: {
@@ -515,6 +652,13 @@ function minutesToHoursAndMinutes(minutes) {
 
 function populateBarChartSelectMenu() {
     const selectMenu = document.querySelector("#single-category-select");
+
+    // Add "All" as an option
+    const newOption = document.createElement("option");
+    newOption.value = "All";
+    newOption.textContent = "All";
+    selectMenu.appendChild(newOption);
+
     for (let i = 0; i < categories.length; i++) {
 
         // Create a new option
