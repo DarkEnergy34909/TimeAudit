@@ -567,9 +567,10 @@ function createEmptyDonutChart(id, title) {
             elements: {
                 center: {
                     text: "",
+                    fontStyle: "Poppins",
                     // color:
                     // fontStyle
-                    // sidePadding
+                    sidePadding: "30"
                     // minFontSize
                     // lineHeight
                 }

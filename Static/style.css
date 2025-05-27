@@ -493,9 +493,10 @@ h1#main-title {
 }
 
 .goals-menu {
+    position: relative;
     max-width: 1500px;
-    display: flex;
-    flex-direction: column;
+    /*display: flex;
+    /*flex-direction: column;
     align-items: center;
     /*justify-content: center;*/
     height: calc(100vh - 150px); /* Adjust height to fit the screen */
@@ -509,7 +510,19 @@ h1#main-title {
     margin-right: auto;
 }
 
+.goals-list {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
+    width: 100%; /* Full width */
+}
+
 .goal-card {
+    position: relative;
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -517,9 +530,21 @@ h1#main-title {
     border-radius: 10px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow */
     padding: 20px;
-    margin: 10px;
-    width: 100%; /* Full width */
+    margin: 10px auto; /* Center the card */
+    width: 50%; /* Full width */
     max-height: 100px;
+}
+
+.goal-card button {
+    background-color: transparent; /* Transparent background */
+    border: none; /* No border */
+    color: #1e3a8a; /* Dark Blue text */
+    font-size: 1.2rem; /* Font size for the button */
+    cursor: pointer; /* Pointer cursor on hover */
+    /*margin-left: auto; /* Push button to the right */
+    position: absolute;
+    right: 5px;
+    top: 5px;
 }
 
 .goals-container {
