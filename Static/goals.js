@@ -273,7 +273,7 @@ function createProgressChart(id, amountDone, total) {
         data: {
             labels: [],
             datasets: [{
-                backgroundColor: ["#22C55E", "#9CA3AF"],
+                backgroundColor: ["#22C55E", "#d4d4d4"],
                 data: [percentDone, percentNotDone]
             }]
         },
@@ -296,7 +296,7 @@ function createProgressChart(id, amountDone, total) {
             hover: {
                 mode: null
             },
-            cutoutPercentage: 70,
+            cutoutPercentage: 75,
             elements: {
                 center: {
                     text: percentDone + "%",
@@ -306,6 +306,9 @@ function createProgressChart(id, amountDone, total) {
                     sidePadding: "50",
                     minFontSize: "10",
                     //lineHeight: "5"
+                },
+                arc: {
+                    borderWidth: 0
                 }
             }
         }
