@@ -621,6 +621,27 @@ function loadGoalsBarChart() {
         data: goalsInProgress
     })
 
+    goalsBarChart.options.tooltips.callbacks = {
+        label: (tooltipItems, data) => {
+            const datasetIndex = tooltipItems.datasetIndex;
+            const value = data.datasets[datasetIndex].data[tooltipItems.index] || 0;
+
+            // TODO: Find out why tf this works lol
+            // If the goal is completed
+            if (datasetIndex - 1 == 0) {
+                return `Completed: ${value}`;
+            }
+            // If the goal is uncompleted
+            else if (datasetIndex - 1 == 1) {
+                return `Unfinished: ${value}`;
+            }
+            // If the goal is in progress
+            else {
+                return `In progress: ${value}`;
+            }
+        }
+    }
+
     // Update the chart
     goalsBarChart.update();
 }
