@@ -47,8 +47,11 @@
 
                 <p class="error-text" id="goal-name-error" hidden>Please enter a goal name.</p>
 
-                <label for="goal-duration">Duration (minutes)</label>
-                <input type="number" id="goal-duration" name="goal-duration" min="1" required><br><br>
+                <label for="goal-duration-hours">Duration (hours)</label>
+                <input type="number" id="goal-duration-hours" name="goal-duration-hours" min="0" value="0" required><br><br>
+
+                <label for="goal-duration-minutes">Duration (minutes)</label>
+                <input type="number" id="goal-duration-minutes" name="goal-duration-minutes" min="0" max="59" value="0" required><br><br>
 
                 <p class="error-text" id="duration-error" hidden>Please enter a duration.</p>
 

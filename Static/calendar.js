@@ -19,6 +19,7 @@ let currentActivityIndex = -1;
 // startTime: int (e.g. 510 for 08:30)
 // endTime: int (e.g. 600 for 10:00)
 // date: string (e.g. "2023-10-01")
+// goalName: string (e.g. "Study Physics")
 
 // Putting this here to remind myself what a stupid ass design decision this was
 // startTime: float (e.g. 8.5 for 08:30)
@@ -86,6 +87,7 @@ function addActivity() {
     const category = document.getElementById("category").value;
     const startTime = document.getElementById("start-time").value;
     const endTime = document.getElementById("end-time").value;
+    const goalName = document.getElementById("link-to-goal").value;
 
     // Get the start time and end time as floats (e.g. 8.5 for 08:30)
     //const startTimeFloat = stringTimeToFloat(startTime);
@@ -141,7 +143,8 @@ function addActivity() {
             category: category,
             startTime: startTimeMinutes,
             endTime: startTimeMinutes,
-            date: isoString
+            date: isoString,
+            goalName: goalName
         };
 
         // Get the index of the new activity and save to local storage
@@ -191,10 +194,14 @@ function addActivity() {
         category: category,
         startTime: startTimeMinutes,
         endTime: endTimeMinutes,
-        date: isoString
+        date: isoString,
+        goalName: goalName
     };
 
     console.log(activities);
+
+    // Update the goal
+    addTimeToGoal(activity);
 
     // Save the activity
     saveActivity(activity);
@@ -225,6 +232,10 @@ function stopActivity() {
     const addButton = document.querySelector("#add-button");
     addButton.hidden = false;
 
+    // Get the current activity and update the goal
+    const currentActivity = activities[currentActivityIndex];
+    addTimeToGoal(currentActivity);
+
     // Set the current activity index to -1 and update local storage
     currentActivityIndex = -1;
     localStorage.setItem("current_activity", currentActivityIndex);
@@ -234,6 +245,27 @@ function stopActivity() {
     removeActivityBlocks();
     loadActivities();
 
+}
+
+function addTimeToGoal(activity) {
+    // Get the goal associated with the activity
+    const goalsString = localStorage.getItem("goals");
+
+    if (activity.goalName != "None" && goalsString != null) {
+        const goals = JSON.parse(goalsString);
+
+        for (let i = 0; i < goals.length; i++) {
+            if (goals[i].title == activity.goalName && goals[i].date == activity.date) {
+                // Goal has been found - update its time
+                goals[i].timeDone += (activity.endTime - activity.startTime);
+
+                break;
+            }
+        }
+
+        // Save the goals list to local storage
+        localStorage.setItem("goals", JSON.stringify(goals));
+    }
 }
 
 // Returns 0-6 for Monday-Sunday
@@ -547,11 +579,39 @@ function openAddMenu() {
     // Make sure the start time is correct if the checkbox is checked
     onStartNowCheckboxChange();
 
+    // Unhide the menu
     const addMenu = document.querySelector(".add-menu");
     addMenu.hidden = false; 
+
+    // Populate the goal select menu with a list of current goals
+    const selectMenu = addMenu.querySelector("#link-to-goal");
+
+    // Remove all existing select options
+    selectMenu.textContent = "";
+
+    const noneOption = document.createElement("option");
+    noneOption.value = "None";
+    noneOption.textContent = "None";
+    selectMenu.appendChild(noneOption);
+
+    const goalsString = localStorage.getItem("goals");
+    if (goalsString != null) {
+        const goals = JSON.parse(goalsString);
+        for (let i = 0; i < goals.length; i++) {
+            // If the goal is on the current day add its name as an option
+            if (goals[i].date == getIsoString(new Date())) {
+                const goalOption = document.createElement("option");
+                goalOption.value = goals[i].title;
+                goalOption.textContent = goals[i].title;
+                
+                selectMenu.appendChild(goalOption);
+            }
+        }
+    }
 }
 
 function closeAddMenu() {
+    // Hide the menu
     const addMenu = document.querySelector(".add-menu");
     addMenu.hidden = true; 
 }
@@ -774,6 +834,27 @@ function updateCurrentActivity() {
 
         // Set the endTime of the activity to this time
         currentActivity.endTime = timeInMinutes;
+
+        // Update the goal associated with that activity if there is one
+        /* SCRAPPED THIS LOL - IDK HOW TO DO THIS SO ILL JUST UPDATE WHEN THE ACTIVITY FINISHES
+
+        if (currentActivity.goalName != "None") {
+            const goalsString = localStorage.getItem("goals");
+
+
+            if (goalsString != null) {
+                const goals = JSON.parse(goalsString);
+
+                // Find the goal referred to by the activity
+                for (let i = 0; i < goals.length; i++) {
+                    if (goals[i].title == currentActivity.goalName && goals[i].date == currentActivity.date) {
+                        // Goal has been found
+
+                    }
+                }
+
+            }
+        }*/
 
         // Save the activities array to local storage
         localStorage.setItem("activities", JSON.stringify(activities));

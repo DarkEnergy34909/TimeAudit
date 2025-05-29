@@ -105,7 +105,7 @@ function closeAddMenu() {
 function addGoal() {
     // Get the goal attributes
     const goalName = document.querySelector("#goal-name").value;
-    const goalDuration = parseInt(document.querySelector("#goal-duration").value);
+    const goalDuration = (parseInt(document.querySelector("#goal-duration-minutes").value)) + (60 * parseInt(document.querySelector("#goal-duration-hours").value));
 
     // If the goal name is empty, display an error message
     if (goalName == "") {
@@ -115,7 +115,7 @@ function addGoal() {
     }
 
     // If the duration is not a number, display an error message
-    if (goalDuration == NaN) {
+    if (goalDuration == NaN || goalDuration == 0) {
         document.querySelector("#duration-error").hidden = false;
         return;
     }
@@ -137,7 +137,8 @@ function addGoal() {
 
     // Clear the form inputs
     document.querySelector("#goal-name").value = "";
-    document.querySelector("#goal-duration").value = "";
+    document.querySelector("#goal-duration-hours").value = "0";
+    document.querySelector("#goal-duration-minutes").value = "1";
 
     // Hide the error messages
     document.querySelector("#goal-name-error").hidden = true;
@@ -161,7 +162,8 @@ function addGoalCard(goal) {
     // Create a div for the goal text
     const goalText = document.createElement("span");
     goalText.classList.add("goal-text");
-    goalText.textContent = goalTitle + " - " + goalDuration + " minutes";
+    //goalText.textContent = goalTitle + " - " + goalDuration + " minutes";
+    goalText.textContent = goalTitle + " - " + goalTimeDone + " / " + goalDuration + " min completed";
     goalDiv.appendChild(goalText);
 
     // Create a div for the progress chart

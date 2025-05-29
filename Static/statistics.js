@@ -129,10 +129,23 @@ let daysInWeek = [];
 // The category bar chart
 let categoryBarChart = createEmptyBarChart("category-bar-chart", "Activities")
 
+// The goals completed by the user
+let goals = [];
+
+// The goals bar chart
+let goalsBarChart = createEmptyBarChart("goals-bar-chart", "Goals");
+
 function loadActivities() {
-    let activitiesString = localStorage.getItem("activities");
+    const activitiesString = localStorage.getItem("activities");
     if (activitiesString) {
         activities = JSON.parse(activitiesString);
+    }
+}
+
+function loadGoals() {
+    const goalsString = localStorage.getItem("goals");
+    if (goalsString != null) {
+        goals = JSON.parse(goalsString);
     }
 }
 
@@ -341,7 +354,7 @@ function getSingleCategoryData(category) {
 
 
         // Get the day of the week 7 days ago in English
-        const dayOfWeek7DaysAgo = new Date(date7DaysAgo).toLocaleString('en-US', { weekday: 'long' });
+        //const dayOfWeek7DaysAgo = new Date(date7DaysAgo).toLocaleString('en-US', { weekday: 'long' });
 
         // Check if the activity date is in the past 7 days
         if (activityDateObj.getTime() >= date7DaysAgo) {
@@ -361,6 +374,65 @@ function getSingleCategoryData(category) {
         }
     }
     return categoryTimesByDay
+}
+
+// Returns an array with finished and unfinished goals for a week
+function getGoalData() {
+    const finishedGoals = [];
+    const unfinishedGoals = [];
+    const goalsInProgress = [];
+
+    // Days in week already done in getSingleCategoryData so no need to do again
+
+    // Get the date 7 days ago
+    const date7DaysAgo = (new Date()).getTime() - (7 * 24 * 60 * 60 * 1000);
+    
+    // Iterate over all goals
+    for (let i = 0; i < goals.length; i++ ) {
+        // Get the goal info
+        const goalTimeDone = goals[i].timeDone;
+        const goalDuration = goals[i].duration;
+        const goalDate = goals[i].date;
+
+        // Get the date of the goal as a date object
+        const goalDateObj = new Date(goalDate);
+
+        if (goalDateObj.getTime() >= date7DaysAgo) {
+            // Get the index number
+            const index = Math.floor((goalDateObj.getTime() - date7DaysAgo) / (24 * 60 * 60 * 1000));
+
+            // Check whether the goal has been completed and add the appropriate array
+            if (goalTimeDone >= goalDuration) {
+                // Add to finished array
+                if (finishedGoals[index] == undefined) {
+                    finishedGoals[index] = 1;
+                }
+                else {
+                    finishedGoals[index] += 1;
+                }
+            }
+            // If the goal is today (and unfinished), mark as in progress
+            else if (index == 6) {
+                if (goalsInProgress[index] == undefined) {
+                    goalsInProgress[index] = 1;
+                }
+                else {
+                    goalsInProgress[index] += 1;
+                }
+            }
+
+            else {
+                if (unfinishedGoals[index] == undefined) {
+                    unfinishedGoals[index] = 1;
+                }
+                else {
+                    unfinishedGoals[index] += 1;
+                }
+            }
+        }
+    }
+    return [finishedGoals, unfinishedGoals, goalsInProgress];
+
 }
 
 function loadCategoryPieChart() {
@@ -486,7 +558,6 @@ function loadCategoryBarChart() {
         //categoryBarChart.options.scales.y.title.display = true;
         //categoryBarChart.options.scales.y.title.font.size = 16;
         //categoryBarChart.options.scales.y.beginAtZero = true;
-        categoryBarChart.update();
     }
     else {
         // The list of datasets to be used for the stacked bar chart
@@ -503,10 +574,55 @@ function loadCategoryBarChart() {
         // Set the labels for the bar chart
         categoryBarChart.data.labels = daysInWeek;
 
-        // Update the bar chart
-        categoryBarChart.update();
 
     }
+    categoryBarChart.options.tooltips.callbacks = {
+        label: (tooltipItems, data) => {
+            const label = data.labels[tooltipItems.index] || '';
+            const value = data.datasets[tooltipItems.datasetIndex].data[tooltipItems.index] || 0;
+            const hoursAndMinutes = minutesToHoursAndMinutes(value);
+
+            // Check if hours are 0 and display only minutes if so
+            if (hoursAndMinutes[0] == 0) {
+                return `${hoursAndMinutes[1]} minutes`;
+            } else {
+                // Display hours and minutes
+                return `${hoursAndMinutes[0]} hours ${hoursAndMinutes[1]} minutes`;
+            }
+        }
+    };
+
+    // Update the bar chart
+    categoryBarChart.update();
+}
+
+function loadGoalsBarChart() {
+    // Reset the bar chart
+    goalsBarChart.data.labels = [];
+    goalsBarChart.data.datasets = [{}];
+
+    let finishedGoals, unfinishedGoals, goalsInProgress;
+    [finishedGoals, unfinishedGoals, goalsInProgress] = getGoalData();
+
+    goalsBarChart.data.labels = daysInWeek;
+    goalsBarChart.data.datasets.push({
+        // Green for finished goals
+        backgroundColor: "#22C55E",
+        data: finishedGoals
+    })
+    goalsBarChart.data.datasets.push({
+        // Red for unfinished goals
+        backgroundColor: "#e30202",
+        data: unfinishedGoals
+    })
+    goalsBarChart.data.datasets.push({
+        // Grey for in-progress goals
+        backgroundColor: "#d4d4d4",
+        data: goalsInProgress
+    })
+
+    // Update the chart
+    goalsBarChart.update();
 }
 
 function getIsoString(date) {
@@ -541,7 +657,7 @@ function createEmptyDonutChart(id, title) {
                 legend: {
                     position: "bottom",
                     
-                    //display: false,
+                    display: false,
                 },
                 title: {
                     display: true,
@@ -672,6 +788,12 @@ function populateBarChartSelectMenu() {
     }
 }
 
+function getIsoString(date) {
+    // Get the date in YYYY-MM-DD format
+    const isoString = date.toISOString().split('T')[0]; // Get the date part of the ISO string
+    return isoString; 
+}
+
 loadActivities();
 getActivityData();
 loadActivityPieChart();
@@ -681,3 +803,6 @@ loadCategoryPieChart();
 
 populateBarChartSelectMenu();
 loadCategoryBarChart();
+
+loadGoals();
+loadGoalsBarChart();

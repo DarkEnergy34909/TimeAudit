@@ -494,7 +494,7 @@ h1#main-title {
 
 .goals-menu {
     position: relative;
-    max-width: 1500px;
+    max-width: 1200px;
     /*display: flex;
     /*flex-direction: column;
     align-items: center;
@@ -545,6 +545,19 @@ h1#main-title {
     position: absolute;
     right: 5px;
     top: 5px;
+}
+
+.goal-text {
+    font-size: 1.2rem; /* Font size for goal text */
+    font-weight: bold; /* Bold text */
+    color: #1e3a8a; /* Dark Blue text */
+    margin-left: 20px;
+}
+
+.goal-progress-container {
+    display: flex;
+    margin-right: 20px;
+    margin-left: auto;
 }
 
 .goals-container {
