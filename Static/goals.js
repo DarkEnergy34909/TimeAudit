@@ -252,7 +252,10 @@ function loadGoals() {
         goals = JSON.parse(goalsString);
 
         for (let i = 0; i < goals.length; i++) {
-            addGoalCard(goals[i]);
+            // If the goal's date is today, add it to the page
+            if (goals[i].date == getIsoString(new Date())) {
+                addGoalCard(goals[i]);
+            }
         }
     }
 }

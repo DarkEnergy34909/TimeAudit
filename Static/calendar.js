@@ -462,6 +462,26 @@ function addBlock(title, category, startTime, endTime, day, ongoing) {
         // Remove the activity from the activities array
         for (let i = 0; i < activities.length; i++) {
             if (activities[i].title == title && activities[i].startTime == startTime && activities[i].endTime == endTime) {
+                // Find the goal
+                if (activities[i].goalName != "None") {
+                    // Load goals
+                    const goalsString = localStorage.getItem("goals");
+                    if (goalsString) {
+                        const goals = JSON.parse(goalsString);
+
+                        for (let j = 0; j < goals.length; j++) {
+                            if (goals[j].title == activities[i].goalName && goals[j].date == activities[i].date) {
+                                // Remove the activity's time from the goal
+                                goals[j].timeDone -= (activities[i].endTime - activities[i].startTime);
+
+                                // Save to local storage
+                                localStorage.setItem("goals", JSON.stringify(goals));
+                            }
+                        }
+                    }
+                }
+
+                // Remove the activity itself
                 activities.splice(i, 1); // Removes one item from the array at index i
 
                 // If the activity is currently running, reset the index
@@ -701,6 +721,13 @@ function loadActivities() {
 
     // Set the current activity index to the one stored 
     currentActivityIndex = parseInt(localStorage.getItem("current_activity"));
+
+    // If there is no index stored, make it equal to -1
+    if (isNaN(currentActivityIndex)) {
+        currentActivityIndex = -1;
+        localStorage.setItem("current_activity", currentActivityIndex);
+    }
+    console.log("Current activity index: " + currentActivityIndex);
 
     // Check if there are any activities saved first
     if (activitiesString) {
