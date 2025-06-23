@@ -9,9 +9,17 @@
         <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Poppins">
     </head>
     <body style="font-family: 'Poppins';">
-        <h1 id="main-title">TimeAudit</h1>
+        <div class="title-bar" style="position: sticky; top: 0;">
+            <a href="/">
+                <h1 id="main-title">TimeAudit</h1>
+            </a>
+            <div class="button-container">
+                <button class="login-button">Log in</button>
+                <a class="login-button" href="/calendar">Start tracking for free</a>
+            </div>
+        </div>
 
-        <div class="nav-bar">
+        <!--<div class="nav-bar">
             <nav id="nav">
                 <a href="/">Home</a>
                 <a href="calendar">Calendar</a>
@@ -19,20 +27,73 @@
                 <a href="goals">Goals</a>
             </nav>
 
-        </div>
+        </div>-->
 
-        <div class="top-bar">
-            
-        </div>
+        <!--<div class="top-bar"></div>-->
 
         <div class="home-container">
-            <h2>Welcome to TimeAudit</h2>
-            <p id="home-text">
-                TimeAudit is a time tracking app that helps you understand how you spend your time so you can take control of your day. 
-                It allows you to log your activities, view statistics, and set goals to improve your time management and productivity.
-            </p>
-            <p id="home-text">Start by going to the calendar page and logging your first activity!</p>
-            <p id="home-text">Note that creating an account is not required, but we recommend that you do so to avoid losing your data when you clear your browser's cache.</p>
+            <h1 class="hero">Take control of your day</h1>
+
+            <img class="hero-image" src="{{url_for('static', filename='hero_image.png') }}" alt="TimeAudit tracking interface" width="1000", height="600">
+
+            <h3 class="">See exactly where all your time goes with TimeAudit, a simple, powerful, and free time tracker designed to allow you to manage your time effectively.</h3>
+            
+            <a href="calendar" class="start-tracking-button">Start tracking for free</a>
+
+            <h2>How it works</h2>
+
+            <div class="tutorial-box">
+                <span>Log an activity by clicking the start button and entering the activity details. You can add previously-completed activities and track current activities.</span>
+                <img class="tutorial-gif" src="{{url_for('static', filename='hero_image.png') }}" alt="Gif showing how to log an activity" width="500" height="300">
+            </div>
+
+            <div class="tutorial-box">
+                <img class="tutorial-gif" src="{{url_for('static', filename='hero_image.png') }}" alt="Gif showing how to add a goal" width="500" height="300">
+                <span>Add customised goals and track each goal's progress. Link a goal when adding an activity to the calendar to complete goals and stay accountable.</span>
+            </div>
+
+            <div class="tutorial-box">
+                <span>View statistics and insights to improve your productivity.</span>
+                <img class="tutorial-gif" src="{{url_for('static', filename='hero_image.png') }}" alt="Gif showing statistics page" width="500" height="300">
+            </div>
+
+
+            <h2>Why use TimeAudit?</h2></h3>
+
+            <div class="features-row">
+
+                <div class="feature-box">
+                    <h4 class="feature-heading">⏰ Frictionless time tracking</h4>
+                    <p>Track your time with the click of a button</p>
+                </div>
+                <div class="feature-box">
+                    <h4 class="feature-heading">📅 Calendar view </h4>
+                    <p>View activities at a glance with a simple interface</p>
+                </div>
+                
+
+                <div class="feature-box">
+                    <h4 class="feature-heading">📊 Reports and statistics</h4>
+                    <p>Track how you are using your time with graphs and charts</p>
+                </div>
+
+                <div class="feature-box">
+                    <h4 class="feature-heading">🎯 Goal tracking</h4>
+                    <p>Meet your targets and stay accountable with integrated goals</p>
+                </div>
+
+                <div class="feature-box">
+                    <h4 class="feature-heading">👤 No sign-up required</h4>
+                    <p>Start tracking your time instantly - no account needed</p>
+                </div>
+
+                <!--<div class="feature-box">
+                    <h4 class="feature-heading"> Effortless sync across devices</h4>
+                    <p>Track your time on the go, whatever device you are using</p>
+                </div>-->
+            </div>
+
+
         </div>
     </body>
 </html>

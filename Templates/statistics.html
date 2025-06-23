@@ -10,11 +10,17 @@
         <script src="{{ url_for('static', filename='statistics.js') }}" defer></script>
     </head>
     <body style="font-family: 'Poppins';">
-        <h1 id="main-title">TimeAudit</h1>
+        <div class="title-bar">
+            <a href="/">
+                <h1 id="main-title">TimeAudit</h1>
+            </a>
+
+            <button class="login-button">Log in</button>
+        </div>
 
         <div class="nav-bar">
             <nav id="nav">
-                <a href="/">Home</a>
+                <!--<a href="/">Home</a>-->
                 <a href="calendar">Calendar</a>
                 <a href="statistics">Statistics</a>
                 <a href="goals">Goals</a>

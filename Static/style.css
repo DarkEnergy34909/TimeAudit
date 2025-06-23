@@ -1,17 +1,124 @@
 /* General Styles */
+
 body {
     font-family: sans-serif;
-    margin: 0;
-    padding: 0;
     background-color: #f9f9f9;
     color: #333;
+    margin: 0;
+    padding: 0;
+    /*padding-bottom: 20px; /* Add space at the bottom */
 }
 
 h1#main-title {
     font-size: 2rem;
-    text-align: center;
-    margin: 20px 0;
+    text-align: left;
+    margin-left: 20px;
     color: #1e3a8a; /* Dark Blue */
+}
+a {
+    text-decoration: none; /* Remove underline */
+}
+
+.home-container {
+    width: 1000px;
+    margin: 0 auto; /* Center the container */
+    /*padding-bottom: 20px;*/
+}
+
+.hero {
+    font-size: 4rem;
+    text-align: center;
+    font-weight: bold;
+}
+
+.hero-image {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+    border-radius: 10px; /* Rounded corners */
+}
+
+.tutorial-gif {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+    border-radius: 10px; /* Rounded corners */
+}
+
+.login-button {
+    background-color: #2563eb; /* Blue */
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 0.3s ease;
+    margin-right: 20px;
+}
+
+.login-button:hover {
+    background-color: #1d4ed8; /* Darker Blue */
+}
+
+.title-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #FFFFFF; 
+}
+
+.start-tracking-button {
+    background-color: #2563eb; /* Blue */
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 0.3s ease;
+    margin-top: 40px;
+    margin-bottom: 40px;
+}
+
+.start-tracking-button:hover {
+    background-color: #1d4ed8; /* Darker Blue */
+}
+
+.features-row {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: center;
+    gap: 20px;
+    width: 100%;
+    margin: 20px 0;
+}
+
+.feature-box {
+    background-color: #f1f1f1; /* White background */
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+    padding: 20px;
+    width: 300px; /* Fixed width for consistency */
+    height: 200px;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.feature-box:hover {
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2); /* Slightly larger shadow on hover */
+    transform: translateY(-5px); /* Slightly lift the box on hover */
+}
+
+.tutorial-box {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #f1f1f1; /* White background */
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+    padding: 20px;
+    width: 100%;
+    max-height: 400px;
+    text-align: center;
+    margin: 20px;
 }
 
 /* Top Bar */
@@ -29,10 +136,11 @@ h1#main-title {
     color: white;
     border: none;
     padding: 10px 15px;
-    border-radius: 5px;
+    border-radius: 20px;
     cursor: pointer;
     font-size: 1rem;
     transition: background-color 0.3s ease;
+
 }
 
 #stop-button {
@@ -40,7 +148,7 @@ h1#main-title {
     color: white;
     border: none;
     padding: 10px 15px;
-    border-radius: 5px;
+    border-radius: 20px;
     cursor: pointer;
     font-size: 1rem;
     transition: background-color 0.3s ease;
@@ -474,7 +582,7 @@ h1#main-title {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
+    /*justify-content: center;*/
     height: calc(100vh - 150px); /* Adjust height to fit the screen */
     text-align: center;
 }
