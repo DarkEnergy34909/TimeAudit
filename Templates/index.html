@@ -9,12 +9,12 @@
         <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Poppins">
     </head>
     <body style="font-family: 'Poppins';">
-        <div class="title-bar" style="position: sticky; top: 0;">
+        <div class="title-bar" style="position: fixed; top: 0;">
             <a href="/">
                 <h1 id="main-title">TimeAudit</h1>
             </a>
             <div class="button-container">
-                <button class="login-button">Log in</button>
+                <a class="login-button">Log in</a>
                 <a class="login-button" href="/calendar">Start tracking for free</a>
             </div>
         </div>
@@ -32,7 +32,7 @@
         <!--<div class="top-bar"></div>-->
 
         <div class="home-container">
-            <h1 class="hero">Take control of your day</h1>
+            <h1 class="hero">Take control of your day.</h1>
 
             <img class="hero-image" src="{{url_for('static', filename='hero_image.png') }}" alt="TimeAudit tracking interface" width="1000", height="600">
 
@@ -40,7 +40,7 @@
             
             <a href="calendar" class="start-tracking-button">Start tracking for free</a>
 
-            <h2>How it works</h2>
+            <h2 class="landing-page-subheading">How it works</h2>
 
             <div class="tutorial-box">
                 <span>Log an activity by clicking the start button and entering the activity details. You can add previously-completed activities and track current activities.</span>
@@ -58,7 +58,7 @@
             </div>
 
 
-            <h2>Why use TimeAudit?</h2></h3>
+            <h2 class="landing-page-subheading">Why use TimeAudit?</h2></h3>
 
             <div class="features-row">
 
@@ -93,7 +93,11 @@
                 </div>-->
             </div>
 
+            <a href="calendar" class="start-tracking-button">Start tracking now</a>
 
+        </div>
+        <div class="footer">
+            <span>© 2025 TimeAudit</span>
         </div>
     </body>
 </html>

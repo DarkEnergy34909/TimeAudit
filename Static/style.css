@@ -21,14 +21,27 @@ a {
 
 .home-container {
     width: 1000px;
-    margin: 0 auto; /* Center the container */
+    min-height: 220vh; /* Temporary fix */
+    height: auto;
+    margin-left: auto; /* Center the container */
+    margin-right: auto; /* Center the container */
     /*padding-bottom: 20px;*/
+}
+
+.home-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    /*justify-content: center;*/
+    height: calc(100vh - 150px); /* Adjust height to fit the screen */
+    text-align: center;
 }
 
 .hero {
     font-size: 4rem;
     text-align: center;
     font-weight: bold;
+    margin-top: 120px;
 }
 
 .hero-image {
@@ -58,6 +71,7 @@ a {
 }
 
 .title-bar {
+    width: 100%;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -119,6 +133,30 @@ a {
     max-height: 400px;
     text-align: center;
     margin: 20px;
+}
+
+.landing-page-subheading {
+    margin-top: 40px;
+}
+
+.footer {
+    display: flex;
+    flex-direction: row;
+    /*justify-content: center;*/
+    align-items: center;
+    /*width: 100vw; /* Full viewport width */
+    background-color: #1e3a8a; /* Dark Blue */
+    color: white;
+    text-align: center;
+    padding: 20px;
+    width: 100%;
+    /*position: fixed;
+    left: 0;
+    right: 0;
+    /*bottom: auto;
+    left: auto;
+    /*bottom: 0; /* Stick to the bottom of the viewport */
+    /*position: relative; /* Position relative for absolute elements inside */
 }
 
 /* Top Bar */
@@ -578,15 +616,6 @@ a {
     }
 }
 
-.home-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    /*justify-content: center;*/
-    height: calc(100vh - 150px); /* Adjust height to fit the screen */
-    text-align: center;
-}
-
 .goals-body{
     /*align-items: center;
     align-content: center;*/
@@ -602,7 +631,7 @@ a {
 
 .goals-menu {
     position: relative;
-    max-width: 1200px;
+    max-width: 1000px;
     /*display: flex;
     /*flex-direction: column;
     align-items: center;
