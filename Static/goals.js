@@ -149,7 +149,7 @@ function addGoal() {
 }
 
 // Creates a UI element for the goal
-function addGoalCard(goal) {
+function addGoalCard(goal, today) {
     const goalTitle = goal.title;
     const goalDuration = goal.duration;
     const goalTimeDone = goal.timeDone;
@@ -158,6 +158,16 @@ function addGoalCard(goal) {
     // Create a div for the goal
     const goalDiv = document.createElement("div");
     goalDiv.classList.add("goal-card");
+
+    // Set a colour for the goal card if necessary
+    if (!today) {
+        if (goalTimeDone >= goalDuration) {
+            goalDiv.classList.add("completed");
+        }
+        else {
+            goalDiv.classList.add("uncompleted");
+        }
+    }
 
     // Create a div for the goal text
     const goalText = document.createElement("span");
@@ -245,18 +255,86 @@ function getIsoString(date) {
     return isoString; 
 }
 
-function loadGoals() {
+function loadGoals(todaysGoals) {
     const goalsString = localStorage.getItem("goals");
 
     if (goalsString) {
         goals = JSON.parse(goalsString);
+        let added = false;
 
         for (let i = 0; i < goals.length; i++) {
-            // If the goal's date is today, add it to the page
-            if (goals[i].date == getIsoString(new Date())) {
-                addGoalCard(goals[i]);
+            // If getting today's goals
+            if (todaysGoals) {
+                // If the goal's date is today, add it to the page
+                if (goals[i].date == getIsoString(new Date())) {
+                    addGoalCard(goals[i], true); // true = today - goal cards are white
+                    added = true;
+                }
+            }
+            else {
+                // If the goal's date is NOT today, add it to the page
+                if (goals[i].date != getIsoString(new Date())) {
+                    addGoalCard(goals[i], false); // false = not today - goal cards are green/red
+                    added = true;
+                }
             }
         }
+
+        if (!added) {
+            if (todaysGoals) {
+                const goalsMenu = document.querySelector(".goals-menu");
+
+                const goalMessage = document.createElement("span");
+                goalMessage.textContent = "You have no current goals. Add a goal to get started.";
+                goalMessage.classList.add("no-goals-text");
+
+                goalsMenu.appendChild(goalMessage);
+            }
+            else {
+                const goalsMenu = document.querySelector(".goals-menu");
+
+                const goalMessage = document.createElement("span");
+                goalMessage.textContent = "You have no previous goals.";
+                goalMessage.classList.add("no-goals-text");
+
+                goalsMenu.appendChild(goalMessage);
+            }
+        }
+    }
+    else {
+        if (todaysGoals) {
+            const goalsMenu = document.querySelector(".goals-menu");
+
+            const goalMessage = document.createElement("span");
+            goalMessage.textContent = "You have no current goals. Add a goal to get started.";
+            goalMessage.classList.add("no-goals-text");
+
+            goalsMenu.appendChild(goalMessage);
+        }
+        else {
+            const goalsMenu = document.querySelector(".goals-menu");
+
+            const goalMessage = document.createElement("span");
+            goalMessage.textContent = "You have no previous goals.";
+            goalMessage.classList.add("no-goals-text");
+
+            goalsMenu.appendChild(goalMessage);
+        }
+    }
+}
+
+function resetGoals() {
+    // Delete all current goal HTML elements from the page
+    const goals = document.querySelectorAll(".goal-card")
+
+    for (let i = 0; i < goals.length; i++) {
+        goals[i].remove();
+    }
+
+    // Delete the no goals message if there is one
+    const noGoalsMessage = document.querySelector(".no-goals-text");
+    if (noGoalsMessage) {
+        noGoalsMessage.remove();
     }
 }
 
@@ -320,4 +398,53 @@ function createProgressChart(id, amountDone, total) {
     })
 }
 
-loadGoals();
+function initialiseGoalSelectorButtons() {
+    const todayButton = document.querySelector("#today-button");
+    const previousButton = document.querySelector("#previous-button");
+
+    if (todayButton.classList.contains("selected")) {
+        todayButton.classList.remove("selected");
+
+        previousButton.classList.add("selected");
+    }
+    else {
+        todayButton.classList.add("selected");
+
+        previousButton.classList.remove("selected");
+    }
+}
+
+function onTodayButtonClick() {
+    const todayButton = document.querySelector("#today-button");
+    const previousButton = document.querySelector("#previous-button");
+
+    if (!todayButton.classList.contains("selected")) {
+        todayButton.classList.add("selected")
+
+        // Load today's goals
+        resetGoals();
+        loadGoals(true); // true = today's goals are loaded
+    }
+    if (previousButton.classList.contains("selected")) {
+        previousButton.classList.remove("selected");
+    }
+}
+
+function onPreviousButtonClick() {
+    const todayButton = document.querySelector("#today-button");
+    const previousButton = document.querySelector("#previous-button");
+
+    if (!previousButton.classList.contains("selected")) {
+        previousButton.classList.add("selected")
+
+        // Load other days' goals
+        resetGoals();
+        loadGoals(false); // false = previous days' goals are loaded
+    }
+    if (todayButton.classList.contains("selected")) {
+        todayButton.classList.remove("selected");
+    }
+}
+
+loadGoals(true);
+initialiseGoalSelectorButtons();

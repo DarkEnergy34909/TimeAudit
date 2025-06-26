@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>TimeAudit</title>
+        <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Poppins">
+    </head>
+    <body style="font-family: 'Poppins';">
+        <div class="title-bar">
+            <a href="/">
+                <h1 id="main-title">TimeAudit</h1>
+            </a>
+        </div>
+
+        <div class="login-menu">
+            <h2 class="login-title">Log in</h2>
+
+            <form action="" method="POST">
+                <label for="email-address">Email address</label>
+                <input type="text" id="email-address" name="email-address" required><br><br>
+
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required><br><br>
+
+                <input type="submit" value="Log in" class="login-button"><br><br>
+            </form>
+
+            <span>Don't have an account?</span>
+            <a href="signup">Sign up</a>
+        </div>
+
+    </body>
+</html>

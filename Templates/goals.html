@@ -16,7 +16,7 @@
                 <h1 id="main-title">TimeAudit</h1>
             </a>
 
-            <a class="login-button">Log in</a>
+            <a class="login-button" href="login">Log in</a>
         </div>
 
         <div class="nav-bar">
@@ -36,7 +36,12 @@
         <div class="goals-container">
             <div class="goals-menu">
                 <div id="goals-title">
-                    <h2>Today's goals</h2>
+                    <h2>Your goals</h2>
+                </div>
+
+                <div class="goal-selector-row">
+                    <button class="goal-selector-button" id="today-button" onclick="onTodayButtonClick();">Today's goals</button>
+                    <button class="goal-selector-button" id="previous-button" onclick="onPreviousButtonClick();">Previous goals</button>
                 </div>
 
                 <div id="goals-list">

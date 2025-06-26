@@ -9,19 +9,30 @@ body {
     /*padding-bottom: 20px; /* Add space at the bottom */
 }
 
+button {
+    font-family: inherit;
+}
+
+input[type="submit"] {
+    font-family: inherit;
+}
+
 h1#main-title {
-    font-size: 2rem;
+    font-size: min(2rem, 5vw); /* Responsive font size */
     text-align: left;
     margin-left: 20px;
     color: #1e3a8a; /* Dark Blue */
+    max-width: 25%;
+    height: auto;
 }
 a {
     text-decoration: none; /* Remove underline */
 }
 
 .home-container {
-    width: 1000px;
-    min-height: 220vh; /* Temporary fix */
+    max-width: 1000px;
+    width: 100%;
+    /*min-height: 220vh; /* Temporary fix */
     height: auto;
     margin-left: auto; /* Center the container */
     margin-right: auto; /* Center the container */
@@ -33,7 +44,7 @@ a {
     flex-direction: column;
     align-items: center;
     /*justify-content: center;*/
-    height: calc(100vh - 150px); /* Adjust height to fit the screen */
+    /*height: calc(100vh - 150px); /* Adjust height to fit the screen */
     text-align: center;
 }
 
@@ -47,11 +58,16 @@ a {
 .hero-image {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow */
     border-radius: 10px; /* Rounded corners */
+    max-width: 100%;
+    height: auto; /* Maintain aspect ratio */
 }
 
 .tutorial-gif {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow */
     border-radius: 10px; /* Rounded corners */
+    max-width: 50%;
+    max-height: 100%;
+    height: auto;
 }
 
 .login-button {
@@ -61,7 +77,7 @@ a {
     padding: 10px 15px;
     border-radius: 20px;
     cursor: pointer;
-    font-size: 1rem;
+    font-size: min(1rem, 2vw);
     transition: background-color 0.3s ease;
     margin-right: 20px;
 }
@@ -71,7 +87,7 @@ a {
 }
 
 .title-bar {
-    width: 100%;
+    width: 100vw;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -103,6 +119,8 @@ a {
     gap: 20px;
     width: 100%;
     margin: 20px 0;
+    /* OVERFLOW FIX: TODO*/
+    overflow-wrap: break-word; /* Allow text to wrap */
 }
 
 .feature-box {
@@ -237,6 +255,8 @@ a {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Subtle shadow */
     padding: 20px;
     width: 400px; /* Fixed width for consistency */
+    max-width: 90%;
+    height: auto;
     z-index: 1000; /* Ensure it appears above other elements */
     /*font-family: Arial, sans-serif;*/
     color: #333; /* Dark text color */
@@ -279,7 +299,7 @@ a {
 }
 
 /* Error Text */
-.add-menu .error-text {
+.error-text {
     color: red;
     font-size: 0.9rem;
     margin-top: -10px;
@@ -631,12 +651,14 @@ a {
 
 .goals-menu {
     position: relative;
-    max-width: 1000px;
+    max-width: 1000px;;
     /*display: flex;
     /*flex-direction: column;
     align-items: center;
     /*justify-content: center;*/
-    height: calc(100vh - 150px); /* Adjust height to fit the screen */
+    /*height: calc(100vh - 150px); /* Adjust height to fit the screen */
+    height: auto;
+    min-height: calc(100vh - 150px); /* Ensure it takes full height minus header/footer */
     text-align: center;
     margin: 20px;
     padding: 20px;
@@ -700,4 +722,139 @@ a {
 .goals-container {
     align-items: center;
     text-align: center;
+}
+
+.goal-selector-row {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 20px; /* Space between selector and goals */
+}
+
+.goal-selector-button {
+    background-color: #f9f9f9; /* Same background as goals menu */
+    color: #1e3a8a;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 0.3s ease;
+    margin-left: 10px; /* Space between buttons */
+    margin-right: 10px;
+}
+
+.no-goals-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    font-size: 1rem; /* Font size for no goals text */
+    margin-top: auto;
+    margin-bottom: auto;
+}
+
+.selected {
+    text-decoration: underline;
+    font-weight: bold; /* Bold text for selected button */
+}
+
+.completed {
+    background-color: #d1fae5; /* Light green background for completed goals */
+}
+
+.uncompleted {
+    background-color: #fee2e2; /* Light red background for uncompleted goals */
+}
+
+/* Login menu */
+.login-menu {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: #ffffff; /* White background */
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Subtle shadow */
+    padding: 20px;
+    width: 400px; /* Fixed width for consistency */
+    max-width: 90%;
+    height: auto;
+    z-index: 1000; /* Ensure it appears above other elements */
+    /*font-family: Arial, sans-serif;*/
+    color: #333; /* Dark text color */
+}
+
+.login-menu label {
+    display: block;
+    font-size: 1rem;
+    font-weight: bold;
+    margin-bottom: 5px;
+    color: #1e3a8a; /* Dark blue */
+}
+
+.login-menu input[type="text"],
+.login-menu input[type="password"] {
+    width: 100%; /* Full width */
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 1rem;
+    box-sizing: border-box;
+    background-color: #f9f9f9; /* Light background */
+}
+
+.login-title {
+    font-size: 1.5rem;
+    margin-bottom: 20px;
+    text-align: center;
+    color: #1e3a8a; /* Dark blue */
+}
+
+/* Signup menu */
+.signup-menu {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: #ffffff; /* White background */
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Subtle shadow */
+    padding: 20px;
+    width: 400px; /* Fixed width for consistency */
+    max-width: 90%;
+    height: auto;
+    z-index: 1000; /* Ensure it appears above other elements */
+    /*font-family: Arial, sans-serif;*/
+    color: #333; /* Dark text color */
+}
+
+.signup-menu label {
+    display: block;
+    font-size: 1rem;
+    font-weight: bold;
+    margin-bottom: 5px;
+    color: #1e3a8a; /* Dark blue */
+}
+
+.signup-menu input[type="text"],
+.signup-menu input[type="password"] {
+    width: 100%; /* Full width */
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 1rem;
+    box-sizing: border-box;
+    background-color: #f9f9f9; /* Light background */
+}
+
+.signup-title {
+    font-size: 1.5rem;
+    margin-bottom: 20px;
+    text-align: center;
+    color: #1e3a8a; /* Dark blue */
 }
