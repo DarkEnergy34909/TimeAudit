@@ -19,10 +19,12 @@
 
             <form action="" method="POST">
                 <label for="email-address">Email address</label>
-                <input type="text" id="email-address" name="email-address" required><br><br>
+                <input type="email" id="email-address" name="email-address" required><br><br>
+                <p class="error-text" id="email-error" hidden>You must enter a valid email address.</p>
 
                 <label for="password">Password</label>
                 <input type="password" id="password" name="password" required><br><br>
+                <p class="error-text" id="empty-password-error" hidden>You must enter a password.</p>
 
                 <input type="submit" value="Log in" class="login-button"><br><br>
             </form>
@@ -30,6 +32,27 @@
             <span>Don't have an account?</span>
             <a href="signup">Sign up</a>
         </div>
-
     </body>
+
+    <script>
+        function validate() {
+            const email = document.getElementById("email-address").value;
+            const password = document.getElementById("password").value;
+
+            if (!email) {
+                event.preventDefault();
+                const errorMessage = document.querySelector("#email-error");
+                errorMessage.hidden = false;
+            }
+
+            if (!password) {
+                event.preventDefault();
+                const errorMessage = document.querySelector("#empty-password-error");
+                errorMessage.hidden = false;
+            }
+        }
+
+        const submitButton = document.querySelector(".login-button");
+        submitButton.addEventListener("click", validate);
+    </script>
 </html>

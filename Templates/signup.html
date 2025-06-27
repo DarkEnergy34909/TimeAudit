@@ -19,7 +19,7 @@
 
             <form action="" onsubmit="" method="POST">
                 <label for="email-address">Email address</label>
-                <input type="text" id="email-address" name="email-address" required><br><br>
+                <input type="email" placeholder="me@example.com" id="email-address" name="email-address" required><br><br>
 
                 <p class="error-text" id="email-error" hidden>You must enter a valid email address.</p>
 
@@ -29,6 +29,8 @@
                 <label for="confirm-password">Confirm password</label>
                 <input type="password" id="confirm-password" name="confirm-password" required><br><br>
 
+                <p class="error-text" id="empty-password-error" hidden>You must enter a password.</p>
+                <p class="error-text" id="password-length-error" hidden>Passwords must be at least 8 characters long.</p>
                 <p class="error-text" id="confirm-password-error" hidden>Passwords do not match.</p>
 
                 <input type="submit" value="Sign up" class="login-button"><br><br>
@@ -38,19 +40,33 @@
     </body>
 
     <script>
-        const submitButton = document.querySelector(".login-button");
-        submitButton.addEventListener("click", validate);
 
         function validate(event) {
             const email = document.getElementById("email-address").value;
             const password = document.getElementById("password").value;
             const confirmPassword = document.getElementById("confirm-password").value;
-            console.log(password);
-            console.log(confirmPassword);
+            //console.log(password);
+            //console.log(confirmPassword);
 
-            if (password != confirmPassword || password == "" || confirmPassword == "") {
+            if (password != confirmPassword) {
+                // Prevent form submitting
                 event.preventDefault();
                 const errorMessage = document.querySelector("#confirm-password-error");
+                errorMessage.hidden = false;
+            }
+
+            else if (!password || !confirmPassword) {
+                // Prevent form submitting
+                event.preventDefault();
+                const errorMessage = document.querySelector("#empty-password-error");
+                errorMessage.hidden = false;
+
+            }
+
+            else if (password.length < 8) {
+                // Prevent form submitting
+                event.preventDefault();
+                const errorMessage = document.querySelector("#password-length-error");
                 errorMessage.hidden = false;
             }
 
@@ -60,5 +76,8 @@
                 errorMessage.hidden = false;
             }
         }
+
+        const submitButton = document.querySelector(".login-button");
+        submitButton.addEventListener("click", validate);
     </script>
 </html>

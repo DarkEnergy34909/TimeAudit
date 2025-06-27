@@ -132,7 +132,7 @@ function addGoal() {
     saveGoal(newGoal);
 
     // Create a new UI element for the goal
-    addGoalCard(newGoal);
+    addGoalCard(newGoal, true);
 
 
     // Clear the form inputs

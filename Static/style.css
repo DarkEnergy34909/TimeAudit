@@ -796,7 +796,8 @@ a {
 }
 
 .login-menu input[type="text"],
-.login-menu input[type="password"] {
+.login-menu input[type="password"],
+.login-menu input[type="email"] {
     width: 100%; /* Full width */
     padding: 10px;
     margin-bottom: 15px;
@@ -841,7 +842,8 @@ a {
 }
 
 .signup-menu input[type="text"],
-.signup-menu input[type="password"] {
+.signup-menu input[type="password"],
+.signup-menu input[type="email"] {
     width: 100%; /* Full width */
     padding: 10px;
     margin-bottom: 15px;
