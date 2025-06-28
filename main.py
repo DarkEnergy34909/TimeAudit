@@ -1,7 +1,7 @@
 from flask import Flask, request, render_template
 import sqlite3
-import bcrypt
-from email_validator import validate_email, EmailNotValidError
+#import bcrypt
+#from email_validator import validate_email, EmailNotValidError
 
 
 app = Flask(__name__)
@@ -46,13 +46,25 @@ def signup():
             return {"error": "Invalid signup data"}, 400
         
         # Check if the email is valid and can receive messages
-        try:
-            email_info = validate_email(email_address, check_deliverability=True)
-            email_address = email_info.normalized
+        # Commenting this out due to the flight
+        #try:
+            #email_info = validate_email(email_address, check_deliverability=True)
+            #email_address = email_info.normalized
 
-        except EmailNotValidError as e:
-            print(str(e))
-            return {"error": "Invalid email address"}, 400
+        #except EmailNotValidError as e:
+            #print(str(e))
+            #return {"error": "Invalid email address"}, 400
+
+        # Check for duplicate emails
+        if (email_exists_in_database(email_address)):
+            return {"error": "Email already exists"}, 400
+
+        # TODO: Hash password
+        hashed_password = hash_password(password)
+
+        insert_user(email_address, hashed_password)
+
+        return {"token": 2}, 200
 
 
 def validateSignupData(email_address, password):
@@ -65,6 +77,58 @@ def validateSignupData(email_address, password):
         return False
     
     return True
+
+def hash_password(password):
+    # TODO
+    return password
+
+def insert_user(email_address, hashed_password):
+    # Create a new User in the User table
+    con = sqlite3.connect("timeaudit.db")
+    cur = con.cursor()
+
+    cur.execute("INSERT INTO User (Email, PasswordHash) VALUES (?, ?)", (email_address, hashed_password))
+    con.commit()
+    con.close()
+
+def insert_activity(title, category, start_time, end_time, date, goal_id, user_id):
+    con = sqlite3.connect("timeaudit.db")
+    cur = con.cursor()
+
+    # Get the correct category for the activity
+
+    res = cur.execute("SELECT CategoryID FROM Category WHERE Name = ?", category)
+    con.commit()
+    category_id = res.fetchone()
+
+    if (category_id == None):
+        print("An error occurred")
+        return False
+    
+    # Add the activity to the database with the correct CategoryID
+
+    res = cur.execute("INSERT INTO Activity (Title, CategoryID, StartTime, EndTime, Date, GoalID, UserID) VALUES (?, ?, ?, ?, ?, ?, ?);", (title, category_id, start_time, end_time, date, goal_id, user_id))
+    con.commit()
+    con.close()
+
+    # TODO: Error checking
+    return True 
+    
+def email_exists_in_database(email_address):
+    con = sqlite3.connect("timeaudit.db")
+    cur = con.cursor()
+
+    res = cur.execute("SELECT * FROM User WHERE Email = ?", (email_address))
+    record = res.fetchone()
+
+    con.commit()
+    con.close()
+
+    if (record == None):
+        # Email is not in the database
+        return False
+    else: 
+        return True
 
 def initialise_database():
     con = sqlite3.connect("timeaudit.db")
@@ -121,4 +185,5 @@ def initialise_database():
 
 if (__name__ == "__main__"):
     #initialise_database()
-    app.run(debug=True, host="0.0.0.0", port=5000)
+    #app.run(debug=True, host="0.0.0.0", port=5000)
+    app.run(debug=True, port=5000)
