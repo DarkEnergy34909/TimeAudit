@@ -17,7 +17,7 @@
         <div class="signup-menu">
             <h2 class="signup-title">Sign up</h2>
 
-            <form action="" onsubmit="" method="POST">
+            <form action="" id="signup-form" onsubmit="" method="POST">
                 <label for="email-address">Email address</label>
                 <input type="email" placeholder="me@example.com" id="email-address" name="email-address" required><br><br>
 
@@ -34,6 +34,10 @@
                 <p class="error-text" id="confirm-password-error" hidden>Passwords do not match.</p>
 
                 <input type="submit" value="Sign up" class="login-button"><br><br>
+
+                <p class="error-text" id="email-exists-error" hidden>An account with this email already exists. Please try a different email.</p>
+
+                <p class="error-text" id="generic-signup-error" hidden>There was an error signing up. Please try again later.</p>
             </form>
         </div>
 

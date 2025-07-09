@@ -6,6 +6,7 @@
         <title>TimeAudit</title>
         <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
         <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Poppins">
+        <script src="{{url_for('static', filename='login.js') }}" defer></script>
     </head>
     <body style="font-family: 'Poppins';">
         <div class="title-bar">
@@ -17,7 +18,7 @@
         <div class="login-menu">
             <h2 class="login-title">Log in</h2>
 
-            <form action="" method="POST">
+            <form action="" id="login-form" method="POST">
                 <label for="email-address">Email address</label>
                 <input type="email" id="email-address" name="email-address" required><br><br>
                 <p class="error-text" id="email-error" hidden>You must enter a valid email address.</p>
@@ -28,6 +29,10 @@
 
                 <input type="submit" value="Log in" class="login-button"><br><br>
             </form>
+
+            <p class="error-text" id="incorrect-login-error" hidden>Incorrect username or password.</p>
+
+            <p class="error-text" id="generic-login-error" hidden>An error occurred during login. Please try again later.</p>
 
             <span>Don't have an account?</span>
             <a href="signup">Sign up</a>
