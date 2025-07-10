@@ -9,15 +9,16 @@ document.getElementById("login-form").onsubmit = async function(event) {
         method: "POST",
         body: formData, 
         headers: {
-            "X-Requested-With": "XMLHttpRequest" // Indicate that this is an AJAX request
-        }
+            "X-Requested-With": "XMLHttpRequest", // Indicate that this is an AJAX request
+        },
+        credentials: 'include'
     })
 
     const data = await response.json();
 
     if (response.ok && data.token) {
         // Store the token in localStorage
-        localStorage.setItem("token", data.token);
+        // TODO: Use HttpOnly
 
         // Redirect to calendar page
         window.location.href = "/calendar";

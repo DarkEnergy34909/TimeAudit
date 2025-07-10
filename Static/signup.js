@@ -7,40 +7,61 @@ document.getElementById("signup-form").onsubmit = async function(event) {
     const formData = new FormData(event.target);
 
     // Make POST request to the server
-    const response = await fetch("/signup", {
+    const signupResponse = await fetch("/signup", {
         method: "POST",
         body: formData,
         headers: {
             "X-Requested-With": "XMLHttpRequest" // Indicate that this is an AJAX request
-        }
+        },
+        credentials: 'include'
     })
 
-    const data = await response.json();
+    const signupData = await signupResponse.json();
     
-    if (response.ok && data.token) {
+    if (signupResponse.ok && signupData.token) {
         // Store the token in localStorage
-        localStorage.setItem("token", data.token);
+        //localStorage.setItem("token", data.token);
 
         // Redirect to calendar page
         window.location.href = "/calendar";
+
+        // Make a POST request to the goals page to store all stored goals to the database
+        const goalsString = localStorage.getItem("goals");
+        if (goalsString) {
+
+            // Send all goals to the server
+            goalsResponse = await fetch("/goals", {
+                method: "POST",
+                body: goalsString,
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-Requested-With": "XMLHttpRequest"
+                }
+            })
+
+            const goalsData = await goalsResponse.json();
+        }
+
+        // Make a POST request to the calendar page to store all stored activities to the database
+        
     }
     else {
         // Handle errors
-        if (data.error == "invalid_email_or_password") {
+        if (signupData.error == "invalid_email_or_password") {
             // Show error message for invalid email or password
             document.getElementById("generic-signup-error").hidden = false;
         }
 
-        else if (data.error == "invalid_email") {
+        else if (signupData.error == "invalid_email") {
             // Show error message for invalid email
             document.getElementById("generic-signup-error").hidden = false;
         }
 
-        else if (data.error == "duplicate_email") {
+        else if (signupData.error == "duplicate_email") {
             // Show error message for duplicate email
             document.getElementById("email-exists-error").hidden = false;
         }
-        else if (data.error == "server_error") {
+        else if (signupData.error == "server_error") {
             // Show generic error message
             document.getElementById("generic-signup-error").hidden = false;
         }

@@ -1,5 +1,5 @@
 import os
-from flask import Flask, request, render_template
+from flask import Flask, request, render_template, make_response
 import sqlite3
 import bcrypt
 from email_validator import validate_email, EmailNotValidError
@@ -26,11 +26,20 @@ def statistics():
 
 @app.route("/calendar", methods = ["GET", "POST"])
 def calendar():
-    return render_template("calendar.html")
+    if (request.method == "GET"):
+        return render_template("calendar.html")
+    elif (request.method == "POST"):
+        request_data = request.get_json()
+        
+
 
 @app.route("/goals", methods = ["GET", "POST"])
 def goals():
-    return render_template("goals.html")
+    if (request.method == "GET"):
+        return render_template("goals.html")
+    elif (request.method == "POST"):
+        request_data = request.get_json()
+        print(request_data)
 
 @app.route("/login", methods = ["GET", "POST"])
 def login():
@@ -53,8 +62,18 @@ def login():
             if (user_id != -1):
                 # If the user exists, create a new JWT token
                 token = create_jwt_token(user_id)
+
+                # Create a HTTP response
+                response = make_response({"token": token}, 200)
+
+                # Set the response headers
+                response.headers["Content-Type"] = "application/json"
+                response.headers["Access-Control-Allow-Credentials"] = "true"
                 
-                return {"token": token}, 200
+                response.set_cookie("token", token, domain="192.168.1.136", httponly=True, secure=False, samesite='Lax')
+
+                # Use make_response here to use cookies
+                return response
             
             else:
                 #return render_template("login.html", incorrect_login=True, login_error=False), 401
@@ -112,7 +131,21 @@ def signup():
             else:
                 # Create a new JWT token for the user
                 token = create_jwt_token(user_id)
-                return {"token": token}, 200
+
+                # Make a HTTP response
+                response = make_response({"token": token}, 200)
+
+                # Set headers
+                response.headers["Content-Type"] = "application/json"
+                response.headers["Access-Control-Allow-Credentials"] = "true"
+
+                # Add a cookie to the response
+                response.set_cookie("token", token, domain="192.168.1.136", httponly=True, secure=False, samesite='Lax')
+
+                return response
+                #return {"token": token}, 200
+
+
         except Exception as e:
             print(f"An error occurred during signup: {str(e)}")
             #return render_template("signup.html", email_exists_error=False, signup_error=True), 500

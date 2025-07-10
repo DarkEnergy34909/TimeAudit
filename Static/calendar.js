@@ -923,11 +923,18 @@ function initialiseTopButton() {
     }
 }
 
+function initialiseSavedFlag() {
+    if (!localStorage.getItem("saved_to_server")) {
+        localStorage.setItem("saved_to_server", false);
+    }
+}
+
 function updateCalendar() {
     updateCurrentActivity();
     setTimeLinePosition();
 }
 
+//initialiseSavedFlag();
 populateCalendar();
 setMonthYear(currentDate); 
 setDayHeadings(currentDate);

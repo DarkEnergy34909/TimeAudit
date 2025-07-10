@@ -146,6 +146,9 @@ function addGoal() {
 
     // Close the menu
     closeAddMenu();
+
+    // Hide the no goals element
+    document.querySelector(".no-goals-text").hidden = true;
 }
 
 // Creates a UI element for the goal
