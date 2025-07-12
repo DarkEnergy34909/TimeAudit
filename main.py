@@ -6,6 +6,7 @@ from email_validator import validate_email, EmailNotValidError
 import jwt
 import time
 from dotenv import load_dotenv
+import json
 
 # Load environment variables
 load_dotenv()
@@ -24,22 +25,14 @@ def index():
 def statistics():
     return render_template("statistics.html")
 
-@app.route("/calendar", methods = ["GET", "POST"])
+@app.route("/calendar", methods = ["GET"])
 def calendar():
-    if (request.method == "GET"):
-        return render_template("calendar.html")
-    elif (request.method == "POST"):
-        request_data = request.get_json()
+    return render_template("calendar.html")
         
-
-
-@app.route("/goals", methods = ["GET", "POST"])
+@app.route("/goals", methods = ["GET"])
 def goals():
-    if (request.method == "GET"):
-        return render_template("goals.html")
-    elif (request.method == "POST"):
-        request_data = request.get_json()
-        print(request_data)
+    return render_template("goals.html")
+
 
 @app.route("/login", methods = ["GET", "POST"])
 def login():
@@ -87,7 +80,7 @@ def login():
 @app.route("/signup", methods = ["GET", "POST"])
 def signup():
     if (request.method == "GET"):
-        return render_template("signup.html", email_exists_error=False, signup_error=False)
+        return render_template("signup.html")
     
     elif (request.method == "POST"):
         # Error checking
@@ -150,13 +143,104 @@ def signup():
             print(f"An error occurred during signup: {str(e)}")
             #return render_template("signup.html", email_exists_error=False, signup_error=True), 500
             return {"error": "server_error"}, 500
+        
+@app.route("/api/auth", methods=["GET"])
+def auth():
+    authenticated = False
+    if ("token" in request.cookies):
+        token = request.cookies.get("token")
+        authenticated = authenticate_user(token)
+    return {"authenticated": authenticated}, 200
+
+@app.route("/api/activities", methods=["GET", "POST"])
+def activities_api():
+    if (request.method == "GET"):
+        # Frontend is retrieving activities from the server
+
+        # Token should already have been authenticated client-side so no need to do error checking
+        token = request.cookies.get("token")
+        decoded_token = decode_jwt_token(token)
+        if ("error" in decoded_token):
+            return {"error": "invalid_token"}, 400
+        else:
+            # Get the user id
+            user_id = decoded_token["user-id"]
+
+            # Get all activities from the server from that user
+            activities = get_activities_from_database(user_id)
+
+            # Return the activities
+            return activities
+    elif (request.method == "POST"):
+        # Frontend is posting activities from the server
+
+        # List of activities posted to the server
+        activities = request.get_json()
+
+        # Get the token
+        token = request.cookies.get("token")
+        decoded_token = decode_jwt_token(token)
+
+        if ("error" in decoded_token):
+            return {"error": "authentication_failed"}, 400
+        else:
+            # Get the user id
+            user_id = decoded_token["user-id"]
+
+            # Add the activities to the database
+            result = add_activities_to_database(activities, user_id)
+
+            # Check if writing to database was successful
+            if (result):
+                return {"success": True}, 200
+            else:
+                return {"error": "activities_added_failed"}, 500
+            
+@app.route("/api/goals", methods=["GET", "POST"])
+def goals_api():
+    if (request.method == "GET"):
+        # TODO
+        pass
+    elif (request.method == "POST"):
+        # Frontend is posting goals to the server
+
+    # List of goals posted to the server
+        goals = request.get_json()
+
+        # Get the token
+        token = request.cookies.get("token")
+        decoded_token = decode_jwt_token(token)
+
+        if ("error" in decoded_token):
+            return {"error": "authentication_failed"}, 400
+        else:
+            # Get the user id
+            user_id = decoded_token["user-id"]
+
+            # Add the activities to the database
+            result = add_goals_to_database(goals, user_id)
+
+            # Check if writing to database was successful
+            if (result):
+                return {"success": True}, 200
+            else:
+                return {"error": "goals_added_failed"}, 500
+
+
+def authenticate_user(token):
+    decoded_token = decode_jwt_token(token)
+    if ("error" in token):
+        return False
+    else:
+        return True
+
 
 def create_jwt_token(user_id):
     # Get the current timestamp (in SECONDS)
     current_time = int(time.time())
 
-    # Set the expiration time to 1 hour from now
-    expiration_time = current_time + 3600
+    # Set the expiration time to 1 minute from now
+    expiration_time = current_time + 60
 
     # Create a new JWT token
     token = jwt.encode({"user-id": user_id, "exp": expiration_time}, SECRET_KEY, algorithm="HS256")
@@ -167,6 +251,7 @@ def decode_jwt_token(token):
     try:
         # Decode JWT token
         decoded_token = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+        print("Token is valid")
         return decoded_token
     except jwt.ExpiredSignatureError:
         print("Token has expired")
@@ -212,6 +297,32 @@ def add_goal_to_database(goal, user_id):
 
     return True
 
+def get_activities_from_database(user_id):
+    con = sqlite3.connect("timeaudit.db")
+    cur = con.cursor()
+
+    # Get all the activities associated with that user
+    res = cur.execute("SELECT * FROM Activity WHERE UserID = ?;", (user_id,))
+
+    activities = res.fetchall()
+    if (len(activities == 0)):
+        return None
+    else:
+        # Activities need to be returned as a list of dicts in order to be sent as JSON
+        activity_dict_list = []
+        for activity in activities:
+            category_name = cur.execute("SELECT Name FROM Category WHERE CategoryID = ?;", (activity[2],)).fetchone()[0]
+            goal_name = cur.execute("SELECT Title FROM Goal WHERE GoalID = ?", (activity[6],)).fetchone()[0]
+            if (goalName == None):
+                goalName = "None"
+            new_activity = {"title": activity[1], "category": category_name, "startTime": activity[3], "endTime": activity[4], "date": activity[5], "goalName": goal_name}
+
+            # Add to the list
+            activity_dict_list.append(new_activity)
+        
+        return activity_dict_list
+
+
 def add_activities_to_database(activities, user_id):
     con = sqlite3.connect("timeaudit.db")
     cur = con.cursor()
@@ -234,9 +345,12 @@ def add_activities_to_database(activities, user_id):
 
         # GoalID will be None (NULL) if there is no goal associated with the activity
         goal_id = None
-        activity_goal_name = activity["goalName"]
 
-        if (activity_goal_name != "None"):
+        # First check the activity has an associated goal
+        if ("goalName" in activity):
+            # Get the goal name
+            activity_goal_name = activity["goalName"]
+
             # Get the GoalID of the goal associated with that activity (if there is one)
             res = cur.execute("SELECT * FROM Goal WHERE Title = ? AND Date = ? AND UserID = ?", (activity_goal_name, activity_date, user_id))
             one_item_tuple = res.fetchone()

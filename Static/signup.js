@@ -22,15 +22,12 @@ document.getElementById("signup-form").onsubmit = async function(event) {
         // Store the token in localStorage
         //localStorage.setItem("token", data.token);
 
-        // Redirect to calendar page
-        window.location.href = "/calendar";
-
         // Make a POST request to the goals page to store all stored goals to the database
         const goalsString = localStorage.getItem("goals");
         if (goalsString) {
 
             // Send all goals to the server
-            goalsResponse = await fetch("/goals", {
+            goalsResponse = await fetch("/api/goals", {
                 method: "POST",
                 body: goalsString,
                 headers: {
@@ -43,7 +40,23 @@ document.getElementById("signup-form").onsubmit = async function(event) {
         }
 
         // Make a POST request to the calendar page to store all stored activities to the database
-        
+        const activitiesString = localStorage.getItem("activities");
+        console.log(activitiesString);
+        if (activitiesString) {
+            // Send all activities to the server
+            activitiesResponse = await fetch("/api/activities", {
+                method: "POST",
+                body: activitiesString,
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-Requested-With": "XMLHttpRequest"
+                }
+            })
+            const activitiesData = await activitiesResponse.json();
+        }
+
+        // Redirect to calendar page
+        window.location.href = "/calendar";
     }
     else {
         // Handle errors

@@ -771,6 +771,23 @@ function loadActivities() {
     //console.log(activities);
 }
 
+async function loadActivitiesFromServer() {
+    // First get activities from the server if the user is logged in
+    const authResponse = await fetch("/api/auth", {
+        method: "GET",
+        headers: {
+            "X-Requested-With": "XMLHttpRequest" // AJAX request
+        }
+    })
+    const authData = await authResponse.json();
+
+    if (authData.authenticated === "true") {
+        // Get activities from the server
+        // TODO
+        console.log("lol");
+    }
+}
+
 function saveActivity(activity) {
     // Add the activity to the activities array
     activities.push(activity); 
@@ -939,6 +956,7 @@ populateCalendar();
 setMonthYear(currentDate); 
 setDayHeadings(currentDate);
 onStartNowCheckboxChange(); 
+loadActivitiesFromServer();
 loadActivities();
 initialiseTopButton();
 setTimeLinePosition();
