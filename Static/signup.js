@@ -1,3 +1,21 @@
+async function checkAuth() {
+    const authResponse = await fetch("/api/auth", {
+        method: "GET",
+        headers: {
+            "X-Requested-With": "XMLHttpRequest", // Indicate that this is an AJAX request
+        },
+    })
+
+    const authData = await authResponse.json();
+
+    console.log(authData.authenticated);
+
+    if (authData.authenticated == true) {
+        // Redirect to calendar page
+        window.location.href = "/calendar"
+    }
+}
+
 document.getElementById("signup-form").onsubmit = async function(event) {
     // Prevent default form submission
     event.preventDefault();
@@ -84,3 +102,5 @@ document.getElementById("signup-form").onsubmit = async function(event) {
         }
     }
 }
+
+checkAuth();

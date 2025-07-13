@@ -215,6 +215,24 @@ function addGoalCard(goal, today) {
                 break;
             }
         }
+
+        // Remove the goal from the associated activity
+        const activitiesString = localStorage.getItem("activities");
+
+        if (activitiesString) {
+            let activities = JSON.parse(activitiesString);
+
+            for (let i = 0; i < activities.length; i++) {
+                // Remove the goal name property from the activities associated with this goal
+                if (activities[i].goalName == goalTitle && activities[i].date == goalDate) {
+                    // Delete the activity
+                    activities.splice(i, 1);
+
+                    // Save to local storage
+                    localStorage.setItem("activities", JSON.stringify(activities));
+                }
+            }
+        }
     }
     goalDiv.appendChild(deleteButton);
 

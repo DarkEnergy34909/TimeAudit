@@ -229,7 +229,7 @@ def goals_api():
 
 def authenticate_user(token):
     decoded_token = decode_jwt_token(token)
-    if ("error" in token):
+    if ("error" in decoded_token):
         return False
     else:
         return True
@@ -327,6 +327,8 @@ def add_activities_to_database(activities, user_id):
     con = sqlite3.connect("timeaudit.db")
     cur = con.cursor()
 
+    
+
     # Activities will be JSON (i.e. a dict of dicts)
     for activity in activities:
         activity_title = activity["title"]
@@ -334,6 +336,8 @@ def add_activities_to_database(activities, user_id):
         activity_start_time = activity["startTime"]
         activity_end_time = activity["endTime"]
         activity_date = activity["date"]
+
+        print(f"Adding activity: {activity_title}, {activity_category}, {activity_start_time}, {activity_end_time}, {activity_date}")
 
         # Get the correct CategoryID from the category table
         res = cur.execute("SELECT CategoryID FROM Category WHERE Name = ?;", (activity_category,))
@@ -347,9 +351,10 @@ def add_activities_to_database(activities, user_id):
         goal_id = None
 
         # First check the activity has an associated goal
-        if ("goalName" in activity):
+        if ("goalName" in activity and activity["goalName"] != "None"):
             # Get the goal name
             activity_goal_name = activity["goalName"]
+            print(f"Activity goal name: {activity_goal_name}")
 
             # Get the GoalID of the goal associated with that activity (if there is one)
             res = cur.execute("SELECT * FROM Goal WHERE Title = ? AND Date = ? AND UserID = ?", (activity_goal_name, activity_date, user_id))

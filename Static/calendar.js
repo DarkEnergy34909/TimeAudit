@@ -951,6 +951,35 @@ function updateCalendar() {
     setTimeLinePosition();
 }
 
+// Temporary function to delete goalName from activities where the goal no longer exists (for consistency)
+function removeDeletedGoalsFromActivities() {
+    for (let i = 0; i < activities.length; i++) {
+        if (Object.hasOwn(activities[i], "goalName")) {
+            let found = false;
+
+            let goals = JSON.parse(localStorage.getItem("goals"));
+
+            for (let j = 0; j < goals.length; j++) {
+                if (activities[i].date == goals[j].date && activities[i].goalName == goals[j].title) {
+                    console.log("found goal");
+                    found = true;
+                }
+            }
+
+            if (!found) {
+                console.log("deleted");
+                console.log(activities[i].title)
+                console.log(activities[i].goalName);
+
+                // Remove the goalName property
+                delete activities[i].goalName;
+            }
+        }
+    }
+
+    localStorage.setItem("activities", JSON.stringify(activities));
+}
+
 //initialiseSavedFlag();
 populateCalendar();
 setMonthYear(currentDate); 
