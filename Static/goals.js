@@ -131,6 +131,9 @@ function addGoal() {
     // Save the goal
     saveGoal(newGoal);
 
+    // Save the goal to the server
+    saveGoalToServer(newGoal);
+
     // Create a new UI element for the goal
     addGoalCard(newGoal, true);
 
@@ -149,6 +152,72 @@ function addGoal() {
 
     // Hide the no goals element
     document.querySelector(".no-goals-text").hidden = true;
+}
+
+async function saveGoalToServer(goal) {
+    // Check if authenticated
+    const authStatus = await checkAuth();
+    if (authStatus == true) {
+        // Create an array
+        const tempArray = [goal];
+
+        // Convert to JSON
+        const goalString = JSON.stringify(tempArray);
+
+        // Send the request
+        const goalsResponse = await fetch("/api/goals", {
+            method: "POST",
+            body: goalString,
+            headers: {
+                "Content-Type": "application/json",
+                "X-Requested-With": "XMLHttpRequest"
+            }
+        });
+
+        const goalsData = await goalsResponse.json();
+
+        if (!goalsResponse.ok ||!goalsData.success) {
+            // Send an alert that the activity was NOT posted to the server
+            alert("Failed to post goal to the server. Check your network connection.");
+        }
+        else {
+            alert("Posted goal successfully");
+        }
+    }
+    else if (authStatus == false) {
+        alert("NOT AUTHENTICATED");
+    }
+}
+
+async function removeGoalFromServer(goal) {
+    // Check if authenticated
+    const authStatus = await checkAuth();
+    if (authStatus == true) {
+        // Send a POST request with the goal
+        const goalString = JSON.stringify(goal);
+
+        const goalResponse = await fetch("/api/goals/remove", {
+            method: "POST",
+            body: goalString,
+            headers: {
+                "Content-Type": "application/json",
+                "X-Requested-With": "XMLHttpRequest",
+            }
+        })
+
+        const goalData = await goalResponse.json();
+
+        if (!goalResponse.ok ||!goalData.success) {
+            // Send an alert that the goal was NOT posted to the server
+            alert("Failed to delete activity from server. Check your network connection.");
+        }
+        else {
+            alert("Deleted activity successfully");
+        }
+    }
+    else if (authStatus == false) {
+        alert("NOT AUTHENTICATED");
+    }
 }
 
 // Creates a UI element for the goal
@@ -206,6 +275,9 @@ function addGoalCard(goal, today) {
         // Remove the goal from the goals array
         for (let i = 0; i < goals.length; i++) {
             if (goals[i].title == goalTitle && goals[i].duration == goalDuration && goals[i].timeDone == goalTimeDone && goals[i].date == goalDate) {
+                // Remove the goal from the server
+                removeGoalFromServer(goals[i]);
+
                 // Remove the goal at index i
                 goals.splice(i, 1);
 
@@ -281,6 +353,7 @@ function loadGoals(todaysGoals) {
 
     if (goalsString) {
         goals = JSON.parse(goalsString);
+        const currentGoals = [];
         let added = false;
 
         for (let i = 0; i < goals.length; i++) {
@@ -288,17 +361,29 @@ function loadGoals(todaysGoals) {
             if (todaysGoals) {
                 // If the goal's date is today, add it to the page
                 if (goals[i].date == getIsoString(new Date())) {
-                    addGoalCard(goals[i], true); // true = today - goal cards are white
+                    // Add goal to current goals
+                    currentGoals.push(goals[i]);
+                    //addGoalCard(goals[i], true); // true = today - goal cards are white
                     added = true;
                 }
             }
             else {
                 // If the goal's date is NOT today, add it to the page
                 if (goals[i].date != getIsoString(new Date())) {
-                    addGoalCard(goals[i], false); // false = not today - goal cards are green/red
+                    // Add goal to current goals
+                    currentGoals.push(goals[i]);
+                    //addGoalCard(goals[i], false); // false = not today - goal cards are green/red
                     added = true;
                 }
             }
+        }
+
+        // Reverse currentGoals so it is sorted descending
+        currentGoals.reverse();
+
+        // Add to the page
+        for (let i = 0; i < currentGoals.length; i++) {
+            addGoalCard(currentGoals[i], todaysGoals);
         }
 
         if (!added) {
@@ -467,5 +552,68 @@ function onPreviousButtonClick() {
     }
 }
 
-loadGoals(true);
-initialiseGoalSelectorButtons();
+async function checkAuth() {
+    const authResponse = await fetch("/api/auth", {
+        method: "GET",
+        headers: {
+            "X-Requested-With": "XMLHttpRequest", // Indicate that this is an AJAX request
+        },
+    })
+
+    const authData = await authResponse.json();
+
+    console.log("Authenticated: " + authData.authenticated);
+
+    return authData.authenticated;
+}
+
+async function pullGoalsFromServer() {
+    const authResult = checkAuth();
+    if (authResult == true) {
+        // Get goals from server
+        const goalsResponse = await fetch("/api/goals", {
+            method: "GET",
+            headers: {
+                "X-Requested-With": "XMLHttpRequest"
+            }
+        })
+
+        const goalsData = await goalsResponse.json();
+
+        if (goalsResponse.ok && goalsData) {
+            // Overwrite local storage
+            localStorage.setItem("goals", JSON.stringify(goalsData));
+        }
+    }
+}
+
+// Logout function
+async function logout() {
+    const authResult = await checkAuth();
+    if (authResult == true) {
+        // Send a POST request to the API to logout
+        const logoutResponse = await fetch("/api/logout", {
+            method: "POST",
+            body: {},
+            headers: {
+                "Content-Type": "application/json",
+                "X-Requested-With": "XMLHttpRequest"
+            }
+        })
+
+        const logoutData = await logoutResponse.json();
+
+        if (logoutResponse.ok && logoutData.success) {
+            // Redirect to landing page
+            window.location.href = "/";
+        }
+    }
+}
+
+async function init() {
+    await pullGoalsFromServer();
+    loadGoals(true);
+    initialiseGoalSelectorButtons();
+}
+
+init();

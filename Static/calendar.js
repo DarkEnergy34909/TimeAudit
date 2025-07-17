@@ -25,44 +25,90 @@ let currentActivityIndex = -1;
 // startTime: float (e.g. 8.5 for 08:30)
 // endTime: float (e.g. 10.0 for 10:00)
 
+function isMobile() {
+    return window.matchMedia("(max-width: 700px)").matches;
+}
+
 function populateCalendar() {
-    const calendarBody = document.querySelector('.body'); // Returns the body of the calendar, .body because it is a class (CSS selector)
-    const timeColumn = document.querySelector('.time-column'); // Returns the time column of the calendar, .time-column because it is a class (CSS selector)
-    const calendarGrid = document.querySelector('.calendar-grid'); // Returns the calendar grid, .calendar-grid because it is a class (CSS selector)
+    // If on mobile
+    if (isMobile()) {
+        const calendarBody = document.querySelector('.body'); // Returns the body of the calendar, .body because it is a class (CSS selector)
+        const timeColumn = document.querySelector('.time-column'); // Returns the time column of the calendar, .time-column because it is a class (CSS selector)
+        const calendarGrid = document.querySelector('.calendar-grid'); // Returns the calendar grid, .calendar-grid because it is a class (CSS selector)
 
-    // Get the current date
-    const currentDate = new Date();
+        // Get the current date
+        const currentDate = new Date();
 
-    // Create array with hours from 00:00 to 23:00
-    const hours = [];
-    for (let i = 0 ; i < 10; i++) {
-        hours.push("0" + i + ":00");
-    }
-    for (let i = 10 ; i < 24; i++) {
-        hours.push(i + ":00");
-    }
-    console.log(hours);
-
-    // Populate hours column
-    for (let hour of hours) {
-        const hourDiv = document.createElement("div");
-        hourDiv.classList.add("time-slot");
-        hourDiv.textContent = hour;
-        timeColumn.appendChild(hourDiv);
-    } 
-
-    // Populate calendar grid with empty divs
-    for (let i = 0; i < 7 * 24; i++) {
-        const gridDiv = document.createElement("div");
-        gridDiv.classList.add("grid-item");
-        // Set the calendar grid to be slightly darker if it is on the current day
-        if (i % 7 == getCurrentDay()) {
-            gridDiv.classList.add("grid-item-today");
+        // Create array with hours from 00:00 to 23:00
+        const hours = [];
+        for (let i = 0 ; i < 10; i++) {
+            hours.push("0" + i + ":00");
         }
-        calendarGrid.appendChild(gridDiv);
+        for (let i = 10 ; i < 24; i++) {
+            hours.push(i + ":00");
+        }
+        console.log(hours);
+
+        // Populate hours column
+        for (let hour of hours) {
+            const hourDiv = document.createElement("div");
+            hourDiv.classList.add("time-slot");
+            hourDiv.textContent = hour;
+            timeColumn.appendChild(hourDiv);
+        }
+
+        // Populate calendar grid with empty divs for the CURRENT DAY ONLY
+        for (let i = 0; i < 24; i++) {
+            const gridDiv = document.createElement("div");
+            gridDiv.classList.add("grid-item");
+            calendarGrid.appendChild(gridDiv);
+        }
+
+        // Hide the calendar navigation buttons on mobile
+        document.querySelector("#prev-button").hidden = true;
+        document.querySelector("#next-button").hidden = true;
     }
-    //let test = document.getElementById("test");
-    //test.innerHTML = hours; 
+    // If on desktop
+    else {
+        const calendarBody = document.querySelector('.body'); // Returns the body of the calendar, .body because it is a class (CSS selector)
+        const timeColumn = document.querySelector('.time-column'); // Returns the time column of the calendar, .time-column because it is a class (CSS selector)
+        const calendarGrid = document.querySelector('.calendar-grid'); // Returns the calendar grid, .calendar-grid because it is a class (CSS selector)
+
+        // Get the current date
+        const currentDate = new Date();
+
+        // Create array with hours from 00:00 to 23:00
+        const hours = [];
+        for (let i = 0 ; i < 10; i++) {
+            hours.push("0" + i + ":00");
+        }
+        for (let i = 10 ; i < 24; i++) {
+            hours.push(i + ":00");
+        }
+        console.log(hours);
+
+        // Populate hours column
+        for (let hour of hours) {
+            const hourDiv = document.createElement("div");
+            hourDiv.classList.add("time-slot");
+            hourDiv.textContent = hour;
+            timeColumn.appendChild(hourDiv);
+        } 
+
+        // Populate calendar grid with empty divs
+        for (let i = 0; i < 7 * 24; i++) {
+            const gridDiv = document.createElement("div");
+            gridDiv.classList.add("grid-item");
+            // Set the calendar grid to be slightly darker if it is on the current day
+            if (i % 7 == getCurrentDay()) {
+                gridDiv.classList.add("grid-item-today", "current-day");
+
+            }
+            calendarGrid.appendChild(gridDiv);
+        }
+        //let test = document.getElementById("test");
+        //test.innerHTML = hours;
+    }
 }
 
 function setMonthYear(date) {
@@ -151,6 +197,9 @@ function addActivity() {
         currentActivityIndex = activities.length;
         localStorage.setItem("current_activity", currentActivityIndex)
 
+        // Save the activity itself to local storage
+        localStorage.setItem("running_activity", JSON.stringify(activity));
+
         // Save the activity
         saveActivity(activity);
 
@@ -169,6 +218,8 @@ function addActivity() {
 
         const timeErrorText = document.getElementById("time-input-error");
         timeErrorText.hidden = true; // Hide the error message
+
+        // Post the activity to the server LATER if it is an ongoing activity
 
         return; 
     }
@@ -203,8 +254,11 @@ function addActivity() {
     // Update the goal
     addTimeToGoal(activity);
 
-    // Save the activity
+    // Save the activity to local storage
     saveActivity(activity);
+
+    // Save the activity to the server if authenticated
+    saveActivityToServer(activity);
 
     // Close the add menu
     closeAddMenu();
@@ -236,15 +290,87 @@ function stopActivity() {
     const currentActivity = activities[currentActivityIndex];
     addTimeToGoal(currentActivity);
 
+    // Save the activity to the server 
+    saveActivityToServer(currentActivity);
+    
+
     // Set the current activity index to -1 and update local storage
     currentActivityIndex = -1;
     localStorage.setItem("current_activity", currentActivityIndex);
+    localStorage.removeItem("running_activity");
 
 
     // Reset the activity blocks
     removeActivityBlocks();
     loadActivities();
 
+}
+
+async function saveActivityToServer(activity) {
+    // Check if authenticated
+    const authStatus = await checkAuth();
+    if (authStatus == true) {
+        // Create an array
+        const tempArray = [activity];
+
+        // Convert to JSON
+        const activityString = JSON.stringify(tempArray);
+
+        // Send the request
+        const activitiesResponse = await fetch("/api/activities", {
+            method: "POST",
+            body: activityString,
+            headers: {
+                "Content-Type": "application/json",
+                "X-Requested-With": "XMLHttpRequest",
+
+            }
+        });
+
+        const activitiesData = await activitiesResponse.json();
+
+        if (!activitiesResponse.ok ||!activitiesData.success) {
+            // Send an alert that the activity was NOT posted to the server
+            alert("Failed to post activity to the server. Check your network connection.");
+        }
+        else {
+            alert("Posted activity successfully");
+        }
+    }
+    else if (authStatus == false) {
+        alert("NOT AUTHENTICATED");
+    }
+}
+
+async function removeActivityFromServer(activity) {
+    // Check if authenticated
+    const authStatus = await checkAuth();
+    if (authStatus == true) {
+        // Send a POST request with the activity
+        const activityString = JSON.stringify(activity);
+
+        const activityResponse = await fetch("/api/activities/remove", {
+            method: "POST",
+            body: activityString,
+            headers: {
+                "Content-Type": "application/json",
+                "X-Requested-With": "XMLHttpRequest",
+            }
+        })
+
+        const activityData = await activityResponse.json();
+
+        if (!activityResponse.ok ||!activityData.success) {
+            // Send an alert that the activity was NOT posted to the server
+            alert("Failed to delete activity from server. Check your network connection.");
+        }
+        else {
+            alert("Deleted activity successfully");
+        }
+    }
+    else if (authStatus == false) {
+        alert("NOT AUTHENTICATED");
+    }
 }
 
 function addTimeToGoal(activity) {
@@ -298,7 +424,6 @@ function getIsoString(date) {
 }
 
 function setDayHeadings(date) {
-
     // Get the first day of the week (Monday) for the current date
     const firstDayOfWeek = new Date(date.setDate(date.getDate() - date.getDay() + 1)); // Set the date to the first day of the week (Monday)
 
@@ -320,9 +445,22 @@ function setDayHeadings(date) {
         // If the day is today, highlight it in red
         if (i == getCurrentDay()) {
             dayLabels[i].style.color = "#f73a2d"; // Highlight the current day label in red
+            //dayLabels[i].style.backgroundColor = "#e8f0fc"; // Highlight in light blue
+
+            // If on mobile, centre
+            if (isMobile()) {
+                dayLabels[i].classList.add("current");
+            }
+
         } 
         else {
-            dayLabels[i].style.color = "white"; // Reset color for other days
+            dayLabels[i].style.color = "#1e3a8a"; // Reset color for other days
+            dayLabels[i].classList.remove("current");
+
+            // If on mobile, remove other days
+            if (isMobile()) {
+                dayLabels[i].remove();
+            }
         }
     }
 }
@@ -349,7 +487,7 @@ function goToPreviousWeek() {
 
     // Unhighlight the current day label
     const dayLabels = document.querySelectorAll(".day");
-    dayLabels[getCurrentDay()].style.color = "white"; 
+    dayLabels[getCurrentDay()].style.color = "#1e3a8a";
 
     // Unhide the next button
     const nextButton = document.getElementById("next-button");
@@ -400,7 +538,7 @@ function goToNextWeek() {
     else {
         // Unhighlight the current day label
         const dayLabels = document.querySelectorAll(".day");
-        dayLabels[getCurrentDay()].style.color = "white"; 
+        dayLabels[getCurrentDay()].style.color = "#1e3a8a"; 
     }
 
     // Reset displayed activities by removing all blocks and then reloading
@@ -476,14 +614,12 @@ function addBlock(title, category, startTime, endTime, day, ongoing) {
 
                                 // Save to local storage
                                 localStorage.setItem("goals", JSON.stringify(goals));
+
+                                // TODO: UPDATE SERVER-SIDE
                             }
                         }
                     }
                 }
-
-                // Remove the activity itself
-                activities.splice(i, 1); // Removes one item from the array at index i
-
                 // If the activity is currently running, reset the index
                 if (i == currentActivityIndex) {
                     currentActivityIndex = -1;
@@ -496,6 +632,13 @@ function addBlock(title, category, startTime, endTime, day, ongoing) {
                     addButton.hidden = false;
                     stopButton.hidden = true;
                 }
+                // If not, remove the activity from the server
+                else {
+                    removeActivityFromServer(activities[i]);
+                }
+
+                // Remove the activity itself
+                activities.splice(i, 1); // Removes one item from the array at index i
 
                 break;
             }
@@ -534,7 +677,13 @@ function addBlock(title, category, startTime, endTime, day, ongoing) {
     const blockHeight = gridRowHeight * (endTime - startTime) / 60;
 
     // Calculate x position of block - this is the current day of the week (0-6) multiplied by the width of a grid column and add a margin
-    const xPosition = (day * gridColumnWidth) + (gridColumnWidth * 0.025);
+    let xPosition = (day * gridColumnWidth) + (gridColumnWidth * 0.025);
+
+    // If on mobile, the x position is just 0 plus the margin'
+    if (isMobile()) {
+        // Set the x position to 0 plus the margin
+        xPosition = (gridColumnWidth * 0.025);
+    }
 
     // Calculate y position of block - this is the start time of the activity (in hours) multiplied by the height of a grid row
     //const yPosition = startTime * gridRowHeight;
@@ -719,6 +868,8 @@ function loadActivities() {
     // Load activities from local storage
     const activitiesString = localStorage.getItem("activities");
 
+    const runningActivityString = localStorage.getItem("running_activity");
+
     // Set the current activity index to the one stored 
     currentActivityIndex = parseInt(localStorage.getItem("current_activity"));
 
@@ -732,6 +883,17 @@ function loadActivities() {
     // Check if there are any activities saved first
     if (activitiesString) {
         activities = JSON.parse(activitiesString);
+
+        if (runningActivityString) {
+            // If there is a running activity, add it to the activities array
+            // This is because running activities are not saved to the server until they are stopped
+            // and are only saved to local storage
+            console.log("FAT BASTARD");
+            activities.push(JSON.parse(runningActivityString));
+
+            // Save to local storage again
+            localStorage.setItem("activities", JSON.stringify(activities));
+        }
 
         // Iterate through every saved activity
         for (let i = 0; i < activities.length; i++) {
@@ -760,7 +922,15 @@ function loadActivities() {
                 }
                 // If the activity is not the current activity, add the block with no flash
                 else {
-                    addBlock(activity.title, activity.category, activity.startTime, activity.endTime, activityDay, false);
+                    // If on mobile, only add activities for the current day
+                    if (isMobile()) {
+                        if (activityDay == getCurrentDay()) {
+                            addBlock(activity.title, activity.category, activity.startTime, activity.endTime, activityDay, false);
+                        }
+                    }
+                    else {
+                        addBlock(activity.title, activity.category, activity.startTime, activity.endTime, activityDay, false);
+                    }
                 }
                 
             }
@@ -769,23 +939,6 @@ function loadActivities() {
 
     //console.log(activitiesString);
     //console.log(activities);
-}
-
-async function loadActivitiesFromServer() {
-    // First get activities from the server if the user is logged in
-    const authResponse = await fetch("/api/auth", {
-        method: "GET",
-        headers: {
-            "X-Requested-With": "XMLHttpRequest" // AJAX request
-        }
-    })
-    const authData = await authResponse.json();
-
-    if (authData.authenticated === "true") {
-        // Get activities from the server
-        // TODO
-        console.log("lol");
-    }
 }
 
 function saveActivity(activity) {
@@ -903,19 +1056,18 @@ function updateCurrentActivity() {
         // Save the activities array to local storage
         localStorage.setItem("activities", JSON.stringify(activities));
 
-        /*
-        // Get the element corresponding with this activity
-        const blocks = document.querySelectorAll(".block");
-
-        const currentActivityBlock = null;
-
-        // Iterate over all items in the blocks array
-        for (let i = 0; i < blocks.length; i++) {
-        */
+        // Save the current activity to local storage
+        localStorage.setItem("running_activity", JSON.stringify(currentActivity));
 
         // Reset all activities onscreen (may change this later if its too chopped)
-        removeActivityBlocks();
-        loadActivities();
+        //removeActivityBlocks();
+        //loadActivities();
+        // This was in fact too chopped so update the current activity block instead
+        const currentActivityElement = document.querySelector(".flash");
+
+        // Delete the current activity block and add a new one
+        addBlock(currentActivity.title, currentActivity.category, currentActivity.startTime, currentActivity.endTime, getCurrentDay(), true);
+        currentActivityElement.remove();
 
         console.log("updated");
     }
@@ -980,16 +1132,150 @@ function removeDeletedGoalsFromActivities() {
     localStorage.setItem("activities", JSON.stringify(activities));
 }
 
+async function checkAuth() {
+    const authResponse = await fetch("/api/auth", {
+        method: "GET",
+        headers: {
+            "X-Requested-With": "XMLHttpRequest", // Indicate that this is an AJAX request
+        },
+    })
+
+    const authData = await authResponse.json();
+
+    console.log("Authenticated: " + authData.authenticated);
+
+    return authData.authenticated;
+}
+
+async function displayBannerIfExpired() {
+    const authResponse = await fetch("/api/auth", {
+        method: "GET",
+        headers: {
+            "X-Requested-With": "XMLHttpRequest", // Indicate that this is an AJAX request
+        },
+    })
+
+    const authData = await authResponse.json();
+
+    if (authData.authenticated == false /*&& authData.expired == true*/) {
+        // Unhide banner
+        document.querySelector(".banner").hidden = false;
+
+    }
+}
+
+// Function to sync localStorage with server-side state
+async function syncLocalStorageToServer() {
+    const authResult = await checkAuth();
+
+    if (authResult == true) {
+        // User has been authenticated
+
+        // Get activities from local storage
+        const activitiesString = localStorage.getItem("activities");
+
+        if (activitiesString) {
+            const syncResponse = await fetch("/api/activities/sync", {
+                method: "POST",
+                body: activitiesString,
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-Requested-With": "XMLHttpRequest"
+                }
+            })
+
+            const syncData = await syncResponse.json();
+
+            if (syncResponse.ok && syncData.success) {
+                //alert("Sync successful");
+            }
+            else {
+                //alert("Sync failed");
+            }
+        }
+    }
+    else {
+        //alert("NOT AUTHENTICATED");
+    }
+}
+
+async function pullActivitiesFromServer() {
+    // For now, if any activities overlap between local storage and the server, prioritise the server
+
+    const authResult = await checkAuth();
+    if (authResult == true) {
+
+        // Get activities from the server
+        const activitiesResponse = await fetch("/api/activities", {
+            method: "GET",
+            headers: {
+                "X-Requested-With": "XMLHttpRequest"
+            }
+        })
+
+        const activitiesData = await activitiesResponse.json();
+
+        if (activitiesResponse.ok && activitiesData) {
+            // Overwrite local storage (ok because sync was already performed)
+            localStorage.setItem("activities", JSON.stringify(activitiesData));
+        }
+    }
+}
+
+// Logout function
+async function logout() {
+    const authResult = await checkAuth();
+    if (authResult) {
+        // Send a POST request to the API to logout
+        const logoutResponse = await fetch("/api/logout", {
+            method: "POST",
+            body: {},
+            headers: {
+                "Content-Type": "application/json",
+                "X-Requested-With": "XMLHttpRequest"
+            }
+        })
+        const logoutData = await logoutResponse.json();
+
+        if (logoutResponse.ok && logoutData.success) {
+            // Redirect to landing page
+            window.location.href = "/";
+        }
+    }
+}
+
+async function init() {
+    //await syncLocalStorageToServer();
+    await pullActivitiesFromServer();
+    displayBannerIfExpired();
+    populateCalendar();
+    setMonthYear(currentDate); 
+    setDayHeadings(currentDate);
+    onStartNowCheckboxChange(); 
+    loadActivities();
+    initialiseTopButton();
+    setTimeLinePosition();
+
+    // Reset the time line position every second
+    //setInterval(setTimeLinePosition, 1000);
+    setInterval(updateCalendar, 1000);
+}
+
+init();
+
 //initialiseSavedFlag();
-populateCalendar();
-setMonthYear(currentDate); 
-setDayHeadings(currentDate);
-onStartNowCheckboxChange(); 
-loadActivitiesFromServer();
-loadActivities();
-initialiseTopButton();
-setTimeLinePosition();
+//syncLocalStorageToServer();
+//pullActivitiesFromServer();
+//displayBannerIfExpired();
+//populateCalendar();
+//setMonthYear(currentDate); 
+//setDayHeadings(currentDate);
+//onStartNowCheckboxChange(); 
+//loadActivitiesFromServer();
+//loadActivities();
+//initialiseTopButton();
+//setTimeLinePosition();
 
 // Reset the time line position every second
 //setInterval(setTimeLinePosition, 1000);
-setInterval(updateCalendar, 1000);
+//setInterval(updateCalendar, 1000);

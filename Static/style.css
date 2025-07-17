@@ -6,6 +6,7 @@ body {
     color: #333;
     margin: 0;
     padding: 0;
+    overflow-x: hidden;
     /*padding-bottom: 20px; /* Add space at the bottom */
 }
 
@@ -53,13 +54,21 @@ a {
     text-align: center;
     font-weight: bold;
     margin-top: 120px;
+    max-width: 90%;
 }
 
 .hero-image {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow */
     border-radius: 10px; /* Rounded corners */
-    max-width: 100%;
+    max-width: 90%;
     height: auto; /* Maintain aspect ratio */
+}
+
+.hero-explanation {
+    color: #1e3a8a; /* Dark Blue */
+    font-size: 1.2rem;
+    max-width: 90%;
+    margin-top: 20px;
 }
 
 .tutorial-gif {
@@ -92,6 +101,7 @@ a {
     justify-content: space-between;
     align-items: center;
     background-color: #FFFFFF; 
+    border-bottom: 1px solid #ddd; /* Light gray border at the bottom */
 }
 
 .start-tracking-button {
@@ -134,6 +144,20 @@ a {
     margin-bottom: 20px;
 }
 
+/* Optional: Stack feature boxes vertically on very small screens */
+@media (max-width: 700px) {
+    .features-row {
+        flex-direction: column;
+        align-items: center;
+        overflow-x: visible;
+    }
+    .feature-box {
+        width: 90vw;
+        min-width: 0;
+        max-width: 500px;
+    }
+}
+
 .feature-box:hover {
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2); /* Slightly larger shadow on hover */
     transform: translateY(-5px); /* Slightly lift the box on hover */
@@ -147,7 +171,7 @@ a {
     border-radius: 10px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow */
     padding: 20px;
-    width: 100%;
+    width: 90%;
     max-height: 400px;
     text-align: center;
     margin: 20px;
@@ -167,7 +191,7 @@ a {
     color: white;
     text-align: center;
     padding: 20px;
-    width: 100%;
+    width: 100vw;
     /*position: fixed;
     left: 0;
     right: 0;
@@ -185,6 +209,24 @@ a {
     padding: 10px 20px;
     background-color: #1e3a8a; /* Dark Blue */
     color: white;
+}
+
+@media (max-width: 700px) {
+    .top-bar {
+        width: 100%;
+    }
+}
+
+.banner {
+    position: fixed;
+    bottom: 0px;
+    width: 100%;
+    background-color: #f8f8f8; /* Light gray background */
+    color: #333333; /* Dark text color */
+    padding: 10px 20px;
+    border-radius: 5px;
+    text-align: center;
+    z-index: 1000;
 }
 
 #add-button {
@@ -228,6 +270,12 @@ a {
     border-bottom: 2px solid #ddd;
 }
 
+@media (max-width: 700px) {
+    .month-bar {
+        width: 100vw;
+    }
+}
+
 .month-bar button {
     background-color: transparent;
     border: none;
@@ -255,11 +303,18 @@ a {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Subtle shadow */
     padding: 20px;
     width: 400px; /* Fixed width for consistency */
-    max-width: 90%;
+    max-width: 75%;
+    /*max-height: 90vh;*/
     height: auto;
-    z-index: 1000; /* Ensure it appears above other elements */
+    z-index: 10000; /* Ensure it appears above other elements */
     /*font-family: Arial, sans-serif;*/
     color: #333; /* Dark text color */
+}
+
+@media (max-width: 700px) {
+    .add-menu {
+        font-size: 0.9rem;
+    }
 }
 
 /* Add Activity Title */
@@ -342,12 +397,27 @@ a {
     display: grid;
     grid-template-rows: auto 1fr;
     height: calc(100vh - 150px); /* Adjust height to fit the screen */
-    margin: 20px;
     border: 1px solid #ddd;
-    border-radius: 10px;
+    margin: 20px;
+    border-radius: 0px;
     overflow: hidden;
     background-color: white;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+@media (max-width: 700px) {
+    #calendar {
+        margin: 0 !important;
+        padding: 0 !important;
+        margin-right: 0;
+        border-radius: 0;
+        position: fixed;
+        left: 0;
+        right: 0;
+        margin-left: -50vw;
+        margin-right: -50vw;
+        width: auto;
+    }
 }
 
 /* Time line */
@@ -365,8 +435,11 @@ a {
 .header {
     display: grid;
     grid-template-columns: 1fr repeat(7, 1fr);
-    background-color: #2563eb; /* Blue */
-    color: white;
+    /*background-color: #2563eb; /* Blue */
+    background-color: #ffffff; 
+    color: #1e3a8a; /* Dark Blue */
+    border-bottom: 2px solid #ddd;
+
     text-align: center;
     font-weight: bold;
     padding: 10px 0;
@@ -415,6 +488,12 @@ a {
     height: 100%;
 }
 
+@media (max-width: 700px) {
+    .calendar-grid {
+        grid-template-columns: repeat(1, 1fr); /* Single column for smaller screens */
+    }
+}
+
 .grid-item {
     border: 1px solid #ddd;
     box-sizing: border-box;
@@ -423,7 +502,8 @@ a {
 }
 
 .grid-item-today {
-    background-color: #e0eeff; /* Light Blue */
+    /*background-color: #e0eeff; /* Light Blue */
+    background-color: #e8f0fc; /* Lighter Blue */
 }
 
 .grid-item:hover {
@@ -597,6 +677,13 @@ a {
     padding: 10px 20px;
     display: flex;
     justify-content: center; /* Center the nav links */
+    align-items: center;
+}
+
+@media (max-width: 700px) {
+    .nav-bar {
+        width: 100vw; /* Full width on small screens */
+    }
 }
 
 .nav-bar a {
@@ -694,6 +781,12 @@ a {
     max-height: 100px;
 }
 
+@media (max-width: 700px) {
+    .goal-card {
+        width: 90%; /* Full width on smaller screens */
+    }
+}
+
 .goal-card button {
     background-color: transparent; /* Transparent background */
     border: none; /* No border */
@@ -780,11 +873,13 @@ a {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Subtle shadow */
     padding: 20px;
     width: 400px; /* Fixed width for consistency */
-    max-width: 90%;
+    max-width: 80%;
     height: auto;
     z-index: 1000; /* Ensure it appears above other elements */
     /*font-family: Arial, sans-serif;*/
     color: #333; /* Dark text color */
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .login-menu label {
@@ -826,11 +921,13 @@ a {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Subtle shadow */
     padding: 20px;
     width: 400px; /* Fixed width for consistency */
-    max-width: 90%;
+    max-width: 80%;
     height: auto;
     z-index: 1000; /* Ensure it appears above other elements */
     /*font-family: Arial, sans-serif;*/
     color: #333; /* Dark text color */
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .signup-menu label {
@@ -860,3 +957,98 @@ a {
     text-align: center;
     color: #1e3a8a; /* Dark blue */
 }
+
+.email-container {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    margin-right: 20px;
+}
+
+.email-address {
+    font-size: 1rem;
+    color: #1e3a8a; /* Dark Blue */
+    margin-right: 10px;
+}
+
+.logout-button {
+    /*background-color: #dc2626; /* Red */
+    background-color: #FFFFFF;
+    color: #dc2626; /* Red */
+    border: none;
+    padding: 10px 15px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 0.3s ease;
+}
+
+.logout-button:hover {
+    color: #b91c1c; /* Darker red on hover */
+}
+
+@media (max-width: 700px) {
+    .nav-bar,
+    .title-bar,
+    .top-bar,
+    .month-bar {
+        padding: 6px 10px;
+        min-height: 32px;
+    }
+
+    .nav-bar a,
+    .title-bar h1,
+    .top-bar button {
+        font-size: 1rem; /* Reduce font size */
+        padding: 4px 8px; /* Reduce padding */
+    }
+
+    .main-title {
+        margin-left: 10px;
+    }
+
+    .title-bar h1 {
+        font-size: 1.3rem;
+        margin: 0;
+    }
+
+    #month-year {
+        font-size: 1rem; /* Reduce font size */
+        margin: 0; /* Remove margin */
+    }
+
+    .email-address,
+    .logout-button,
+    .login-button,
+    #add-button, #stop-button {
+        font-size: 0.9rem;
+        padding: 4px 8px;
+    }
+}
+
+.current {
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/*
+@media (max-width: 700px) {
+    .calendar-grid,
+    .day-headings {
+        grid-template-columns: 1fr !important; /* Only one column 
+    }
+    .day {
+        display: none;
+    }
+    .day.current {
+        display: block;
+    }
+    .grid-item {
+        display: none;
+    }
+    .grid-item.current-day {
+        display: block;
+    }
+}*/

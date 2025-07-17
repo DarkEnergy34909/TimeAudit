@@ -23,14 +23,83 @@ def index():
 
 @app.route("/statistics", methods = ["GET", "POST"])
 def statistics():
+    # Check if the user is authenticated
+    if ("token" in request.cookies):
+        # Get the token from HttpOnly cookie
+        token = request.cookies["token"]
+
+        # Decode the token
+        decoded_token = decode_jwt_token(token)
+
+        # If the token is valid
+        if ("user-id" in decoded_token):
+            # Get the user id from the token
+            user_id = decoded_token["user-id"]
+
+            # Get the user's email address from the database
+            email_address = get_email_address_from_user_id(user_id)
+            if (email_address == None):
+                # TODO
+                return
+            else:
+                # Render template with email address
+                return render_template("statistics.html", email_address=email_address)
+
+    # If the user is not authenticated, render the statistics page without email address    
     return render_template("statistics.html")
 
 @app.route("/calendar", methods = ["GET"])
 def calendar():
+    # Check if the user is authenticated
+    if ("token" in request.cookies):
+        # Get the token from HttpOnly cookie
+        token = request.cookies["token"]
+
+        # Decode the token
+        decoded_token = decode_jwt_token(token)
+
+        # If the token is valid
+        if ("user-id" in decoded_token):
+            # Get the user id from the token
+            user_id = decoded_token["user-id"]
+
+            # Get the user's email address from the database
+            email_address = get_email_address_from_user_id(user_id)
+            if (email_address == None):
+                # TODO
+                return
+            else:
+                # Render template with email address
+                return render_template("calendar.html", email_address=email_address)
+
+
     return render_template("calendar.html")
         
 @app.route("/goals", methods = ["GET"])
 def goals():
+    # Check if the user is authenticated
+    if ("token" in request.cookies):
+        # Get the token from HttpOnly cookie
+        token = request.cookies["token"]
+
+        # Decode the token
+        decoded_token = decode_jwt_token(token)
+
+        # If the token is valid
+        if ("user-id" in decoded_token):
+            # Get the user id from the token
+            user_id = decoded_token["user-id"]
+
+            # Get the user's email address from the database
+            email_address = get_email_address_from_user_id(user_id)
+            if (email_address == None):
+                # TODO
+                return
+            else:
+                # Render template with email address
+                return render_template("goals.html", email_address=email_address)
+    
+    # If the user is not authenticated, render the goals page without email address
     return render_template("goals.html")
 
 
@@ -63,7 +132,7 @@ def login():
                 response.headers["Content-Type"] = "application/json"
                 response.headers["Access-Control-Allow-Credentials"] = "true"
                 
-                response.set_cookie("token", token, domain="192.168.1.136", httponly=True, secure=False, samesite='Lax')
+                response.set_cookie("token", token, domain="192.168.1.136", httponly=True, secure=False, samesite='Lax', expires=time.time() + 86400)  # Cookie expires in 24 hours
 
                 # Use make_response here to use cookies
                 return response
@@ -147,10 +216,17 @@ def signup():
 @app.route("/api/auth", methods=["GET"])
 def auth():
     authenticated = False
+    expired = False
     if ("token" in request.cookies):
         token = request.cookies.get("token")
         authenticated = authenticate_user(token)
-    return {"authenticated": authenticated}, 200
+        # Check if the token has expired
+        if (not authenticated):
+            decoded_token = decode_jwt_token(token)
+            if decoded_token["error"] == "expired_token":
+                expired = True
+
+    return {"authenticated": authenticated, "expired": expired}, 200
 
 @app.route("/api/activities", methods=["GET", "POST"])
 def activities_api():
@@ -158,7 +234,7 @@ def activities_api():
         # Frontend is retrieving activities from the server
 
         # Token should already have been authenticated client-side so no need to do error checking
-        token = request.cookies.get("token")
+        token = request.cookies["token"]
         decoded_token = decode_jwt_token(token)
         if ("error" in decoded_token):
             return {"error": "invalid_token"}, 400
@@ -167,7 +243,7 @@ def activities_api():
             user_id = decoded_token["user-id"]
 
             # Get all activities from the server from that user
-            activities = get_activities_from_database(user_id)
+            activities = get_activities_from_database_as_dicts(user_id)
 
             # Return the activities
             return activities
@@ -176,6 +252,7 @@ def activities_api():
 
         # List of activities posted to the server
         activities = request.get_json()
+        print(activities)
 
         # Get the token
         token = request.cookies.get("token")
@@ -199,18 +276,32 @@ def activities_api():
 @app.route("/api/goals", methods=["GET", "POST"])
 def goals_api():
     if (request.method == "GET"):
-        # TODO
+        # Get the token
+        token = request.cookies["token"]
+        decoded_token = decode_jwt_token(token)
+
+        if ("error" in decoded_token):
+            return {"error": "authentication_failed"}
+        else:
+            user_id = decoded_token["user-id"]
+
+            # Get all goals from the database
+            goals = get_goals_from_database_as_dicts(user_id)
+
+            return goals
+
         pass
     elif (request.method == "POST"):
         # Frontend is posting goals to the server
 
-    # List of goals posted to the server
+        # List of goals posted to the server
         goals = request.get_json()
 
         # Get the token
         token = request.cookies.get("token")
         decoded_token = decode_jwt_token(token)
 
+        # Check if the token is valid
         if ("error" in decoded_token):
             return {"error": "authentication_failed"}, 400
         else:
@@ -225,6 +316,177 @@ def goals_api():
                 return {"success": True}, 200
             else:
                 return {"error": "goals_added_failed"}, 500
+            
+@app.route("/api/goals/remove", methods=["POST"])
+def remove_goal_api():
+    # Get the goal
+    goal = request.get_json()
+
+    # Get the token
+    token = request.cookies.get("token")
+    decoded_token = decode_jwt_token(token)
+
+    # Check if the token is valid
+    if ("error" in decoded_token):
+        return {"error": "authentication_failed"}, 400
+    else:
+        # Get the user id 
+        user_id = decoded_token["user-id"]
+
+        # Remove the goal from the database
+        remove_goal_from_database(goal, user_id)
+
+        return {"success": True}, 200
+            
+@app.route("/api/activities/remove", methods=["POST"])
+def remove_activity_api():
+    # Get the activity
+    activity = request.get_json()
+
+    # Get the token
+    token = request.cookies["token"]
+    decoded_token = decode_jwt_token(token)#
+
+    # Check if the token is valid
+    if ("error" in decoded_token):
+        return {"error": "authentication_failed"}, 400
+    else:
+        # Get the user id 
+        user_id = decoded_token["user-id"]
+
+        # Remove the activity from the database
+        remove_activity_from_database(activity, user_id)
+
+        return {"success": True}, 200
+    
+
+    
+@app.route("/api/activities/sync", methods=["POST"])
+def sync_activities_api():
+    # Get activities from request
+    activities = request.get_json()
+
+    # Get the token
+    token = request.cookies["token"]
+    decoded_token = decode_jwt_token(token)
+
+    # Check if token is valid
+    if ("error" in decoded_token):
+        return {"error": "authentication_failed"}, 400
+    else:
+        # Get the user id
+        user_id = decoded_token["user-id"]
+
+        # Sync activities with the database
+        result = sync_activities_with_database(activities, user_id)
+
+        if (result):
+            return {"success": True}, 200
+        else:
+            return {"error": "activities_sync_failed"}, 500
+        
+@app.route("/api/goals/sync", methods=["POST"])
+def sync_goals_api():
+    # Get goals from request
+    goals = request.get_json()
+
+    # Get the token
+    token = request.cookies["token"]
+    decoded_token = decode_jwt_token(token)
+
+    # Check if token is valid
+    if ("error" in decoded_token):
+        return {"error": "authentication_failed"}, 400
+    else:
+        # Get the user id
+        user_id = decoded_token["user-id"]
+
+        # Sync goals with the database
+        result = sync_goals_with_database(goals, user_id)
+
+        if (result):
+            return {"success": True}, 200
+        else:
+            return {"error": "goals_sync_failed"}, 500
+        
+@app.route("/api/activities/running", methods=["GET", "POST"])
+def running_activity_api():
+    #if (request.method == "GET"):
+        # Frontend is retrieving activity from the server
+
+        # Token should already have been authenticated client-side so no need to do error checking
+        #token = request.cookies["token"]
+        #decoded_token = decode_jwt_token(token)
+        #if ("error" in decoded_token):
+            #return {"error": "invalid_token"}, 400
+        #else:
+            # Get the user id
+            #user_id = decoded_token["user-id"]
+
+            # Get the currently running activity
+            #activity = get_currently_running_activity(user_id)
+
+            # Return the activity
+            #if (activity == None):
+                #return {"result": "no_running_activity"}, 204
+            #else:
+                #return activity, 200
+    if (request.method == "POST"):
+        # Frontend is posting activities from the server
+
+        # List of activities posted to the server
+        activity = request.get_json()
+        print(activity)
+
+        # Get the token
+        token = request.cookies.get("token")
+        decoded_token = decode_jwt_token(token)
+
+        if ("error" in decoded_token):
+            return {"error": "authentication_failed"}, 400
+        else:
+            # Get the user id
+            user_id = decoded_token["user-id"]
+
+            # Add the activity to the database
+            result = add_activity_to_database(activity, user_id, running=True)
+
+            # Check if writing to database was successful
+            if (result):
+                return {"success": True}, 200
+            else:
+                return {"error": "activities_added_failed"}, 500
+    
+def get_email_address_from_user_id(user_id):
+    con = sqlite3.connect("timeaudit.db")
+    cur = con.cursor()
+
+    # Get email address from the User table
+    res = cur.execute("SELECT Email FROM User WHERE UserID = ?", (user_id,))
+    con.commit()
+
+    email_tuple = res.fetchone()
+    if (email_tuple == None):
+        return None
+    else:
+        return email_tuple[0]
+    
+@app.route("/api/logout", methods=["POST"])
+def logout_api():
+    # Get the token from the request
+    token = request.cookies["token"]
+
+    # Decode the token
+    decoded_token = decode_jwt_token(token)
+
+    if ("error" in decoded_token):
+        return {"error": "invalid_token"}, 400
+
+    # Reset the HttpOnly cookie
+    response = make_response({"success": True}, 200)
+    response.set_cookie("token", "", expires=0, httponly=True, secure=False, samesite='Lax')
+    return response
+
 
 
 def authenticate_user(token):
@@ -239,8 +501,8 @@ def create_jwt_token(user_id):
     # Get the current timestamp (in SECONDS)
     current_time = int(time.time())
 
-    # Set the expiration time to 1 minute from now
-    expiration_time = current_time + 60
+    # Set the expiration time to 12 hours from now
+    expiration_time = current_time + 12 * 60 * 60
 
     # Create a new JWT token
     token = jwt.encode({"user-id": user_id, "exp": expiration_time}, SECRET_KEY, algorithm="HS256")
@@ -297,7 +559,101 @@ def add_goal_to_database(goal, user_id):
 
     return True
 
-def get_activities_from_database(user_id):
+def remove_goal_from_database(goal, user_id):
+    con = sqlite3.connect("timeaudit.db")
+    cur = con.cursor()
+
+    # Remove the goal from the database
+    res = cur.execute("DELETE FROM Goal WHERE Title = ? AND Duration = ? AND TimeDone = ? AND Date = ? AND UserID = ?", (goal["title"], goal["duration"], goal["timeDone"], goal["date"], user_id))
+    
+    # Commit to database
+    con.commit()
+    con.close()
+
+    return True
+
+def sync_activities_with_database(activities, user_id):
+    database_activities = get_activities_from_database_as_tuples(user_id)
+
+    for activity in activities:
+        # Check if the activity already exists in the database
+        exists = False
+
+        for database_activity in database_activities:
+            if activity["title"] == database_activity[1] and activity["startTime"] == database_activity[3] and activity["endTime"] == database_activity[4] and activity["date"] == database_activity[5] and user_id == database_activity[7]:
+                exists = True
+                break
+        
+        if (not exists):
+            print(f"Activity {activity['title']} does not exist in the database, adding it now.")
+
+            # Add the activity to the database
+            add_activity_to_database(activity, user_id)
+    
+    return True
+
+def sync_goals_with_database(goals, user_id):
+    database_goals = get_goals_from_database_as_tuples(user_id)
+
+    for goal in goals:
+        # Check if the goal already exists in the database
+        exists = False
+
+        for database_goal in database_goals:
+            if goal["title"] == database_goal[1] and goal["duration"] == database_goal[2] and goal["timeDone"] == database_goal[3] and goal["date"] == database_goal[4] and user_id == database_goal[5]:
+                exists = True
+                break
+        
+        if (not exists):
+            print(f"Goal {goal['title']} does not exist in the database, adding it now.")
+
+            # Add the goal to the database
+            add_goal_to_database(goal, user_id)
+
+    return True
+
+def get_goals_from_database_as_tuples(user_id):
+    con = sqlite3.connect("timeaudit.db")
+    cur = con.cursor()
+
+    # Get all the goals associated with that user
+    res = cur.execute("SELECT * FROM Goal WHERE UserID = ?;", (user_id,))
+    goals = res.fetchall()
+    con.commit()
+    con.close()
+    if (len(goals) == 0):
+        return []
+    else:
+        return goals
+    
+def get_goals_from_database_as_dicts(user_id):
+    dict_list = []
+
+    goal_tuples = get_goals_from_database_as_tuples(user_id)
+
+    for goal in goal_tuples:
+        goal_dict = {"title": goal[1], "duration": goal[2], "timeDone": goal[3], "date": goal[4]}
+
+        dict_list.append(goal_dict)
+
+    return dict_list
+
+
+
+def remove_activity_from_database(activity, user_id):
+    con = sqlite3.connect("timeaudit.db")
+    cur = con.cursor()
+
+    # Remove the activity from the database
+    res = cur.execute("DELETE FROM Activity WHERE Title = ? AND StartTime = ? AND EndTime = ? AND Date = ? AND UserID = ?", (activity["title"], activity["startTime"], activity["endTime"], activity["date"], user_id))
+    
+    # Commit to database
+    con.commit()
+    con.close()
+
+    return True
+
+def get_activities_from_database_as_dicts(user_id):
     con = sqlite3.connect("timeaudit.db")
     cur = con.cursor()
 
@@ -305,22 +661,45 @@ def get_activities_from_database(user_id):
     res = cur.execute("SELECT * FROM Activity WHERE UserID = ?;", (user_id,))
 
     activities = res.fetchall()
-    if (len(activities == 0)):
-        return None
+    if (len(activities) == 0):
+        return []
     else:
         # Activities need to be returned as a list of dicts in order to be sent as JSON
         activity_dict_list = []
         for activity in activities:
             category_name = cur.execute("SELECT Name FROM Category WHERE CategoryID = ?;", (activity[2],)).fetchone()[0]
-            goal_name = cur.execute("SELECT Title FROM Goal WHERE GoalID = ?", (activity[6],)).fetchone()[0]
-            if (goalName == None):
-                goalName = "None"
+            goal_name_tuple = cur.execute("SELECT Title FROM Goal WHERE GoalID = ?", (activity[6],)).fetchone()
+            if (goal_name_tuple == None):
+                goal_name = "None"
+            else:
+                goal_name = goal_name_tuple[0]
+
             new_activity = {"title": activity[1], "category": category_name, "startTime": activity[3], "endTime": activity[4], "date": activity[5], "goalName": goal_name}
 
             # Add to the list
             activity_dict_list.append(new_activity)
+
+        con.commit()
+        con.close()
+
         
         return activity_dict_list
+
+def get_activities_from_database_as_tuples(user_id):
+    con = sqlite3.connect("timeaudit.db")
+    cur = con.cursor()
+
+    # Get all the activities associated with that user
+    res = cur.execute("SELECT * FROM Activity WHERE UserID = ?;", (user_id,))
+
+    activities = res.fetchall()
+    con.commit()
+    con.close()
+
+    if (len(activities) == 0):
+        return []
+    else:
+        return activities
 
 
 def add_activities_to_database(activities, user_id):
@@ -364,13 +743,13 @@ def add_activities_to_database(activities, user_id):
                 return False
             goal_id = one_item_tuple[0]
 
-        res = cur.execute("INSERT INTO Activity (Title, CategoryID, StartTime, EndTime, Date, GoalID, UserID) VALUES (?, ?, ?, ?, ?, ?, ?)", (activity_title, activity_category_id, activity_start_time, activity_end_time, activity_date, goal_id, user_id))
+        res = cur.execute("INSERT INTO Activity (Title, CategoryID, StartTime, EndTime, Date, GoalID, UserID, Running) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", (activity_title, activity_category_id, activity_start_time, activity_end_time, activity_date, goal_id, user_id, False))
     # Commit if no errors
     con.commit()
     con.close()
     return True
 
-def add_activity_to_database(activity, user_id):
+def add_activity_to_database(activity, user_id, running=False):
     # Connect to the database
     con = sqlite3.connect("timeaudit.db")
     cur = con.cursor()
@@ -405,7 +784,7 @@ def add_activity_to_database(activity, user_id):
     
 
     # Add the activity to the database
-    res = cur.execute("INSERT INTO Activity (Title, CategoryID, StartTime, EndTime, Date, GoalID, UserID) VALUES (?, ?, ?, ?, ?, ?, ?)", (activity_title, activity_category_id, activity_start_time, activity_end_time, activity_date, goal_id, user_id))
+    res = cur.execute("INSERT INTO Activity (Title, CategoryID, StartTime, EndTime, Date, GoalID, UserID, Running) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", (activity_title, activity_category_id, activity_start_time, activity_end_time, activity_date, goal_id, user_id, running))
 
     con.commit()
     con.close()
@@ -461,7 +840,7 @@ def insert_activity(title, category, start_time, end_time, date, goal_id, user_i
     
     # Add the activity to the database with the correct CategoryID
 
-    res = cur.execute("INSERT INTO Activity (Title, CategoryID, StartTime, EndTime, Date, GoalID, UserID) VALUES (?, ?, ?, ?, ?, ?, ?);", (title, category_id, start_time, end_time, date, goal_id, user_id))
+    res = cur.execute("INSERT INTO Activity (Title, CategoryID, StartTime, EndTime, Date, GoalID, UserID, Running) VALUES (?, ?, ?, ?, ?, ?, ?, ?);", (title, category_id, start_time, end_time, date, goal_id, user_id, False))
     con.commit()
     con.close()
 
@@ -541,6 +920,7 @@ def initialise_database():
                 Date TEXT,
                 GoalID INTEGER,
                 UserID INTEGER,
+                Running INTEGER,
                 FOREIGN KEY (CategoryID) REFERENCES Category(CategoryID),
                 FOREIGN KEY (GoalID) REFERENCES Goal(GoalID),
                 FOREIGN KEY (UserID) REFERENCES User(UserID)

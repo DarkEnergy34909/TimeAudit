@@ -2,11 +2,12 @@
 <html lang="en">
     <head>
         <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="viewport" content="width=device-width">
         <title>TimeAudit</title>
         <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
         <!--<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto">-->
         <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Poppins">
+        <script src="{{ url_for('static', filename='index.js') }}" defer></script>
     </head>
     <body style="font-family: 'Poppins';">
         <div class="title-bar" style="position: fixed; top: 0;">
@@ -36,7 +37,7 @@
 
             <img class="hero-image" src="{{url_for('static', filename='hero_image.png') }}" alt="TimeAudit tracking interface" width="1000", height="600">
 
-            <h3 class="">See exactly where all your time goes with TimeAudit, a simple, powerful, and free time tracker designed to allow you to manage your time effectively.</h3>
+            <h3 class="hero-explanation">See exactly where all your time goes with TimeAudit, a simple, powerful, and free time tracker designed to allow you to manage your time effectively.</h3>
             
             <a href="calendar" class="start-tracking-button">Start tracking for free</a>
 
@@ -73,7 +74,7 @@
                 
 
                 <div class="feature-box">
-                    <h4 class="feature-heading">📊 Reports and statistics</h4>
+                    <h4 class="feature-heading">📊 Statistics</h4>
                     <p>Track how you are using your time with graphs and charts</p>
                 </div>
 

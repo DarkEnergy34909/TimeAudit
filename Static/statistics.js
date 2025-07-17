@@ -1,5 +1,5 @@
 // Disable the default legend for the chart
-//Chart.defaults.global.legend.display = false;
+Chart.defaults.global.legend.display = false;
 
 // Code to add text to donut chart
 Chart.pluginService.register({
@@ -815,15 +815,105 @@ function getIsoString(date) {
     return isoString; 
 }
 
-loadActivities();
-getActivityData();
-loadActivityPieChart();
+// Checks if the user is authenticated
+async function checkAuth() {
+    const authResponse = await fetch("/api/auth", {
+        method: "GET",
+        headers: {
+            "X-Requested-With": "XMLHttpRequest", // Indicate that this is an AJAX request
+        },
+    })
 
-getCategoryData();
-loadCategoryPieChart();
+    const authData = await authResponse.json();
 
-populateBarChartSelectMenu();
-loadCategoryBarChart();
+    console.log("Authenticated: " + authData.authenticated);
 
-loadGoals();
-loadGoalsBarChart();
+    return authData.authenticated;
+}
+
+// Logout function
+async function logout() {
+    const authResult = await checkAuth();
+    if (authResult) {
+        // Send a POST request to the API to logout
+        const logoutResponse = await fetch("/api/logout", {
+            method: "POST",
+            body: {},
+            headers: {
+                "Content-Type": "application/json",
+                "X-Requested-With": "XMLHttpRequest"
+            }
+        })
+
+        const logoutData = await logoutResponse.json();
+
+        if (logoutResponse.ok && logoutData.success) {
+            // Redirect to landing page
+            window.location.href = "/";
+        }
+    }
+}
+
+// Retrieves activities from server
+async function pullActivitiesFromServer() {
+    // For now, if any activities overlap between local storage and the server, prioritise the server
+
+    const authResult = await checkAuth();
+    if (authResult == true) {
+
+        // Get activities from the server
+        const activitiesResponse = await fetch("/api/activities", {
+            method: "GET",
+            headers: {
+                "X-Requested-With": "XMLHttpRequest"
+            }
+        })
+
+        const activitiesData = await activitiesResponse.json();
+
+        if (activitiesResponse.ok && activitiesData) {
+            // Overwrite local storage (ok because sync was already performed)
+            localStorage.setItem("activities", JSON.stringify(activitiesData));
+        }
+    }
+}
+
+// Retrieves goals from server
+async function pullGoalsFromServer() {
+    const authResult = checkAuth();
+    if (authResult == true) {
+        // Get goals from server
+        const goalsResponse = await fetch("/api/goals", {
+            method: "GET",
+            headers: {
+                "X-Requested-With": "XMLHttpRequest"
+            }
+        })
+
+        const goalsData = await goalsResponse.json();
+
+        if (goalsResponse.ok && goalsData) {
+            // Overwrite local storage
+            localStorage.setItem("goals", JSON.stringify(goalsData));
+        }
+    }
+}
+
+async function init() {
+    await pullGoalsFromServer();
+    await pullActivitiesFromServer();
+    loadActivities();
+    getActivityData();
+    loadActivityPieChart();
+
+    getCategoryData();
+    loadCategoryPieChart();
+
+    populateBarChartSelectMenu();
+    loadCategoryBarChart();
+
+    loadGoals();
+    loadGoalsBarChart();
+}
+
+init();

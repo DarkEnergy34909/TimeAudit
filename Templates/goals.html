@@ -2,7 +2,7 @@
 <html lang="en">
     <head>
         <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="viewport" content="width=device-width">
         <title>TimeAudit</title>
         <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
         <!--<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto">-->
@@ -16,7 +16,14 @@
                 <h1 id="main-title">TimeAudit</h1>
             </a>
 
-            <a class="login-button" href="login">Log in</a>
+            {% if email_address %}
+                <div class="email-container">
+                    <span class="email-address">{{ email_address }}</span>
+                    <button class="logout-button" onclick="logout();">Log out</button>
+                </div>
+            {% else %}
+                <a class="login-button" href="login">Log in</a>
+            {% endif %}
         </div>
 
         <div class="nav-bar">

@@ -1,4 +1,4 @@
-async function checkAuth() {
+async function checkAuthAndRedirect() {
     const authResponse = await fetch("/api/auth", {
         method: "GET",
         headers: {
