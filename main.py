@@ -1,5 +1,5 @@
 import os
-from flask import Flask, request, render_template, make_response
+from flask import Flask, request, render_template, make_response, jsonify
 import sqlite3
 import bcrypt
 from email_validator import validate_email, EmailNotValidError
@@ -246,7 +246,7 @@ def activities_api():
             activities = get_activities_from_database_as_dicts(user_id)
 
             # Return the activities
-            return activities
+            return jsonify(activities), 200
     elif (request.method == "POST"):
         # Frontend is posting activities from the server
 
@@ -288,7 +288,7 @@ def goals_api():
             # Get all goals from the database
             goals = get_goals_from_database_as_dicts(user_id)
 
-            return goals
+            return jsonify(goals), 200
 
         pass
     elif (request.method == "POST"):
@@ -411,26 +411,28 @@ def sync_goals_api():
         
 @app.route("/api/activities/running", methods=["GET", "POST"])
 def running_activity_api():
-    #if (request.method == "GET"):
+    if (request.method == "GET"):
         # Frontend is retrieving activity from the server
 
         # Token should already have been authenticated client-side so no need to do error checking
-        #token = request.cookies["token"]
-        #decoded_token = decode_jwt_token(token)
-        #if ("error" in decoded_token):
-            #return {"error": "invalid_token"}, 400
-        #else:
+        token = request.cookies["token"]
+        decoded_token = decode_jwt_token(token)
+        if ("error" in decoded_token):
+            return {"error": "invalid_token"}, 400
+        else:
             # Get the user id
-            #user_id = decoded_token["user-id"]
+            user_id = decoded_token["user-id"]
 
             # Get the currently running activity
-            #activity = get_currently_running_activity(user_id)
+            activity = get_currently_running_activity(user_id)
+
+            print(activity)
 
             # Return the activity
-            #if (activity == None):
-                #return {"result": "no_running_activity"}, 204
-            #else:
-                #return activity, 200
+            if (activity == None):
+                return {"no_activity": True}, 200
+            else:
+                return activity, 200
     if (request.method == "POST"):
         # Frontend is posting activities from the server
 
@@ -456,6 +458,25 @@ def running_activity_api():
                 return {"success": True}, 200
             else:
                 return {"error": "activities_added_failed"}, 500
+            
+@app.route("/api/activities/running/stop", methods=["POST"])
+def stop_running_activity_api():
+    # Get the token
+    token = request.cookies["token"]
+    decoded_token = decode_jwt_token(token)
+
+    if ("error" in decoded_token):
+        return {"error": "invalid_token"}, 400
+
+    # Get the user id
+    user_id = decoded_token["user-id"]
+
+    # Remove the currently running activity from the database
+    result = remove_running_activity_from_database(user_id)
+    if (result):
+        return {"success": True}, 200
+    else:
+        return {"error": "failed_to_stop_running_activity"}, 500
     
 def get_email_address_from_user_id(user_id):
     con = sqlite3.connect("timeaudit.db")
@@ -653,6 +674,50 @@ def remove_activity_from_database(activity, user_id):
 
     return True
 
+def remove_running_activity_from_database(user_id):
+    con = sqlite3.connect("timeaudit.db")
+    cur = con.cursor()
+
+    # Remove the currently running activity from the database
+    res = cur.execute("DELETE FROM Activity WHERE UserID = ? AND Running = 1;", (user_id,))
+    
+    # Commit to database
+    con.commit()
+    con.close()
+
+    return True
+
+def get_currently_running_activity(user_id):
+    con = sqlite3.connect("timeaudit.db")
+    cur = con.cursor()
+
+    # Get the currently running activity
+    res = cur.execute("SELECT * FROM Activity WHERE UserID = ? AND Running = 1;", (user_id,))
+    activity = res.fetchone()
+    
+    con.commit()
+
+    if (activity == None):
+        con.close()
+        return None
+    else:
+        # Get the category name
+        category_name = cur.execute("SELECT Name FROM Category WHERE CategoryID = ?;", (activity[2],)).fetchone()[0]
+        
+        # Get the goal name
+        goal_name_tuple = cur.execute("SELECT Title FROM Goal WHERE GoalID = ?", (activity[6],)).fetchone()
+        if (goal_name_tuple == None):
+            goal_name = "None"
+        else:
+            goal_name = goal_name_tuple[0]
+
+        con.close()
+
+        # Create a dict of the activity
+        activity_dict = {"title": activity[1], "category": category_name, "startTime": activity[3], "endTime": activity[4], "date": activity[5], "goalName": goal_name}
+
+        return activity_dict
+
 def get_activities_from_database_as_dicts(user_id):
     con = sqlite3.connect("timeaudit.db")
     cur = con.cursor()
@@ -690,7 +755,7 @@ def get_activities_from_database_as_tuples(user_id):
     cur = con.cursor()
 
     # Get all the activities associated with that user
-    res = cur.execute("SELECT * FROM Activity WHERE UserID = ?;", (user_id,))
+    res = cur.execute("SELECT * FROM Activity WHERE UserID = ? AND Running = 0;", (user_id,))
 
     activities = res.fetchall()
     con.commit()
@@ -718,6 +783,8 @@ def add_activities_to_database(activities, user_id):
 
         print(f"Adding activity: {activity_title}, {activity_category}, {activity_start_time}, {activity_end_time}, {activity_date}")
 
+
+
         # Get the correct CategoryID from the category table
         res = cur.execute("SELECT CategoryID FROM Category WHERE Name = ?;", (activity_category,))
         one_item_tuple = res.fetchone()
@@ -743,6 +810,7 @@ def add_activities_to_database(activities, user_id):
                 return False
             goal_id = one_item_tuple[0]
 
+        # Insert activity into db
         res = cur.execute("INSERT INTO Activity (Title, CategoryID, StartTime, EndTime, Date, GoalID, UserID, Running) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", (activity_title, activity_category_id, activity_start_time, activity_end_time, activity_date, goal_id, user_id, False))
     # Commit if no errors
     con.commit()

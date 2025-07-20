@@ -26,6 +26,12 @@ h1#main-title {
     max-width: 25%;
     height: auto;
 }
+
+@media (max-width: 700px) {
+    h1#main-title {
+        margin-left: 0px;
+    }
+}
 a {
     text-decoration: none; /* Remove underline */
 }
@@ -53,8 +59,16 @@ a {
     font-size: 4rem;
     text-align: center;
     font-weight: bold;
-    margin-top: 120px;
+    margin-top: 160px;
     max-width: 90%;
+    margin-bottom: 40px;
+}
+
+@media (max-width: 700px) {
+    .hero {
+        font-size: 2.5rem; /* Smaller font size for smaller screens */
+        margin-top: 100px; /* Adjust top margin for smaller screens */
+    }
 }
 
 .hero-image {
@@ -62,6 +76,7 @@ a {
     border-radius: 10px; /* Rounded corners */
     max-width: 90%;
     height: auto; /* Maintain aspect ratio */
+    margin: 40px;
 }
 
 .hero-explanation {
@@ -91,6 +106,13 @@ a {
     margin-right: 20px;
 }
 
+@media (max-width: 700px) {
+    .login-button {
+        font-size: 0.5rem; /* Smaller font size for smaller screens */
+        margin-right: 10px; /* Adjust margin for smaller screens */
+    }
+}
+
 .login-button:hover {
     background-color: #1d4ed8; /* Darker Blue */
 }
@@ -113,7 +135,7 @@ a {
     cursor: pointer;
     font-size: 1rem;
     transition: background-color 0.3s ease;
-    margin-top: 40px;
+    margin-top: 80px;
     margin-bottom: 40px;
 }
 
@@ -152,9 +174,10 @@ a {
         overflow-x: visible;
     }
     .feature-box {
-        width: 90vw;
+        width: 80vw;
         min-width: 0;
         max-width: 500px;
+        height: auto;
     }
 }
 
@@ -177,8 +200,17 @@ a {
     margin: 20px;
 }
 
+@media (max-width: 700px) {
+    .tutorial-box {
+        flex-direction: column; /* Stack elements vertically on small screens */
+        align-items: center; /* Center align items */
+        width: 80vw;
+    }
+}
+
 .landing-page-subheading {
-    margin-top: 40px;
+    margin-top: 20px;
+    margin-bottom: 40px;
 }
 
 .footer {
@@ -199,6 +231,55 @@ a {
     left: auto;
     /*bottom: 0; /* Stick to the bottom of the viewport */
     /*position: relative; /* Position relative for absolute elements inside */
+}
+
+.landing-page-banner {
+    width: 100vw;
+    background-color: #2563eb; /* Blue background */
+    color: white;
+    padding: 60px;
+    margin-top: 100px;
+    margin-bottom: 100px;
+    display: flex;
+    flex-direction: column;
+
+}
+
+.suitable-for-box {
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+    width: auto;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+    align-content: center;
+}
+
+.suitable-for-item {
+    text-align: left;
+    font-size: 1.5rem;
+    margin: 10px;
+}
+
+.testimonial-box {
+    display: flex;
+    flex-direction: column;
+    align-content: center;
+    text-align: center;
+}
+
+.testimonial-text {
+    font-size: 1.2rem;
+    margin-bottom: 10px;
+    width: 40%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.testimonial-author {
+    font-size: 1rem;
+    font-style: italic;
 }
 
 /* Top Bar */

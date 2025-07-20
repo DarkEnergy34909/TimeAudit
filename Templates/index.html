@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" style="margin: 0; padding: 0; overflow-x: hidden;">
     <head>
         <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>TimeAudit</title>
         <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
         <!--<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto">-->
@@ -15,7 +15,7 @@
                 <h1 id="main-title">TimeAudit</h1>
             </a>
             <div class="button-container">
-                <a class="login-button" href="login">Log in</a>
+                <a class="login-button" href="/login">Log in</a>
                 <a class="login-button" href="/calendar">Start tracking for free</a>
             </div>
         </div>
@@ -41,6 +41,17 @@
             
             <a href="calendar" class="start-tracking-button">Start tracking for free</a>
 
+            <div class="landing-page-banner">
+                <h2 class="landing-page-subheading">Who is TimeAudit for?</h2>
+
+                <div class="suitable-for-box">
+                    <p class="suitable-for-item">✅ Students</p>
+                    <p class="suitable-for-item">✅ Freelancers</p>
+                    <p class="suitable-for-item">✅ Professionals</p>
+                    <p class="suitable-for-item">✅ Anyone who wants to improve their time management</p>
+                </div>
+            </div>
+
             <h2 class="landing-page-subheading">How it works</h2>
 
             <div class="tutorial-box">
@@ -56,6 +67,15 @@
             <div class="tutorial-box">
                 <span>View statistics and insights to improve your productivity.</span>
                 <img class="tutorial-gif" src="{{url_for('static', filename='hero_image.png') }}" alt="Gif showing statistics page" width="500" height="300">
+            </div>
+
+            <div class="landing-page-banner">
+                <!--<h2 class="testimonial-heading">What our users say</h3>-->
+
+                <div class="testimonial-box">
+                    <p class="testimonial-text">"INSERT TESTIMONIAL HERE"</p>
+                    <span class="testimonial-author">- Alex, Freelance Designer</span>
+                </div>
             </div>
 
 

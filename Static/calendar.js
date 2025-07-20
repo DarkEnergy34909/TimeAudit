@@ -193,12 +193,16 @@ function addActivity() {
             goalName: goalName
         };
 
+        // Add activity to the server as a running activity
+        saveRunningActivityToServer(activity);
+
         // Get the index of the new activity and save to local storage
         currentActivityIndex = activities.length;
         localStorage.setItem("current_activity", currentActivityIndex)
 
         // Save the activity itself to local storage
-        localStorage.setItem("running_activity", JSON.stringify(activity));
+        //localStorage.setItem("running_activity", JSON.stringify(activity));
+        // Commenting this out because running activities are now saved to the server
 
         // Save the activity
         saveActivity(activity);
@@ -218,8 +222,6 @@ function addActivity() {
 
         const timeErrorText = document.getElementById("time-input-error");
         timeErrorText.hidden = true; // Hide the error message
-
-        // Post the activity to the server LATER if it is an ongoing activity
 
         return; 
     }
@@ -277,7 +279,7 @@ function addActivity() {
     timeErrorText.hidden = true; // Hide the error message
 }
 
-function stopActivity() {
+async function stopActivity() {
     // Hide the stop button
     const stopButton = document.querySelector("#stop-button");
     stopButton.hidden = true;
@@ -290,8 +292,11 @@ function stopActivity() {
     const currentActivity = activities[currentActivityIndex];
     addTimeToGoal(currentActivity);
 
-    // Save the activity to the server 
-    saveActivityToServer(currentActivity);
+    // Remove the running activity from the server 
+    await removeCurrentlyRunningActivityFromServer();
+
+    // Save the activity to the server (so it is not running anymore)
+    await saveActivityToServer(currentActivity);
     
 
     // Set the current activity index to -1 and update local storage
@@ -303,7 +308,6 @@ function stopActivity() {
     // Reset the activity blocks
     removeActivityBlocks();
     loadActivities();
-
 }
 
 async function saveActivityToServer(activity) {
@@ -335,6 +339,38 @@ async function saveActivityToServer(activity) {
         }
         else {
             alert("Posted activity successfully");
+        }
+    }
+    else if (authStatus == false) {
+        alert("NOT AUTHENTICATED");
+    }
+}
+
+async function saveRunningActivityToServer(activity) {
+    // Check if authenticated
+    const authStatus = await checkAuth();
+    if (authStatus == true) {
+        // Convert the activity to a JSON string
+        const activityString = JSON.stringify(activity);
+
+        // Send a POST request with the activity
+        const activityResponse = await fetch("/api/activities/running", {
+            method: "POST",
+            body: activityString,
+            headers: {
+                "Content-Type": "application/json",
+                "X-Requested-With": "XMLHttpRequest",
+            }
+        });
+
+        const activityData = await activityResponse.json();
+
+        if (!activityResponse.ok || !activityData.success) {
+            // Send an alert that the activity was NOT posted to the server
+            alert("Failed to post running activity to the server. Check your network connection.");
+        }
+        else {
+            alert("Posted running activity successfully");
         }
     }
     else if (authStatus == false) {
@@ -620,7 +656,7 @@ function addBlock(title, category, startTime, endTime, day, ongoing) {
                         }
                     }
                 }
-                // If the activity is currently running, reset the index
+                // If the activity is currently running, reset the index 
                 if (i == currentActivityIndex) {
                     currentActivityIndex = -1;
                     localStorage.setItem("current_activity", -1);
@@ -633,9 +669,11 @@ function addBlock(title, category, startTime, endTime, day, ongoing) {
                     stopButton.hidden = true;
                 }
                 // If not, remove the activity from the server
-                else {
-                    removeActivityFromServer(activities[i]);
-                }
+                //else {
+                //}
+
+                // Remove the activity from the server
+                removeActivityFromServer(activities[i]);
 
                 // Remove the activity itself
                 activities.splice(i, 1); // Removes one item from the array at index i
@@ -891,8 +929,12 @@ function loadActivities() {
             console.log("FAT BASTARD");
             activities.push(JSON.parse(runningActivityString));
 
+            // Set the current activity index to the last activity in the array
+            currentActivityIndex = activities.length - 1;
+
             // Save to local storage again
             localStorage.setItem("activities", JSON.stringify(activities));
+            localStorage.setItem("current_activity", currentActivityIndex);
         }
 
         // Iterate through every saved activity
@@ -1073,6 +1115,29 @@ function updateCurrentActivity() {
     }
 }
 
+async function sendCurrentActivityToServer() {
+    // Check if authenticated
+    const authResult = await checkAuth();
+    if (authResult == true) {
+        // User is authenticated, send the current activity to the server
+        const currentActivity = activities[currentActivityIndex];
+        const response = await fetch("/api/activities/running", { // TODODOOooo
+            method: "POST",
+            headers: {
+                "X-Requested-With": "XMLHttpRequest",
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(currentActivity)
+        });
+
+        if (response.ok) {
+            console.log("Current activity sent to server");
+        } else {
+            console.error("Error sending current activity to server");
+        }
+    }
+}
+
 function initialiseTopButton() {
     const addButton = document.querySelector("#add-button");
     const stopButton = document.querySelector("#stop-button");
@@ -1164,6 +1229,35 @@ async function displayBannerIfExpired() {
     }
 }
 
+async function removeCurrentlyRunningActivityFromServer() {
+    // Check if authenticated
+    const authResult = await checkAuth();
+
+    if (authResult == true) {
+        // Remove the currently running activity from the server
+        const runningActivityResponse = await fetch("/api/activities/running/stop", {
+            method: "POST",
+            body: {},
+            headers: {
+                "Content-Type": "application/json",
+                "X-Requested-With": "XMLHttpRequest"
+            }
+        })
+
+        const runningActivityData = await runningActivityResponse.json();
+
+        if (runningActivityResponse.ok && runningActivityData.success) {
+            alert("Removed running activity");
+        }
+        else {
+            alert("Failed to remove running activity");
+        }
+    }
+    else {
+        alert("NOT AUTHENTICATED");
+    }
+}
+
 // Function to sync localStorage with server-side state
 async function syncLocalStorageToServer() {
     const authResult = await checkAuth();
@@ -1222,6 +1316,34 @@ async function pullActivitiesFromServer() {
     }
 }
 
+async function pullCurrentlyRunningActivity() {
+    const authResult = await checkAuth();
+
+    if (authResult) {
+        // Get currently running activity from server
+        const runningActivityResponse = await fetch("/api/activities/running", {
+            method: "GET",
+            headers: {
+                "X-Requested-With": "XMLHttpRequest",
+                "Content-Type": "application/json"
+            }
+        })
+
+        const runningActivityData = await runningActivityResponse.json();
+
+        if (runningActivityResponse.ok && !runningActivityData.no_activity) {
+            // Store the currently running activity in local storage
+            localStorage.setItem("running_activity", JSON.stringify(runningActivityData));
+        }
+        else {
+            // Remove currently running activity from local storage
+            localStorage.removeItem("running_activity");
+            localStorage.setItem("current_activity", -1); // Reset current activity index
+            currentActivityIndex = -1;
+        }
+    }
+}
+
 // Logout function
 async function logout() {
     const authResult = await checkAuth();
@@ -1246,7 +1368,8 @@ async function logout() {
 
 async function init() {
     //await syncLocalStorageToServer();
-    await pullActivitiesFromServer();
+    await pullCurrentlyRunningActivity();
+    await pullActivitiesFromServer()
     displayBannerIfExpired();
     populateCalendar();
     setMonthYear(currentDate); 
