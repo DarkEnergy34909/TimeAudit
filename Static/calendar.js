@@ -335,14 +335,14 @@ async function saveActivityToServer(activity) {
 
         if (!activitiesResponse.ok ||!activitiesData.success) {
             // Send an alert that the activity was NOT posted to the server
-            alert("Failed to post activity to the server. Check your network connection.");
+            //alert("Failed to post activity to the server. Check your network connection.");
         }
         else {
-            alert("Posted activity successfully");
+            //alert("Posted activity successfully");
         }
     }
     else if (authStatus == false) {
-        alert("NOT AUTHENTICATED");
+        //alert("NOT AUTHENTICATED");
     }
 }
 
@@ -367,14 +367,14 @@ async function saveRunningActivityToServer(activity) {
 
         if (!activityResponse.ok || !activityData.success) {
             // Send an alert that the activity was NOT posted to the server
-            alert("Failed to post running activity to the server. Check your network connection.");
+            //alert("Failed to post running activity to the server. Check your network connection.");
         }
         else {
-            alert("Posted running activity successfully");
+            //alert("Posted running activity successfully");
         }
     }
     else if (authStatus == false) {
-        alert("NOT AUTHENTICATED");
+        //alert("NOT AUTHENTICATED");
     }
 }
 
@@ -398,14 +398,14 @@ async function removeActivityFromServer(activity) {
 
         if (!activityResponse.ok ||!activityData.success) {
             // Send an alert that the activity was NOT posted to the server
-            alert("Failed to delete activity from server. Check your network connection.");
+            //alert("Failed to delete activity from server. Check your network connection.");
         }
         else {
-            alert("Deleted activity successfully");
+            //alert("Deleted activity successfully");
         }
     }
     else if (authStatus == false) {
-        alert("NOT AUTHENTICATED");
+        //alert("NOT AUTHENTICATED");
     }
 }
 
@@ -1248,14 +1248,14 @@ async function removeCurrentlyRunningActivityFromServer() {
         const runningActivityData = await runningActivityResponse.json();
 
         if (runningActivityResponse.ok && runningActivityData.success) {
-            alert("Removed running activity");
+            //alert("Removed running activity");
         }
         else {
-            alert("Failed to remove running activity");
+            //alert("Failed to remove running activity");
         }
     }
     else {
-        alert("NOT AUTHENTICATED");
+        //alert("NOT AUTHENTICATED");
     }
 }
 

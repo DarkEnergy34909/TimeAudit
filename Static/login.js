@@ -54,10 +54,10 @@ async function syncLocalStorageToServer() {
             const syncData = await syncResponse.json();
 
             if (syncResponse.ok && syncData.success) {
-                alert("Sync successful");
+                //alert("Sync successful");
             }
             else {
-                alert("Sync failed");
+                //alert("Sync failed");
             }
         }
 
@@ -77,15 +77,15 @@ async function syncLocalStorageToServer() {
             const syncData = await syncResponse.json();
 
             if (syncResponse.ok && syncData.success) {
-                alert("Sync successful");
+                //alert("Sync successful");
             }
             else {
-                alert("Sync failed");
+                //alert("Sync failed");
             }
         }
     }
     else {
-        alert("NOT AUTHENTICATED");
+        //alert("NOT AUTHENTICATED");
     }
 }
 

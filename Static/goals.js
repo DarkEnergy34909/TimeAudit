@@ -178,14 +178,14 @@ async function saveGoalToServer(goal) {
 
         if (!goalsResponse.ok ||!goalsData.success) {
             // Send an alert that the activity was NOT posted to the server
-            alert("Failed to post goal to the server. Check your network connection.");
+            //alert("Failed to post goal to the server. Check your network connection.");
         }
         else {
-            alert("Posted goal successfully");
+            //alert("Posted goal successfully");
         }
     }
     else if (authStatus == false) {
-        alert("NOT AUTHENTICATED");
+        //alert("NOT AUTHENTICATED");
     }
 }
 
@@ -209,14 +209,14 @@ async function removeGoalFromServer(goal) {
 
         if (!goalResponse.ok ||!goalData.success) {
             // Send an alert that the goal was NOT posted to the server
-            alert("Failed to delete activity from server. Check your network connection.");
+            //alert("Failed to delete activity from server. Check your network connection.");
         }
         else {
-            alert("Deleted activity successfully");
+            //alert("Deleted activity successfully");
         }
     }
     else if (authStatus == false) {
-        alert("NOT AUTHENTICATED");
+        //alert("NOT AUTHENTICATED");
     }
 }
 
