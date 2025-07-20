@@ -57,18 +57,26 @@
             <h2 class="landing-page-subheading">How TimeAudit works</h2>
 
             <div class="tutorial-box">
+                <video class="tutorial-video" controls muted loop>
+                    <source src="{{url_for('static', filename='calendar_demo.mp4') }}" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
                 <span>Log an activity by clicking the start button and entering the activity details. You can add previously-completed activities and track current activities.</span>
-                <img class="tutorial-gif" src="{{url_for('static', filename='hero_image.png') }}" alt="Gif showing how to log an activity" width="500" height="300">
+                <!--<img class="tutorial-gif" src="{{url_for('static', filename='hero_image.png') }}" alt="Gif showing how to log an activity" width="500" height="300">-->
             </div>
 
             <div class="tutorial-box">
-                <img class="tutorial-gif" src="{{url_for('static', filename='hero_image.png') }}" alt="Gif showing how to add a goal" width="500" height="300">
+                <!--<img class="tutorial-gif" src="{{url_for('static', filename='hero_image.png') }}" alt="Gif showing how to add a goal" width="500" height="300">-->
+                <video class="tutorial-video" controls muted loop>
+                    <source src="{{url_for('static', filename='goals_demo.mp4') }}" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
                 <span>Add customised goals and track each goal's progress. Link a goal when adding an activity to the calendar to complete goals and stay accountable.</span>
             </div>
 
             <div class="tutorial-box">
+                <img class="tutorial-gif" src="{{url_for('static', filename='statistics.png') }}" alt="Gif showing statistics page">
                 <span>View statistics and insights to improve your productivity.</span>
-                <img class="tutorial-gif" src="{{url_for('static', filename='statistics.png') }}" alt="Gif showing statistics page" width="500" height="300">
             </div>
 
             <a href="calendar" class="start-tracking-button">Try TimeAudit now</a>

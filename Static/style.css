@@ -86,14 +86,6 @@ a {
     margin-top: 20px;
 }
 
-.tutorial-gif {
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow */
-    border-radius: 10px; /* Rounded corners */
-    max-width: 50%;
-    max-height: 100%;
-    height: auto;
-}
-
 .login-button {
     background-color: #2563eb; /* Blue */
     color: white;
@@ -175,6 +167,7 @@ a {
 
 .tutorial-box {
     display: flex;
+    flex-direction: column;
     justify-content: space-between;
     align-items: center;
     background-color: #f1f1f1; /* White background */
@@ -182,7 +175,7 @@ a {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow */
     padding: 20px;
     width: 90%;
-    max-height: 400px;
+    /*max-height: 400px;*/
     text-align: center;
     margin: 20px;
 }
@@ -193,6 +186,24 @@ a {
         align-items: center; /* Center align items */
         width: 80vw;
     }
+}
+
+.tutorial-gif {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+    border-radius: 10px; /* Rounded corners */
+    max-width: 90%;
+    max-height: 500px;
+    height: auto;
+    margin-bottom: 20px;
+}
+
+.tutorial-video {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+    border-radius: 10px; /* Rounded corners */
+    max-width: 90%;
+    max-height: 500px; /* Limit height for better visibility */
+    height: auto;
+    margin-bottom: 20px;
 }
 
 .landing-page-subheading {
