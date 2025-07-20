@@ -50,9 +50,11 @@
                     <p class="suitable-for-item">✅ Professionals</p>
                     <p class="suitable-for-item">✅ Anyone who wants to improve their time management</p>
                 </div>
+
+                <a href="calendar" class="start-tracking-button-inverted">Start tracking now</a>
             </div>
 
-            <h2 class="landing-page-subheading">How it works</h2>
+            <h2 class="landing-page-subheading">How TimeAudit works</h2>
 
             <div class="tutorial-box">
                 <span>Log an activity by clicking the start button and entering the activity details. You can add previously-completed activities and track current activities.</span>
@@ -66,8 +68,10 @@
 
             <div class="tutorial-box">
                 <span>View statistics and insights to improve your productivity.</span>
-                <img class="tutorial-gif" src="{{url_for('static', filename='hero_image.png') }}" alt="Gif showing statistics page" width="500" height="300">
+                <img class="tutorial-gif" src="{{url_for('static', filename='statistics.png') }}" alt="Gif showing statistics page" width="500" height="300">
             </div>
+
+            <a href="calendar" class="start-tracking-button">Try TimeAudit now</a>
 
             <div class="landing-page-banner">
                 <!--<h2 class="testimonial-heading">What our users say</h3>-->
@@ -115,10 +119,18 @@
             </div>
 
             <a href="calendar" class="start-tracking-button">Start tracking now</a>
+            <div class="footer">
+                <span class="copyright">© 2025 TimeAudit. All rights reserved.</span>
 
-        </div>
-        <div class="footer">
-            <span>© 2025 TimeAudit</span>
-        </div>
+                <div class="footer-link-container">
+                    <a class="footer-link"href="privacy-policy">
+                        <span class="privacy-policy">Privacy Policy</span>
+                    </a>
+
+                    <a class="footer-link" href="contact">
+                        <span class="contact-us">Contact us</span>
+                    </a>
+                </div>
+            </div>
     </body>
 </html>

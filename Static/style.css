@@ -126,19 +126,6 @@ a {
     border-bottom: 1px solid #ddd; /* Light gray border at the bottom */
 }
 
-.start-tracking-button {
-    background-color: #2563eb; /* Blue */
-    color: white;
-    border: none;
-    padding: 10px 15px;
-    border-radius: 20px;
-    cursor: pointer;
-    font-size: 1rem;
-    transition: background-color 0.3s ease;
-    margin-top: 80px;
-    margin-bottom: 40px;
-}
-
 .start-tracking-button:hover {
     background-color: #1d4ed8; /* Darker Blue */
 }
@@ -217,6 +204,7 @@ a {
     display: flex;
     flex-direction: row;
     /*justify-content: center;*/
+    justify-content: space-between;
     align-items: center;
     /*width: 100vw; /* Full viewport width */
     background-color: #1e3a8a; /* Dark Blue */
@@ -224,6 +212,7 @@ a {
     text-align: center;
     padding: 20px;
     width: 100vw;
+    margin-top: 100px;
     /*position: fixed;
     left: 0;
     right: 0;
@@ -233,16 +222,76 @@ a {
     /*position: relative; /* Position relative for absolute elements inside */
 }
 
+@media (max-width: 700px) {
+    .footer {
+        width: 100vw;
+        flex-direction: column; /* Stack footer items vertically on small screens */
+        align-items: center; /* Center align items */
+    }
+}
+
+.copyright {
+    margin-left: 20px;
+}
+
+.footer-link {
+    color: white; /* White text */
+    text-decoration: none; /* Remove underline */
+}
+
+.footer-link-container {
+    display: flex;
+    flex-direction: row;
+    gap: 20px;
+    margin-right: 20px;
+}
+
+.contact-us {
+    margin-left: 0;
+}
+
+.privacy-policy {
+    margin-left: 0;
+}
+
 .landing-page-banner {
     width: 100vw;
     background-color: #2563eb; /* Blue background */
     color: white;
-    padding: 60px;
+    padding: 80px;
     margin-top: 100px;
     margin-bottom: 100px;
     display: flex;
     flex-direction: column;
 
+}
+
+.start-tracking-button {
+    background-color: #2563eb; /* Blue */
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 0.3s ease;
+    margin-top: 80px;
+    margin-bottom: 40px;
+}
+
+.start-tracking-button-inverted {
+    color: #2563eb !important; /* Blue text */ 
+    background-color: white !important; /* White background */
+    border: none;
+    padding: 10px 15px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 0.3s ease;
+    margin-top: 80px;
+    margin-bottom: 40px;
+    width: fit-content;
+    align-self: center; /* Center the button */
 }
 
 .suitable-for-box {

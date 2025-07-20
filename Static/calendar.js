@@ -922,7 +922,8 @@ function loadActivities() {
     if (activitiesString) {
         activities = JSON.parse(activitiesString);
 
-        if (runningActivityString) {
+        // ONLY DO THIS IF THE USER IS LOGGED IN
+        if (runningActivityString && checkAuth() == true) {
             // If there is a running activity, add it to the activities array
             // This is because running activities are not saved to the server until they are stopped
             // and are only saved to local storage
