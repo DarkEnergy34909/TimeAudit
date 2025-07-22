@@ -19,6 +19,11 @@
                 <div class="email-container">
                     <span class="email-address">{{ email_address }}</span>
                     <button class="logout-button" onclick="logout();">Log out</button>
+
+                    <div class="email-menu" hidden>
+                        <button class="change-email-button" onclick="">Change email address</button>
+                        <button class="delete-account-button" onclick="">Delete account</button>
+                    </div>
                 </div>
             {% else %}
                 <a class="login-button" href="login">Log in</a>

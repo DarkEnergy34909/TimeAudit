@@ -478,20 +478,6 @@ def stop_running_activity_api():
     else:
         return {"error": "failed_to_stop_running_activity"}, 500
     
-def get_email_address_from_user_id(user_id):
-    con = sqlite3.connect("timeaudit.db")
-    cur = con.cursor()
-
-    # Get email address from the User table
-    res = cur.execute("SELECT Email FROM User WHERE UserID = ?", (user_id,))
-    con.commit()
-
-    email_tuple = res.fetchone()
-    if (email_tuple == None):
-        return None
-    else:
-        return email_tuple[0]
-    
 @app.route("/api/logout", methods=["POST"])
 def logout_api():
     # Get the token from the request
@@ -508,7 +494,41 @@ def logout_api():
     response.set_cookie("token", "", expires=0, httponly=True, secure=False, samesite='Lax')
     return response
 
+@app.route("/api/delete-account", methods=["POST"])
+def delete_account_api():
+    # Get the token from the request
+    token = request.cookies["token"]
 
+    # Decode the token
+    decoded_token = decode_jwt_token(token)
+
+    if ("error" in decoded_token):
+        return {"error": "invalid_token"}, 400
+    
+    # Get the user id from the token
+    user_id = decoded_token["user-id"]
+
+    # Delete the user and all associated data from the database
+    delete_account(user_id)
+
+    # Reset the HttpOnly cookie
+    response = make_response({"success": True}, 200)
+    response.set_cookie("token", "", expires=0, httponly=True, secure=False, samesite='Lax')
+    return response
+
+def get_email_address_from_user_id(user_id):
+    con = sqlite3.connect("timeaudit.db")
+    cur = con.cursor()
+
+    # Get email address from the User table
+    res = cur.execute("SELECT Email FROM User WHERE UserID = ?", (user_id,))
+    con.commit()
+
+    email_tuple = res.fetchone()
+    if (email_tuple == None):
+        return None
+    else:
+        return email_tuple[0]
 
 def authenticate_user(token):
     decoded_token = decode_jwt_token(token)
@@ -516,6 +536,24 @@ def authenticate_user(token):
         return False
     else:
         return True
+    
+def delete_account(user_id):
+    # Connect to the database
+    con = sqlite3.connect("timeaudit.db")
+    cur = con.cursor()
+
+    # Delete all activities associated with the user
+    cur.execute("DELETE FROM Activity WHERE UserID = ?", (user_id,))
+
+    # Delete all goals associated with the user
+    cur.execute("DELETE FROM Goal WHERE UserID = ?", (user_id,))
+
+    # Delete the user from the User table
+    cur.execute("DELETE FROM User WHERE UserID = ?", (user_id,))
+
+    # Write changes to the database
+    con.commit()
+    con.close()
 
 
 def create_jwt_token(user_id):

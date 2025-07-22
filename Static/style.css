@@ -36,6 +36,16 @@ a {
     text-decoration: none; /* Remove underline */
 }
 
+.gradient-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 80%;
+    background: linear-gradient(to bottom, rgba(37, 99, 235, 0.8), rgba(249, 249, 249, 0.0), rgba(249, 249, 249, 0.0));
+    z-index: -1; /* Ensure it stays behind other content */
+}
+
 .home-container {
     max-width: 1000px;
     width: 100%;
@@ -53,6 +63,18 @@ a {
     /*justify-content: center;*/
     /*height: calc(100vh - 150px); /* Adjust height to fit the screen */
     text-align: center;
+    /*background-image: linear-gradient(to bottom, #e0f2fe, #f9f9f9); /* Light blue to white gradient */
+}
+
+.hero-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    /*width: 100vw;*/
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .hero {
@@ -453,6 +475,8 @@ a {
     color: #333; /* Dark text color */
 }
 
+
+
 @media (max-width: 700px) {
     .add-menu {
         font-size: 0.9rem;
@@ -517,21 +541,69 @@ a {
 }
 
 .add-menu button:first-of-type {
-    background-color: #2563eb; /* Blue */
-    color: white;
-}
-
-.add-menu button:first-of-type:hover {
-    background-color: #1d4ed8; /* Darker blue */
-}
-
-.add-menu button:last-of-type {
     background-color: #e5e7eb; /* Light gray */
     color: #333;
 }
 
-.add-menu button:last-of-type:hover {
+.add-menu button:first-of-type:hover {
     background-color: #d1d5db; /* Darker gray */
+}
+
+.add-menu button:last-of-type {
+    background-color: #2563eb; /* Blue */
+    color: white;
+}
+
+.add-menu button:last-of-type:hover {
+    background-color: #1d4ed8; /* Darker blue */
+}
+
+.delete-account-menu {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: #ffffff; /* White background */
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Subtle shadow */
+    padding: 20px;
+    width: 400px; /* Fixed width for consistency */
+    max-width: 75%;
+    /*max-height: 90vh;*/
+    height: auto;
+    z-index: 10000; /* Ensure it appears above other elements */
+    /*font-family: Arial, sans-serif;*/
+    color: #333; /* Dark text color */
+}
+
+.delete-account-menu button {
+    width: 48%; /* Buttons take half the width */
+    padding: 10px;
+    font-size: 1rem;
+    font-weight: bold;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    margin-top: 10px;
+}
+
+.delete-account-menu button:first-of-type {
+    background-color: #e5e7eb; /* Light gray */
+    color: #333;
+}
+
+.delete-account-menu button:first-of-type:hover {
+    background-color: #d1d5db; /* Darker gray */
+}
+
+.delete-account-menu button:last-of-type {
+    background-color: #dc2626; /* Red */
+    color: white;
+}
+
+.delete-account-menu button:last-of-type:hover {
+    background-color: #b91c1c; /* Darker red */
 }
 
 /* Calendar */
@@ -1101,6 +1173,7 @@ a {
 }
 
 .email-container {
+    position: relative;
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -1112,6 +1185,26 @@ a {
     font-size: 1rem;
     color: #1e3a8a; /* Dark Blue */
     margin-right: 10px;
+}
+
+.email-address:hover {
+    text-decoration: underline; /* Underline on hover */
+    cursor: pointer; /* Pointer cursor on hover */
+}
+
+.email-menu {
+    /*display: flex;*/
+    /*flex-direction: column;*/
+    padding: 20px;
+    position: absolute;
+    top: 100%;
+    width: fit-content; /* Fit content width */
+    /*right: 20px;
+    top: 20px;*/
+    background-color: #ffffff; /* White background */
+    z-index: 1000;
+    border-radius: 10px;
+
 }
 
 .logout-button {
@@ -1127,6 +1220,36 @@ a {
 }
 
 .logout-button:hover {
+    color: #b91c1c; /* Darker red on hover */
+}
+
+.change-email-button {
+    background-color: #FFFFFF;
+    color: #2563eb; /* Blue */
+    border: none;
+    padding: 10px 15px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 0.3s ease;
+}
+
+.change-email-button:hover {
+    color: #1d4ed8; /* Darker blue on hover */
+}
+
+.delete-account-button {
+    background-color: #FFFFFF;
+    color: #dc2626; /* Red */
+    border: none;
+    padding: 10px 15px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 0.3s ease;
+}
+
+.delete-account-button:hover {
     color: #b91c1c; /* Darker red on hover */
 }
 

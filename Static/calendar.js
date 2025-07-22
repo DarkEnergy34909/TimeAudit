@@ -25,8 +25,44 @@ let currentActivityIndex = -1;
 // startTime: float (e.g. 8.5 for 08:30)
 // endTime: float (e.g. 10.0 for 10:00)
 
+function initialiseEmailAddress() {
+    const emailElement = document.querySelector(".email-address");
+
+    // If the email is there
+    if (emailElement) {
+
+        emailElement.onclick = function () {
+            // Get the email drop-down
+            const emailMenu = document.querySelector(".email-menu");
+
+            if (emailMenu.hidden == true) {
+                emailMenu.hidden = false;
+            }
+            else {
+                emailMenu.hidden = true;
+            }
+        }
+    }
+}
+
 function isMobile() {
     return window.matchMedia("(max-width: 700px)").matches;
+}
+
+function openDeleteAccountMenu() {
+    const deleteAccountMenu = document.querySelector(".delete-account-menu");
+
+    if (deleteAccountMenu) {
+        deleteAccountMenu.hidden = false;
+    }
+}
+
+function closeDeleteAccountMenu() {
+    const deleteAccountMenu = document.querySelector(".delete-account-menu");
+
+    if (deleteAccountMenu) {
+        deleteAccountMenu.hidden = true;
+    }
 }
 
 function populateCalendar() {
@@ -1348,7 +1384,7 @@ async function pullCurrentlyRunningActivity() {
 // Logout function
 async function logout() {
     const authResult = await checkAuth();
-    if (authResult) {
+    if (authResult == true) {
         // Send a POST request to the API to logout
         const logoutResponse = await fetch("/api/logout", {
             method: "POST",
@@ -1367,6 +1403,28 @@ async function logout() {
     }
 }
 
+async function deleteAccount() {
+    const authResult = await checkAuth();
+    if (authResult == true) {
+        // Send a POST request to the API to delete the user's account
+        const deleteAccountResponse = await fetch("/api/delete-account", {
+            method: "POST",
+            body: {},
+            headers: {
+                "Content-Type": "application/json",
+                "X-Requested-With": "XMLHttpRequest"
+            }
+        })
+
+        const deleteAccountData = await deleteAccountResponse.json();
+
+        if (deleteAccountResponse.ok && deleteAccountData.success) {
+            // Redirect to landing page
+            window.location.href = "/";
+        }
+    }
+}
+
 async function init() {
     //await syncLocalStorageToServer();
     await pullCurrentlyRunningActivity();
@@ -1379,6 +1437,7 @@ async function init() {
     loadActivities();
     initialiseTopButton();
     setTimeLinePosition();
+    initialiseEmailAddress();
 
     // Reset the time line position every second
     //setInterval(setTimeLinePosition, 1000);

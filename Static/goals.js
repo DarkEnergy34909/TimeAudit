@@ -92,6 +92,26 @@ Chart.pluginService.register({
 
 let goals = [];
 
+function initialiseEmailAddress() {
+    const emailElement = document.querySelector(".email-address");
+
+    // If the email is there
+    if (emailElement) {
+
+        emailElement.onclick = function () {
+            // Get the email drop-down
+            const emailMenu = document.querySelector(".email-menu");
+
+            if (emailMenu.hidden == true) {
+                emailMenu.hidden = false;
+            }
+            else {
+                emailMenu.hidden = true;
+            }
+        }
+    }
+}
+
 function openAddMenu() {
     const addMenu = document.querySelector(".add-menu");
     addMenu.hidden = false;
@@ -614,6 +634,7 @@ async function init() {
     await pullGoalsFromServer();
     loadGoals(true);
     initialiseGoalSelectorButtons();
+    initialiseEmailAddress();
 }
 
 init();

@@ -19,7 +19,13 @@
                 <div class="email-container">
                     <span class="email-address">{{ email_address }}</span>
                     <button class="logout-button" onclick="logout();">Log out</button>
+
+                    <div class="email-menu" hidden>
+                        <button class="change-email-button" onclick="">Change email address</button>
+                        <button class="delete-account-button" onclick="openDeleteAccountMenu()">Delete account</button>
+                    </div>
                 </div>
+
             {% else %}
                 <a class="login-button" href="login">Log in</a>
             {% endif %}
@@ -93,9 +99,17 @@
                 </select><br><br>
 
                 <!--<input type="submit" value="Add activity">-->
-                <button type="button" onclick="addActivity();">Add activity</button>
                 <button type="button" onclick="closeAddMenu();">Cancel</button>
+                <button type="button" onclick="addActivity();">Add activity</button>
             </form>
+        </div>
+
+        <div class="delete-account-menu" hidden>
+            <h2>Delete Account</h2>
+            <p>Are you sure you want to delete your account? This action cannot be undone.</p>
+
+            <button type="button" onclick="closeDeleteAccountMenu()">Cancel</button>
+            <button type="button" onclick="deleteAccount()" class="delete-account-button">Delete account</button>
         </div>
 
         <div id="calendar">
