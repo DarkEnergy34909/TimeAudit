@@ -494,7 +494,7 @@ def logout_api():
     response.set_cookie("token", "", expires=0, httponly=True, secure=False, samesite='Lax')
     return response
 
-@app.route("/api/delete-account", methods=["POST"])
+@app.route("/api/account/delete", methods=["POST"])
 def delete_account_api():
     # Get the token from the request
     token = request.cookies["token"]
@@ -515,6 +515,44 @@ def delete_account_api():
     response = make_response({"success": True}, 200)
     response.set_cookie("token", "", expires=0, httponly=True, secure=False, samesite='Lax')
     return response
+
+@app.route("/api/account/change-email", methods=["POST"])
+def change_email_api():
+    # Get the token from the request
+    token = request.cookies["token"]
+
+    # Decode the token
+    decoded_token = decode_jwt_token(token)
+
+    if ("error" in decoded_token):
+        return {"error": "invalid_token"}, 400
+    
+    # Get the user id from the token
+    user_id = decoded_token["user-id"]
+
+    # Get the request body
+    request_data = request.get_json()
+    email_address = request_data["email-address"].strip()
+
+    # If the email is invalid, return an error
+    try:
+        email_info = validate_email(email_address, check_deliverability=True)
+        email_address = email_info.normalized
+    except EmailNotValidError as e:
+        print(str(e))
+        print("Invalid email address")
+        return {"error": "invalid_email"}, 400
+
+    # If the email already exists, return an error
+    if (email_exists_in_database(email_address)):
+        print("Email exists")
+        return {"error": "email_exists"}, 400
+
+    # Update the email address
+    update_email_address(user_id, email_address)
+
+    print("LOL")
+    return {"success": True}, 200
 
 def get_email_address_from_user_id(user_id):
     con = sqlite3.connect("timeaudit.db")
@@ -550,6 +588,18 @@ def delete_account(user_id):
 
     # Delete the user from the User table
     cur.execute("DELETE FROM User WHERE UserID = ?", (user_id,))
+
+    # Write changes to the database
+    con.commit()
+    con.close()
+
+def update_email_address(user_id, new_email_address):
+    # Connect to the database
+    con = sqlite3.connect("timeaudit.db")
+    cur = con.cursor()
+
+    # Update the email address in the User table
+    cur.execute("UPDATE User SET Email = ? WHERE UserID = ?", (new_email_address, user_id))
 
     # Write changes to the database
     con.commit()

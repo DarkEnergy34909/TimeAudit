@@ -65,6 +65,22 @@ function closeDeleteAccountMenu() {
     }
 }
 
+function openChangeEmailMenu() {
+    const changeEmailMenu = document.querySelector(".change-email-menu");
+
+    if (changeEmailMenu) {
+        changeEmailMenu.hidden = false;
+    }
+}
+
+function closeChangeEmailMenu() {
+    const changeEmailMenu = document.querySelector(".change-email-menu");
+
+    if (changeEmailMenu) {
+        changeEmailMenu.hidden = true;
+    }
+}
+
 function populateCalendar() {
     // If on mobile
     if (isMobile()) {
@@ -1403,11 +1419,75 @@ async function logout() {
     }
 }
 
+async function changeEmailAddress() {
+    const authResult = await checkAuth();
+
+    if (authResult == true) {
+        // Get the email address
+        const emailAddress = document.querySelector("#new-email").value;
+
+        // Send a POST request to the API to delete the user's account
+        const changeEmailResponse = await fetch("/api/account/change-email", {
+            method: "POST",
+            body: JSON.stringify({"email-address": emailAddress}),
+            headers: {
+                "Content-Type": "application/json",
+                "X-Requested-With": "XMLHttpRequest"
+            }
+        })
+
+        const changeEmailData = await changeEmailResponse.json();
+        if (changeEmailResponse.ok && !changeEmailData.error) {
+            // Reset form input
+            document.querySelector("#new-email").value = "";
+
+            // Hide all errors
+            const changeEmailMenu = document.querySelector(".change-email-menu");
+            const errorMessages = changeEmailMenu.querySelectorAll("error-text");
+
+            for (let i = 0; i < errorMessages.length; i++) {
+                errorMessages[i].hidden = true;
+            }
+
+            // Close the menu
+            closeChangeEmailMenu();
+
+            // Refresh the page
+            window.location.reload();
+        }
+        else if (changeEmailData.error == "email_exists") {
+            // Show the error message
+            document.querySelector("#email-exists-error").hidden = false;
+
+            // Hide the other error messages
+            document.querySelector("#invalid-email-error").hidden = true;
+            document.querySelector("#generic-email-error").hidden = true;
+        }
+
+        else if (changeEmailData.error == "invalid_email") {
+            // Show the error message
+            document.querySelector("#invalid-email-error").hidden = false;
+
+            // Hide the other error messages
+            document.querySelector("#email-exists-error").hidden = true;
+            document.querySelector("#generic-email-error").hidden = true;
+        }
+        else {
+            // Show the error message
+            document.querySelector("#generic-email-error").hidden = false;
+
+            // Hide the other error messages
+            document.querySelector("#email-exists-error").hidden = true;
+            document.querySelector("#invalid-email-error").hidden = true;
+        }
+    }
+}
+
 async function deleteAccount() {
     const authResult = await checkAuth();
     if (authResult == true) {
         // Send a POST request to the API to delete the user's account
-        const deleteAccountResponse = await fetch("/api/delete-account", {
+        const deleteAccountResponse = await fetch("/api/account/delete", {
             method: "POST",
             body: {},
             headers: {
@@ -1422,6 +1502,12 @@ async function deleteAccount() {
             // Redirect to landing page
             window.location.href = "/";
         }
+
+        // Clear local storage
+        localStorage.removeItem("activities");
+        localStorage.removeItem("goals");
+        localStorage.removeItem("current_activity");
+        localStorage.removeItem("running_activity");
     }
 }
 

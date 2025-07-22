@@ -475,14 +475,6 @@ a {
     color: #333; /* Dark text color */
 }
 
-
-
-@media (max-width: 700px) {
-    .add-menu {
-        font-size: 0.9rem;
-    }
-}
-
 /* Add Activity Title */
 .add-menu h2 {
     font-size: 1.5rem;
@@ -604,6 +596,86 @@ a {
 
 .delete-account-menu button:last-of-type:hover {
     background-color: #b91c1c; /* Darker red */
+}
+
+.change-email-menu {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: #ffffff; /* White background */
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Subtle shadow */
+    padding: 20px;
+    width: 400px; /* Fixed width for consistency */
+    max-width: 75%;
+    /*max-height: 90vh;*/
+    height: auto;
+    z-index: 10000; /* Ensure it appears above other elements */
+    /*font-family: Arial, sans-serif;*/
+    color: #333; /* Dark text color */
+}
+
+.change-email-menu button {
+    width: 48%; /* Buttons take half the width */
+    padding: 10px;
+    font-size: 1rem;
+    font-weight: bold;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    margin-top: 10px;
+}
+
+.change-email-menu button:first-of-type {
+    background-color: #e5e7eb; /* Light gray */
+    color: #333;
+}
+
+.change-email-menu button:first-of-type:hover {
+    background-color: #d1d5db; /* Darker gray */
+}
+
+.change-email-menu button:last-of-type {
+    background-color: #2563eb; /* Blue */
+    color: white;
+}
+
+.change-email-menu button:last-of-type:hover {
+    background-color: #1d4ed8; /* Darker blue */
+}
+
+.change-email-menu label {
+    display: block;
+    font-size: 1rem;
+    font-weight: bold;
+    margin-bottom: 5px;
+    color: #1e3a8a; /* Dark blue */
+}
+
+/* Form Inputs */
+.change-email-menu input[type="email"] {
+    width: 100%; /* Full width */
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 1rem;
+    box-sizing: border-box;
+    background-color: #f9f9f9; /* Light background */
+}
+
+@media (max-width: 700px) {
+    .add-menu {
+        font-size: 0.9rem;
+    }
+    .delete-account-menu {
+        font-size: 0.9rem;
+    }
+    .change-email-menu {
+        font-size: 0.9rem;
+    }
 }
 
 /* Calendar */

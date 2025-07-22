@@ -21,8 +21,8 @@
                     <button class="logout-button" onclick="logout();">Log out</button>
 
                     <div class="email-menu" hidden>
-                        <button class="change-email-button" onclick="">Change email address</button>
-                        <button class="delete-account-button" onclick="">Delete account</button>
+                        <button class="change-email-button" onclick="openChangeEmailMenu()">Change email address</button>
+                        <button class="delete-account-button" onclick="openDeleteAccountMenu()">Delete account</button>
                     </div>
                 </div>
             {% else %}
@@ -42,6 +42,28 @@
 
         <div class="top-bar">
             
+        </div>
+
+        <div class="change-email-menu" hidden>
+            <h2>Change email address</h2>
+            
+            <label for="new-email">New email address</label>
+            <input type="email" id="new-email" name="new-email" required><br><br>
+
+            <p class="error-text" id="invalid-email-error" hidden>Please enter a valid email address.</p>
+            <p class="error-text" id="generic-email-error" hidden>There was an error changing your email address. Please try again later.</p>
+            <p class="error-text" id="email-exists-error" hidden>An account with this email address already exists.</p>
+
+            <button type="button" onclick="closeChangeEmailMenu();">Cancel</button>
+            <button type="button" onclick="changeEmailAddress();">Change email</button>
+        </div>
+
+        <div class="delete-account-menu" hidden>
+            <h2>Delete Account</h2>
+            <p>Are you sure you want to delete your account? This action cannot be undone.</p>
+
+            <button type="button" onclick="closeDeleteAccountMenu()">Cancel</button>
+            <button type="button" onclick="deleteAccount()" class="delete-account-button">Delete account</button>
         </div>
 
         <div class="statistics-container">
