@@ -953,7 +953,7 @@ function migrateActivities() {
 
 
 
-function loadActivities() {
+async function loadActivities() {
 
     // Load activities from local storage
     const activitiesString = localStorage.getItem("activities");
@@ -975,7 +975,7 @@ function loadActivities() {
         activities = JSON.parse(activitiesString);
 
         // ONLY DO THIS IF THE USER IS LOGGED IN
-        if (runningActivityString && checkAuth() == true) {
+        if (runningActivityString && await checkAuth() == true) {
             // If there is a running activity, add it to the activities array
             // This is because running activities are not saved to the server until they are stopped
             // and are only saved to local storage
@@ -1520,7 +1520,7 @@ async function init() {
     setMonthYear(currentDate); 
     setDayHeadings(currentDate);
     onStartNowCheckboxChange(); 
-    loadActivities();
+    await loadActivities();
     initialiseTopButton();
     setTimeLinePosition();
     initialiseEmailAddress();

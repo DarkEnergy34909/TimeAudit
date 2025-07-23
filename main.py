@@ -811,7 +811,7 @@ def get_activities_from_database_as_dicts(user_id):
     cur = con.cursor()
 
     # Get all the activities associated with that user
-    res = cur.execute("SELECT * FROM Activity WHERE UserID = ?;", (user_id,))
+    res = cur.execute("SELECT * FROM Activity WHERE UserID = ? AND Running = 0;", (user_id,))
 
     activities = res.fetchall()
     if (len(activities) == 0):
