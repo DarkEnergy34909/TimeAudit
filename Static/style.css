@@ -252,6 +252,23 @@ a {
     /*position: relative; /* Position relative for absolute elements inside */
 }
 
+.footer-container {
+    max-width: 1000px;
+    width: 100%;
+    /*min-height: 220vh; /* Temporary fix */
+    height: auto;
+    margin-left: auto; /* Center the container */
+    margin-right: auto; /* Center the container */
+    /*padding-bottom: 20px;*/
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    /*justify-content: center;*/
+    /*height: calc(100vh - 150px); /* Adjust height to fit the screen */
+    text-align: center;
+    /*background-image: linear-gradient(to bottom, #e0f2fe, #f9f9f9); /* Light blue to white gradient */
+}
+
 @media (max-width: 700px) {
     .footer {
         width: 100vw;
@@ -1087,11 +1104,6 @@ a {
     }
 }
 
-.goals-body{
-    /*align-items: center;
-    align-content: center;*/
-}
-
 #goals-title {
     font-size: 1rem;
     text-align: center;
@@ -1417,6 +1429,7 @@ a {
     align-items: left;
     margin-top: 100px; 
     padding: 20px;
+    padding-bottom: 0;
     width: 100%; /* Full width */
     max-width: 1000px; /* Limit the width of the container */
     margin-left: auto;
@@ -1442,6 +1455,7 @@ a {
     align-items: left;
     margin-top: 100px; 
     padding: 20px;
+    padding-bottom: 0;
     width: 100%; /* Full width */
     max-width: 1000px; /* Limit the width of the container */
     margin-left: auto;
