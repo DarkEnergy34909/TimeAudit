@@ -10,6 +10,9 @@ let firstDayOfWeek = new Date(firstDayOfCurrentWeek);
 // A list of all activities 
 let activities = [];
 
+// A list of all scheduled activities
+let scheduledActivities = [];
+
 // The index of the current activity in the activities array
 let currentActivityIndex = -1;
 
@@ -20,6 +23,13 @@ let currentActivityIndex = -1;
 // endTime: int (e.g. 600 for 10:00)
 // date: string (e.g. "2023-10-01")
 // goalName: string (e.g. "Study Physics")
+
+// A scheduled activity has the following properties
+// title: string (e.g. "Gym")
+// category: string (e.g. "Exercise")
+// startTime: int (e.g. 510 for 08:30)
+// endTime: int (e.g. 600 for 10:00)
+// date: string (e.g. "2023-10-01")
 
 // Putting this here to remind myself what a stupid ass design decision this was
 // startTime: float (e.g. 8.5 for 08:30)
@@ -331,6 +341,105 @@ function addActivity() {
     timeErrorText.hidden = true; // Hide the error message
 }
 
+
+function addScheduledActivity() {
+    // Get the activity name, category, start time and end time from the form
+    const activityName = document.getElementById("scheduled-activity-name").value;
+    const category = document.getElementById("scheduled-category").value;
+    const startTime = document.getElementById("scheduled-start-time").value;
+    const endTime = document.getElementById("scheduled-end-time").value;
+    const date = document.getElementById("scheduled-date").value;
+
+    // Convert start/end times to minutes
+    const startTimeMinutes = stringTimeToMinutes(startTime);
+    const endTimeMinutes = stringTimeToMinutes(endTime);
+
+    // Validate the inputs
+    if (activityName.trim() === "") {
+        const errorText = document.getElementById("scheduled-activity-name-error");
+        errorText.hidden = false; // Show the error message
+        return;
+    }
+
+    // Check if the times are valid
+    if (startTime == "" || endTime == "" || startTime >= endTime) {
+        const errorText = document.getElementById("scheduled-time-input-error");
+        errorText.hidden = false; // Show the error message
+        return;
+    }
+
+    // Check if the times are already occupied by an activity
+    for (let i = 0; i < scheduledActivities.length; i++) {
+        if (scheduledActivities[i].date == date && ((startTimeMinutes >= scheduledActivities[i].startTime && startTimeMinutes < scheduledActivities[i].endTime) || (endTimeMinutes > scheduledActivities[i].startTime && endTimeMinutes <= scheduledActivities[i].endTime))) {
+            const errorText = document.getElementById("scheduled-time-input-error");
+            errorText.hidden = false; // Show the error message
+            console.log("Time already occupied by another scheduled activity");
+            return;
+        }
+    }
+
+    // Check if the date is valid
+    let dateObj = new Date(date);
+    console.log(dateObj.toString());
+    if (dateObj.toString() === "Invalid Date") {
+        const errorText = document.getElementById("scheduled-date-error");
+        errorText.hidden = false; // Show the error message
+        console.log("Invalid date");
+        return;
+    }
+
+    // Convert the date to ISO string format
+    const isoDate = getIsoString(dateObj);
+
+    // Check if the date is in the past
+    if (isoDate < getIsoString(new Date())) {
+        const errorText = document.getElementById("scheduled-date-error");
+        errorText.hidden = false; // Show the error message
+        console.log("Date is in the past");
+        return;
+    }
+
+    // Create a new scheduled activity object 
+    const scheduledActivity = {
+        title: activityName,
+        category: category,
+        startTime: startTimeMinutes,
+        endTime: endTimeMinutes,
+        date: isoDate
+    };
+
+    // Check if the date is in the current week
+    if (isInWeek(firstDayOfCurrentWeek, dateObj)) {
+        // Reset the date object
+        dateObj = new Date(date);
+
+        // Get the day of the week
+        const dayOfWeek = (dateObj.getDay() + 6) % 7;
+
+        // Add the block to the calendar
+        addScheduledActivityBlock(activityName, category, startTimeMinutes, endTimeMinutes, dayOfWeek);
+    }
+
+    // Save to local storage
+    saveScheduledActivity(scheduledActivity);
+
+    // Save to the server
+    saveScheduledActivityToServer(scheduledActivity);
+
+    // Close the menu
+    closeScheduledAddMenu();
+
+    // Clear form inputs
+    document.getElementById("scheduled-activity-name").value = "";
+    document.getElementById("scheduled-category").value = "Work/Study";
+    document.getElementById("scheduled-start-time").value = "";
+    document.getElementById("scheduled-end-time").value = "";
+    //document.getElementById("scheduled-date").value = ""; don't clear the date because it is needed for the next scheduled activity
+    document.getElementById("scheduled-activity-name-error").hidden = true; // Hide the error message
+    document.getElementById("scheduled-time-input-error").hidden = true; // Hide the error message
+    document.getElementById("scheduled-date-error").hidden = true; // Hide the error message
+}
+
 async function stopActivity() {
     // Hide the stop button
     const stopButton = document.querySelector("#stop-button");
@@ -430,6 +539,40 @@ async function saveRunningActivityToServer(activity) {
     }
 }
 
+async function saveScheduledActivityToServer(scheduledActivity) {
+    // Check if authenticated
+    const authStatus = await checkAuth();
+    if (authStatus == true) {
+        // Create an array
+        const tempArray = [scheduledActivity];
+
+        // Convert the scheduled activity to a JSON string
+        const scheduledActivityString = JSON.stringify(tempArray);
+
+        // Send a POST request with the scheduled activity
+        const scheduledActivityResponse = await fetch("/api/scheduled-activities", {
+            method: "POST",
+            body: scheduledActivityString,
+            headers: {
+                "Content-Type": "application/json",
+                "X-Requested-With": "XMLHttpRequest",
+            }
+        });
+
+        const scheduledActivityData = await scheduledActivityResponse.json();
+
+        if (!scheduledActivityResponse.ok || !scheduledActivityData.success) {
+            // Send an alert that the scheduled activity was NOT posted to the server
+            //alert("Failed to post scheduled activity to the server. Check your network connection.");
+        }
+        else {
+            //alert("Posted scheduled activity successfully");
+        }
+    } else if (authStatus == false) {
+        //alert("NOT AUTHENTICATED");
+    }
+}
+
 async function removeActivityFromServer(activity) {
     // Check if authenticated
     const authStatus = await checkAuth();
@@ -454,6 +597,38 @@ async function removeActivityFromServer(activity) {
         }
         else {
             //alert("Deleted activity successfully");
+        }
+    }
+    else if (authStatus == false) {
+        //alert("NOT AUTHENTICATED");
+    }
+}
+
+async function removeScheduledActivityFromServer(scheduledActivity) {
+    // Check if authenticated
+    const authStatus = await checkAuth();
+    if (authStatus == true) {
+        // Convert the scheduled activity to a JSON string
+        const scheduledActivityString = JSON.stringify(scheduledActivity);
+
+        // Send a POST request with the scheduled activity
+        const scheduledActivityResponse = await fetch("/api/scheduled-activities/remove", {
+            method: "POST",
+            body: scheduledActivityString,
+            headers: {
+                "Content-Type": "application/json",
+                "X-Requested-With": "XMLHttpRequest",
+            }
+        });
+
+        const scheduledActivityData = await scheduledActivityResponse.json();
+
+        if (!scheduledActivityResponse.ok || !scheduledActivityData.success) {
+            // Send an alert that the scheduled activity was NOT posted to the server
+            //alert("Failed to delete scheduled activity from server. Check your network connection.");
+        }
+        else {
+            //alert("Deleted scheduled activity successfully");
         }
     }
     else if (authStatus == false) {
@@ -573,25 +748,51 @@ function goToPreviousWeek() {
     setMonthYear(previousFirstDayOfWeek);
     setDayHeadings(previousFirstDayOfWeek);
 
-    // Unhighlight the current day label
-    const dayLabels = document.querySelectorAll(".day");
-    dayLabels[getCurrentDay()].style.color = "#1e3a8a";
+    // If the week is the current week
+    if (previousFirstDayOfWeek.getTime() == firstDayOfCurrentWeek.getTime()) {
+        // Highlight the current day label in red
+        const dayLabels = document.querySelectorAll(".day");
+        dayLabels[getCurrentDay()].style.color = "red"; 
 
-    // Unhide the next button
-    const nextButton = document.getElementById("next-button");
-    nextButton.hidden = false; 
+        // Hide the next button
+        //const nextButton = document.getElementById("next-button");
+        //nextButton.hidden = true;
 
-    // Uncolour the grid divs with the current day
-    const gridDivs = document.querySelectorAll(".grid-item-today");
-    if (gridDivs.length != 0) {
+        // Colour the grid divs with the current day
+        const gridDivs = document.querySelectorAll(".grid-item");
+
         for (let i = 0; i < gridDivs.length; i++) {
-            gridDivs[i].classList.remove("grid-item-today");
+            if (i % 7 == getCurrentDay()) {
+                gridDivs[i].classList.add("grid-item-today");
+            }
+        }
+
+    }
+    else {
+        // Unhighlight the current day label
+        const dayLabels = document.querySelectorAll(".day");
+        dayLabels[getCurrentDay()].style.color = "#1e3a8a"; 
+
+        // Uncolour the grid divs with the current day
+        const gridDivs = document.querySelectorAll(".grid-item-today");
+        if (gridDivs.length != 0) {
+            for (let i = 0; i < gridDivs.length; i++) {
+                gridDivs[i].classList.remove("grid-item-today");
+            }
         }
     }
 
-    // Reset displayed activities by removing all blocks and then reloading
-    removeActivityBlocks();
-    loadActivities();
+    // Reset displayed activities by removing all blocks and then reloading (first checking if logged activities are shown)
+    if (canShowLogged()) {
+        removeActivityBlocks();
+        loadActivities();
+    }
+
+    // Reset scheduled activities
+    if (canShowScheduled()) {
+        removeScheduledActivityBlocks();
+        loadScheduledActivities();
+    }
 }
 
 // Goes to the next week
@@ -610,8 +811,8 @@ function goToNextWeek() {
         dayLabels[getCurrentDay()].style.color = "red"; 
 
         // Hide the next button
-        const nextButton = document.getElementById("next-button");
-        nextButton.hidden = true;
+        //const nextButton = document.getElementById("next-button");
+        //nextButton.hidden = true;
 
         // Colour the grid divs with the current day
         const gridDivs = document.querySelectorAll(".grid-item");
@@ -627,13 +828,31 @@ function goToNextWeek() {
         // Unhighlight the current day label
         const dayLabels = document.querySelectorAll(".day");
         dayLabels[getCurrentDay()].style.color = "#1e3a8a"; 
+
+        // Uncolour the grid divs with the current day
+        const gridDivs = document.querySelectorAll(".grid-item-today");
+        if (gridDivs.length != 0) {
+            for (let i = 0; i < gridDivs.length; i++) {
+                gridDivs[i].classList.remove("grid-item-today");
+            }
+        }
     }
 
     // Reset displayed activities by removing all blocks and then reloading
-    removeActivityBlocks();
-    loadActivities();
+    if (canShowLogged()) {
+        removeActivityBlocks();
+        loadActivities();
+    }
+
+    // Reset scheduled activities
+    if (canShowScheduled()) {
+        removeScheduledActivityBlocks();
+        loadScheduledActivities();
+    }
 
 }
+
+
 // startTime and endTime are FLOATS (e.g. 8.5 for 08:30)
 function addBlock(title, category, startTime, endTime, day, ongoing) {
 
@@ -834,13 +1053,218 @@ function addBlock(title, category, startTime, endTime, day, ongoing) {
     calendarGrid.appendChild(block);
 }
 
+function rgbToRgba(rgb, alpha) {
+    // rgb: "rgb(r, g, b)" or "rgba(r, g, b, a)"
+    // alpha: 0.0 - 1.0
+    let parts = rgb.match(/\d+/g);
+    if (!parts) return rgb;
+    return `rgba(${parts[0]}, ${parts[1]}, ${parts[2]}, ${alpha})`;
+}
+
+function addScheduledActivityBlock(title, category, startTime, endTime, day) {
+    const calendarGrid = document.querySelector(".calendar-grid");
+    const gridItems = calendarGrid.querySelectorAll(".grid-item");
+
+    // Get the height of a grid row
+    //const gridRowHeight = gridItems[0].offsetHeight; 
+    const gridRowHeight = calendarGrid.offsetHeight / 24;
+
+    // Get the width of a grid column
+    const gridColumnWidth = gridItems[0].offsetWidth;
+    //const gridColumnWidth = gridItems[0].clientWidth;
+
+    // Create a new block
+    const block = document.createElement("div");
+    block.classList.add("scheduled-block");
+
+    // Create a text label for the block
+    const blockText = document.createElement("span");
+    blockText.classList.add("scheduled-block-text");
+    blockText.textContent = title;
+
+    // Create a time label for the block
+    const blockTime = document.createElement("span");
+    blockTime.classList.add("scheduled-block-time");
+    blockTime.textContent = getTimeFromMinutes(startTime) + " - " + getTimeFromMinutes(endTime);
+    blockTime.hidden = true; 
+
+    // Create a delete button for the block
+    const deleteButton = document.createElement("button");
+    
+    deleteButton.textContent = "×";
+    deleteButton.onclick = function() {
+        calendarGrid.removeChild(block);
+
+        // Remove from scheduled activities array
+        for (let i = 0; i < scheduledActivities.length; i++) {
+            // TODO: Include date in the check
+            if (scheduledActivities[i].title == title && scheduledActivities[i].startTime == startTime && scheduledActivities[i].endTime == endTime) {
+                // Remove the scheduled activity from the server
+                removeScheduledActivityFromServer(scheduledActivities[i]);
+
+                // Remove the activity from the scheduled activities array
+                scheduledActivities.splice(i, 1); // Removes one item from the array at index i
+
+                // Update local storage
+                localStorage.setItem("scheduled_activities", JSON.stringify(scheduledActivities));
+
+                break;
+            }
+        }
+    };
+
+    // Hide the delete button for now
+    deleteButton.hidden = true;
+
+    // Show/hide delete button on hover
+    block.onmouseover = function() {
+        // Show the delete button when hovering over the block
+        deleteButton.hidden = false;
+
+        // Show the time when hovering over the block
+        blockTime.hidden = false;
+
+        // Change the background colour of the block to the same as the border colour and the text colour to white
+        block.style.backgroundColor = rgbToRgba(block.style.borderColor, 0.5);
+        blockText.style.color = "#FFFFFF"; 
+    }
+
+    block.onmouseout = function() {
+        // Hide the delete button when not hovering over the block
+        deleteButton.hidden = true;
+
+        // Hide the time when not hovering over the block
+        blockTime.hidden = true;
+
+        // Change the background colour of the block to transparent and the text colour to the border colour
+        block.style.backgroundColor = "transparent";
+        blockText.style.color = block.style.borderColor;
+    }
+
+    // Calculate width of block - this is the width of a grid column
+    const blockWidth = gridColumnWidth;
+
+    // Calculate height of block - this is the height a grid row multiplied by the end time minus the start time (in hours)
+    //const blockHeight = gridRowHeight * (endTime - startTime);
+    const blockHeight = gridRowHeight * (endTime - startTime) / 60;
+
+    // Calculate x position of block - this is the current day of the week (0-6) multiplied by the width of a grid column 
+    let xPosition = (day * gridColumnWidth);
+
+    // If on mobile, the x position is just 0
+    if (isMobile()) {
+        // Set the x position to 0 
+        xPosition = 0;
+    }
+
+    // Calculate y position of block - this is the start time of the activity (in hours) multiplied by the height of a grid row
+    //const yPosition = startTime * gridRowHeight;
+    const yPosition = (startTime * gridRowHeight) / 60; 
+
+    // Set the position of the block
+    block.style.position = "absolute"; // Set the position to absolute 
+    block.style.width = blockWidth + "px";
+    block.style.height = blockHeight + "px";
+    block.style.top = yPosition + "px"; 
+    block.style.left = xPosition + "px";
+
+    // Set the background colour of the block
+    switch(category) {
+        case "Work/Study":
+            block.style.borderColor = "#3B82F6"; // Blue
+            block.style.color = "#3B82F6"; // Blue
+            blockText.style.color = "#3B82F6"; // Blue
+            break;
+        case "Exercise":
+            block.style.borderColor = "#FF6B35"; // Orange
+            block.style.color = "#FF6B35"; // Orange
+            blockText.style.color = "#FF6B35"; // Orange
+            break;
+        case "Social":
+            block.style.borderColor = "#8B5CF6"; // Purple
+            block.style.color = "#8B5CF6"; // Purple
+            blockText.style.color = "#8B5CF6"; // Purple
+            break;
+        case "Chores/Errands":
+            block.style.borderColor = "#D6A85D"; // Yellow/tan
+            block.style.color = "#D6A85D"; // Yellow/tan
+            blockText.style.color = "#D6A85D"; // Yellow/tan
+            break;
+        case "Eat/Drink":
+            block.style.borderColor = "#F97316"; // Orange
+            block.style.color = "#F97316"; // Orange
+            blockText.style.color = "#F97316"; // Orange
+            break;
+        case "Good leisure":
+            block.style.borderColor = "#22C55E"; // Green
+            block.style.color = "#22C55E"; // Green
+            blockText.style.color = "#22C55E"; // Green
+            break;
+        case "Bad leisure":
+            block.style.borderColor = "#991B1B"; // Crimson
+            block.style.color = "#991B1B"; // Crimson
+            blockText.style.color = "#991B1B"; // Crimson
+            break;
+        case "Personal care":
+            block.style.borderColor = "#A7F3D0"; // Mint green
+            block.style.color = "#A7F3D0"; // Mint green
+            blockText.style.color = "#A7F3D0"; // Mint green
+            break;
+        case "Sleep/Napping":
+            block.style.borderColor = "#1E3A8A"; // Midnight blue
+            block.style.color = "#1E3A8A"; // Midnight blue
+            blockText.style.color = "#1E3A8A"; // Midnight blue
+            break;
+        case "Travel":
+            block.style.borderColor = "#60A5FA"; // Light blue
+            block.style.color = "#60A5FA"; // Light blue
+            blockText.style.color = "#60A5FA"; // Light blue
+            break;
+        case "Planning/Reflection":
+            block.style.borderColor = "#14B8A6"; // Teal
+            block.style.color = "#14B8A6"; // Teal
+            blockText.style.color = "#14B8A6"; // Teal
+            break;
+        case "Other":
+            block.style.borderColor = "#9CA3AF"; // Grey
+            block.style.color = "#9CA3AF"; // Grey
+            blockText.style.color = "#9CA3AF"; // Grey
+            break;
+        default:
+            block.style.borderColor = "#9CA3AF"; // Grey
+            block.style.color = "#9CA3AF"; // Grey
+            blockText.style.color = "#9CA3AF"; // Grey
+            break;
+        
+    }
+
+    // Add the text label and the delete button to the block
+    block.appendChild(blockText);
+    block.appendChild(deleteButton);
+    block.appendChild(blockTime);
+
+    // Add the block to the calendar grid
+    calendarGrid.appendChild(block);
+}
+
+function getTimeFromMinutes(minutes) {
+    // Convert minutes to hours and minutes
+    const hours = Math.floor(minutes / 60);
+    const remainingMinutes = minutes % 60;
+
+    // Format the time as HH:MM
+    const formattedTime = `${String(hours).padStart(2, '0')}:${String(remainingMinutes).padStart(2, '0')}`;
+
+    return formattedTime;
+}
+
 function openAddMenu() {
     // Make sure the start time is correct if the checkbox is checked
     onStartNowCheckboxChange();
 
     // Unhide the menu
-    const addMenu = document.querySelector(".add-menu");
-    addMenu.hidden = false; 
+    const addMenu = document.querySelector("#add-activity-menu");
+    addMenu.hidden = false;
 
     // Populate the goal select menu with a list of current goals
     const selectMenu = addMenu.querySelector("#link-to-goal");
@@ -869,10 +1293,22 @@ function openAddMenu() {
     }
 }
 
+function openScheduledAddMenu() {
+    // Unhide the menu
+    const addMenu = document.querySelector("#add-scheduled-activity-menu");
+    addMenu.hidden = false;
+}
+
 function closeAddMenu() {
     // Hide the menu
     const addMenu = document.querySelector(".add-menu");
     addMenu.hidden = true; 
+}
+
+function closeScheduledAddMenu() {
+    // Hide the menu
+    const addMenu = document.querySelector("#add-scheduled-activity-menu");
+    addMenu.hidden = true;
 }
 
 function onStartNowCheckboxChange() {
@@ -1036,27 +1472,48 @@ async function loadActivities() {
     //console.log(activities);
 }
 
+function loadScheduledActivities() {
+    // Load scheduled activities from local storage
+    const scheduledActivitiesString = localStorage.getItem("scheduled_activities");
+
+    if (scheduledActivitiesString) {
+        scheduledActivities = JSON.parse(scheduledActivitiesString);
+
+        // TODO: Add blocks
+        for (let i = 0; i < scheduledActivities.length; i++) {
+            const scheduledActivity = scheduledActivities[i];
+
+            let scheduledActivityDateObj = new Date(scheduledActivity.date);
+
+            // Check if the scheduled activity is in the current week
+            if (isInWeek(firstDayOfWeek, scheduledActivityDateObj)) {
+                // Reset the date object
+                scheduledActivityDateObj = new Date(scheduledActivity.date);
+
+                // Get the day
+                const scheduledActivityDay = (scheduledActivityDateObj.getDay() + 6) % 7;
+
+                // Add the block to the calendar
+                addScheduledActivityBlock(scheduledActivity.title, scheduledActivity.category, scheduledActivity.startTime, scheduledActivity.endTime, scheduledActivityDay);
+            }
+        }
+    }
+}
+
 function saveActivity(activity) {
     // Add the activity to the activities array
     activities.push(activity); 
 
-    /*
-    // Gets all activities from local storage
-    let allActivities = JSON.parse(localStorage.getItem("activities"))
-
-    if (allActivities == null) {
-        allActivities = [];
-    }
-    // Add the new activity to the array of all activities
-    allActivities.push(activity);
-
-    // Save all activities to local storage
-    localStorage.setItem("activities", JSON.stringify(allActivities)); 
-    */
     // Save activities to local storage
     localStorage.setItem("activities", JSON.stringify(activities));
-    
+}
 
+function saveScheduledActivity(scheduledActivity) {
+    // Add the scheduled activity to the scheduled activities array
+    scheduledActivities.push(scheduledActivity);
+
+    // Save scheduled activities to local storage
+    localStorage.setItem("scheduled_activities", JSON.stringify(scheduledActivities));
 }
 
 function isInWeek(firstDay, date) {
@@ -1081,6 +1538,15 @@ function removeActivityBlocks() {
 
     for (let i = 0; i < activityBlocks.length; i++) {
         const block = activityBlocks[i]
+        block.remove();
+    }
+}
+
+function removeScheduledActivityBlocks() {
+    let scheduledActivityBlocks = document.querySelectorAll(".scheduled-block");
+
+    for (let i = 0; i < scheduledActivityBlocks.length; i++) {
+        const block = scheduledActivityBlocks[i];
         block.remove();
     }
 }
@@ -1369,6 +1835,29 @@ async function pullActivitiesFromServer() {
     }
 }
 
+async function pullScheduledActivitiesFromServer() {
+    // For now, if any scheduled activities overlap between local storage and the server, prioritise the server
+
+    const authResult = await checkAuth();
+    if (authResult == true) {
+        // Get scheduled activities from the server
+        const scheduledActivitiesResponse = await fetch("/api/scheduled-activities", {
+            method: "GET",
+            headers: {
+                "X-Requested-With": "XMLHttpRequest",
+                "Content-Type": "application/json"
+            }
+        });
+
+        const scheduledActivitiesData = await scheduledActivitiesResponse.json();
+
+        if (scheduledActivitiesResponse.ok && scheduledActivitiesData) {
+            // Overwrite local storage (ok because sync was already performed)
+            localStorage.setItem("scheduled_activities", JSON.stringify(scheduledActivitiesData));
+        }
+    }
+}
+
 async function pullCurrentlyRunningActivity() {
     const authResult = await checkAuth();
 
@@ -1511,16 +2000,50 @@ async function deleteAccount() {
     }
 }
 
+function toggleScheduled() {
+    // Check the value of the checkbox
+    if (document.querySelector("#scheduled-checkbox").checked == true) {
+        // Show scheduled activities
+        loadScheduledActivities();
+    }
+    else {
+        // Hide scheduled activities
+        removeScheduledActivityBlocks();
+    }
+}
+
+async function toggleLogged() {
+    // Check the value of the checkbox
+    if (document.querySelector("#logged-checkbox").checked == true) {
+        // Show logged activities
+        await loadActivities();
+    }
+    else {
+        // Hide logged activities
+        removeActivityBlocks();
+    }
+}
+
+function canShowScheduled() {
+    return document.querySelector("#scheduled-checkbox").checked;
+}
+
+function canShowLogged() {
+    return document.querySelector("#logged-checkbox").checked;
+}
+
 async function init() {
     //await syncLocalStorageToServer();
     await pullCurrentlyRunningActivity();
     await pullActivitiesFromServer()
+    await pullScheduledActivitiesFromServer();
     displayBannerIfExpired();
     populateCalendar();
     setMonthYear(currentDate); 
     setDayHeadings(currentDate);
     onStartNowCheckboxChange(); 
     await loadActivities();
+    loadScheduledActivities();
     initialiseTopButton();
     setTimeLinePosition();
     initialiseEmailAddress();

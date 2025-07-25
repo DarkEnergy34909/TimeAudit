@@ -291,6 +291,12 @@ function addGoalCard(goal, today) {
         else {
             goalDiv.classList.add("uncompleted");
         }
+
+        // Create a date for the goal
+        const goalDateElement = document.createElement("span");
+        goalDateElement.classList.add("goal-date");
+        goalDateElement.textContent = goalDate;
+        goalDiv.appendChild(goalDateElement);
     }
 
     // Create a div for the goal text

@@ -9,7 +9,7 @@
         <script src="{{ url_for('static', filename='calendar.js') }}" defer></script>
     </head>
 
-    <body onresize="removeActivityBlocks(); loadActivities();" style="font-family: 'Poppins';">
+    <body onresize="if (canShowLogged()) {removeActivityBlocks(); loadActivities(); } if (canShowScheduled()) {removeScheduledActivityBlocks(); loadScheduledActivities(); } " style="font-family: 'Poppins';">
         <div class="title-bar">
             <a href="/">
                 <h1 id="main-title">TimeAudit</h1>
@@ -42,14 +42,21 @@
         </div>
 
         <div class="top-bar">
+            <label for="scheduled-checkbox" class="scheduled-checkbox-label">Show scheduled</label>
+            <input type="checkbox" id="scheduled-checkbox" name="scheduled-checkbox" onchange="toggleScheduled()" checked>
+
+            <label for="logged-checkbox" class="logged-checkbox-label">Show logged</label>
+            <input type="checkbox" id="logged-checkbox" name="logged-checkbox" onchange="toggleLogged()" checked>
+
+            <button id="scheduled-add-button" onclick="openScheduledAddMenu(); closeAddMenu();">Schedule activity</button>
             <button id="stop-button" onclick="stopActivity();" hidden>Stop activity</button>
-            <button id="add-button" onclick="openAddMenu();">Start/log activity</button>
+            <button id="add-button" onclick="openAddMenu(); closeScheduledAddMenu();">Start/log activity</button>
         </div>
 
         <div class="month-bar">
             <button id="prev-button" onclick="goToPreviousWeek();">&lt;</button>
 
-            <button id="next-button" hidden="true" onclick="goToNextWeek();">&gt;</button>
+            <button id="next-button" onclick="goToNextWeek();">&gt;</button>
 
             <p id="month-year"></p>
 
@@ -58,7 +65,7 @@
                 <option value="day">Day</option>
             </select>-->
         </div>
-        <div class="add-menu" hidden="true">
+        <div class="add-menu" id="add-activity-menu" hidden="true">
             <h2>Start or log an activity</h2>
             <form action="" method="POST">
                 <label for="activity-name">Activity name</label>
@@ -101,6 +108,48 @@
                 <!--<input type="submit" value="Add activity">-->
                 <button type="button" onclick="closeAddMenu();">Cancel</button>
                 <button type="button" onclick="addActivity();">Add activity</button>
+            </form>
+        </div>
+
+        <div class="add-menu" id="add-scheduled-activity-menu" hidden>
+            <h2>Schedule an activity</h2>
+            <form action="" method="POST">
+                <label for="scheduled-activity-name">Activity name</label>
+                <input type="text" id="scheduled-activity-name" name="scheduled-activity-name" required><br><br>
+
+                <p class="error-text" id="scheduled-activity-name-error" hidden>Please enter a scheduled activity name.</p>
+
+                <label for="scheduled-category">Category</label>
+                <select id="scheduled-category" name="scheduled-category">
+                    <option value="Work/Study">Work/Study</option>
+                    <option value="Exercise">Exercise</option>
+                    <option value="Social">Social</option>
+                    <option value="Chores/Errands">Chores/Errands</option>
+                    <option value="Eat/Drink">Eat/Drink</option>
+                    <option value="Good leisure">Good leisure</option>
+                    <option value="Bad leisure">Bad leisure</option>
+                    <option value="Personal care">Personal care</option>
+                    <option value="Sleep/Napping">Sleep/Napping</option>
+                    <option value="Travel">Travel</option>
+                    <option value="Planning/Reflection">Planning/Reflecting</option>
+                    <option value="Other">Other</option>
+                </select><br><br>
+
+                <label for="scheduled-start-time">Start time</label>
+                <input type="time" id="scheduled-start-time" class="time-input" name="scheduled-start-time" required><br><br>
+
+                <label for="scheduled-end-time">End time</label>
+                <input type="time" id="scheduled-end-time" class="time-input" name="scheduled-end-time" required><br><br>
+
+                <p class="error-text " id="scheduled-time-input-error" hidden>Please enter a valid pair of times that aren't already occupied by an activity.</p>
+
+                <label for="scheduled-date">Date</label>
+                <input type="date" id="scheduled-date" name="scheduled-date" required><br><br>
+
+                <p class="error-text" id="scheduled-date-error" hidden>Please enter a valid date in the future.</p>
+
+                <button type="button" onclick="closeScheduledAddMenu()">Cancel</button>
+                <button type="button" onclick="addScheduledActivity()">Schedule activity</button>
             </form>
         </div>
 

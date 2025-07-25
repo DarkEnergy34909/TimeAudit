@@ -61,6 +61,28 @@ async function syncLocalStorageToServer() {
             }
         }
 
+        // Get scheduled activities from local storage
+        const scheduledActivitiesString = localStorage.getItem("scheduled_activities");
+        if (scheduledActivitiesString) {
+            const syncResponse = await fetch("/api/scheduled-activities/sync", {
+                method: "POST",
+                body: scheduledActivitiesString,
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-Requested-With": "XMLHttpRequest"
+                }  
+            })
+
+            const syncData = await syncResponse.json();
+
+            if (syncResponse.ok && syncData.success) {
+                //alert("Sync successful");
+            }
+            else {
+                //alert("Sync failed");
+            }
+        }
+
         // Get goals from local storage
         const goalsString = localStorage.getItem("goals");
 

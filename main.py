@@ -21,6 +21,14 @@ app = Flask(__name__)
 def index():
     return render_template("index.html")
 
+@app.route("/privacy-policy", methods = ["GET"])
+def privacy_policy():
+    return render_template("privacy-policy.html")
+
+@app.route("/terms-of-service", methods = ["GET"])
+def terms_of_service():
+    return render_template("terms.html")
+
 @app.route("/statistics", methods = ["GET", "POST"])
 def statistics():
     # Check if the user is authenticated
@@ -273,6 +281,51 @@ def activities_api():
             else:
                 return {"error": "activities_added_failed"}, 500
             
+@app.route("/api/scheduled-activities", methods=["GET", "POST"])
+def scheduled_activities_api():
+    if (request.method == "GET"):
+        # Frontend is retrieving scheduled activities from the server
+
+        # Token should already have been authenticated client-side so no need to do error checking
+        token = request.cookies["token"]
+        decoded_token = decode_jwt_token(token)
+        if ("error" in decoded_token):
+            return {"error": "invalid_token"}, 400
+        else:
+            # Get the user id
+            user_id = decoded_token["user-id"]
+
+            # Get all scheduled activities from the server from that user
+            scheduled_activities = get_scheduled_activities_from_database_as_dicts(user_id)
+
+            # Return the scheduled activities
+            return jsonify(scheduled_activities), 200
+    elif (request.method == "POST"):
+        # Frontend is posting scheduled activities from the server
+
+        # List of scheduled activities posted to the server
+        scheduled_activities = request.get_json()
+        print(scheduled_activities)
+
+        # Get the token
+        token = request.cookies.get("token")
+        decoded_token = decode_jwt_token(token)
+
+        if ("error" in decoded_token):
+            return {"error": "authentication_failed"}, 400
+        else:
+            # Get the user id
+            user_id = decoded_token["user-id"]
+
+            # Add the scheduled activities to the database
+            result = add_scheduled_activities_to_database(scheduled_activities, user_id)
+
+            # Check if writing to database was successful
+            if (result):
+                return {"success": True}, 200
+            else:
+                return {"error": "scheduled_activities_added_failed"}, 500
+            
 @app.route("/api/goals", methods=["GET", "POST"])
 def goals_api():
     if (request.method == "GET"):
@@ -359,6 +412,27 @@ def remove_activity_api():
 
         return {"success": True}, 200
     
+@app.route("/api/scheduled-activities/remove", methods=["POST"])
+def remove_scheduled_activity_api():
+    # Get the scheduled activity
+    scheduled_activity = request.get_json()
+
+    # Get the token
+    token = request.cookies["token"]
+    decoded_token = decode_jwt_token(token)
+
+    # Check if the token is valid
+    if ("error" in decoded_token):
+        return {"error": "authentication_failed"}, 400
+    else:
+        # Get the user id 
+        user_id = decoded_token["user-id"]
+
+        # Remove the scheduled activity from the database
+        remove_scheduled_activity_from_database(scheduled_activity, user_id)
+
+        return {"success": True}, 200
+    
 
     
 @app.route("/api/activities/sync", methods=["POST"])
@@ -385,6 +459,30 @@ def sync_activities_api():
         else:
             return {"error": "activities_sync_failed"}, 500
         
+@app.route("/api/scheduled-activities/sync", methods=["POST"])
+def sync_scheduled_activities_api():
+    # Get scheduled activities from request
+    scheduled_activities = request.get_json()
+
+    # Get the token
+    token = request.cookies["token"]
+    decoded_token = decode_jwt_token(token)
+
+    # Check if token is valid
+    if ("error" in decoded_token):
+        return {"error": "authentication_failed"}, 400
+    else:
+        # Get the user id
+        user_id = decoded_token["user-id"]
+
+        # Sync scheduled activities with the database
+        result = sync_scheduled_activities_with_database(scheduled_activities, user_id)
+
+        if (result):
+            return {"success": True}, 200
+        else:
+            return {"error": "scheduled_activities_sync_failed"}, 500
+
 @app.route("/api/goals/sync", methods=["POST"])
 def sync_goals_api():
     # Get goals from request
@@ -491,7 +589,7 @@ def logout_api():
 
     # Reset the HttpOnly cookie
     response = make_response({"success": True}, 200)
-    response.set_cookie("token", "", expires=0, httponly=True, secure=False, samesite='Lax')
+    response.set_cookie("token", "", domain="192.168.1.136", expires=0, httponly=True, secure=False, samesite='Lax')
     return response
 
 @app.route("/api/account/delete", methods=["POST"])
@@ -513,7 +611,7 @@ def delete_account_api():
 
     # Reset the HttpOnly cookie
     response = make_response({"success": True}, 200)
-    response.set_cookie("token", "", expires=0, httponly=True, secure=False, samesite='Lax')
+    response.set_cookie("token", "", domain="192.168.1.136", expires=0, httponly=True, secure=False, samesite='Lax')
     return response
 
 @app.route("/api/account/change-email", methods=["POST"])
@@ -582,6 +680,9 @@ def delete_account(user_id):
 
     # Delete all activities associated with the user
     cur.execute("DELETE FROM Activity WHERE UserID = ?", (user_id,))
+
+    # Delete all scheduled activities associated with the user
+    cur.execute("DELETE FROM ScheduledActivity WHERE UserID = ?", (user_id,))
 
     # Delete all goals associated with the user
     cur.execute("DELETE FROM Goal WHERE UserID = ?", (user_id,))
@@ -701,6 +802,26 @@ def sync_activities_with_database(activities, user_id):
     
     return True
 
+def sync_scheduled_activities_with_database(scheduled_activities, user_id):
+    database_scheduled_activities = get_scheduled_activities_from_database_as_tuples(user_id)
+
+    for scheduled_activity in scheduled_activities:
+        # Check if the scheduled activity already exists in the database
+        exists = False
+
+        for database_scheduled_activity in database_scheduled_activities:
+            if scheduled_activity["title"] == database_scheduled_activity[1] and scheduled_activity["category"] == database_scheduled_activity[2] and scheduled_activity["startTime"] == database_scheduled_activity[3] and scheduled_activity["endTime"] == database_scheduled_activity[4] and scheduled_activity["date"] == database_scheduled_activity[5] and user_id == database_scheduled_activity[6]:
+                exists = True
+                break
+
+        if (not exists):
+            print(f"Scheduled Activity {scheduled_activity['title']} does not exist in the database, adding it now.")
+
+            # Add the scheduled activity to the database
+            add_scheduled_activity_to_database(scheduled_activity, user_id)
+
+    return True
+
 def sync_goals_with_database(goals, user_id):
     database_goals = get_goals_from_database_as_tuples(user_id)
 
@@ -755,6 +876,19 @@ def remove_activity_from_database(activity, user_id):
 
     # Remove the activity from the database
     res = cur.execute("DELETE FROM Activity WHERE Title = ? AND StartTime = ? AND EndTime = ? AND Date = ? AND UserID = ?", (activity["title"], activity["startTime"], activity["endTime"], activity["date"], user_id))
+    
+    # Commit to database
+    con.commit()
+    con.close()
+
+    return True
+
+def remove_scheduled_activity_from_database(scheduled_activity, user_id):
+    con = sqlite3.connect("timeaudit.db")
+    cur = con.cursor()
+
+    # Remove the scheduled activity from the database
+    res = cur.execute("DELETE FROM ScheduledActivity WHERE Title = ? AND Category = ? AND StartTime = ? AND EndTime = ? AND Date = ? AND UserID = ?", (scheduled_activity["title"], scheduled_activity["category"], scheduled_activity["startTime"], scheduled_activity["endTime"], scheduled_activity["date"], user_id))
     
     # Commit to database
     con.commit()
@@ -853,6 +987,49 @@ def get_activities_from_database_as_tuples(user_id):
         return []
     else:
         return activities
+    
+def get_scheduled_activities_from_database_as_dicts(user_id):
+    con = sqlite3.connect("timeaudit.db")
+    cur = con.cursor()
+
+    # Get all the scheduled activities associated with that user
+    res = cur.execute("SELECT * FROM ScheduledActivity WHERE UserID = ?;", (user_id,))
+
+    scheduled_activities = res.fetchall()
+    if (len(scheduled_activities) == 0):
+        return []
+    else:
+        # Scheduled activities need to be returned as a list of dicts in order to be sent as JSON
+        scheduled_activity_dict_list = []
+        for activity in scheduled_activities:
+            # Get the category name
+            category_name = cur.execute("SELECT Name FROM Category WHERE CategoryID = ?;", (activity[2],)).fetchone()[0]
+
+            new_activity = {"title": activity[1], "category": category_name, "startTime": activity[3], "endTime": activity[4], "date": activity[5]}
+
+            # Add to the list
+            scheduled_activity_dict_list.append(new_activity)
+
+        con.commit()
+        con.close()
+
+        return scheduled_activity_dict_list
+    
+def get_scheduled_activities_from_database_as_tuples(user_id):
+    con = sqlite3.connect("timeaudit.db")
+    cur = con.cursor()
+
+    # Get all the scheduled activities associated with that user
+    res = cur.execute("SELECT * FROM ScheduledActivity WHERE UserID = ?;", (user_id,))
+
+    scheduled_activities = res.fetchall()
+    con.commit()
+    con.close()
+
+    if (len(scheduled_activities) == 0):
+        return []
+    else:
+        return scheduled_activities
 
 
 def add_activities_to_database(activities, user_id):
@@ -905,6 +1082,36 @@ def add_activities_to_database(activities, user_id):
     con.close()
     return True
 
+def add_scheduled_activities_to_database(scheduled_activities, user_id):
+    # Connect to the database
+    con = sqlite3.connect("timeaudit.db")
+    cur = con.cursor()
+
+    # Scheduled activities will be JSON (i.e. a dict of dicts)
+    for activity in scheduled_activities:
+        activity_title = activity["title"]
+        activity_category = activity["category"]
+        activity_start_time = activity["startTime"]
+        activity_end_time = activity["endTime"]
+        activity_date = activity["date"]
+
+        print(f"Adding scheduled activity: {activity_title}, {activity_category}, {activity_start_time}, {activity_end_time}, {activity_date}")
+
+        # Get the correct CategoryID from the category table
+        res = cur.execute("SELECT CategoryID FROM Category WHERE Name = ?;", (activity_category,))
+        one_item_tuple = res.fetchone()
+        if one_item_tuple == None:
+            print("Error: No such category exists")
+            return False
+        activity_category_id = one_item_tuple[0]
+
+        # Insert the scheduled activity into the database
+        res = cur.execute("INSERT INTO ScheduledActivity (Title, CategoryID, StartTime, EndTime, Date, UserID) VALUES (?, ?, ?, ?, ?, ?)", (activity_title, activity_category_id, activity_start_time, activity_end_time, activity_date, user_id))
+
+    con.commit()
+    con.close()
+    return True
+
 def add_activity_to_database(activity, user_id, running=False):
     # Connect to the database
     con = sqlite3.connect("timeaudit.db")
@@ -941,6 +1148,33 @@ def add_activity_to_database(activity, user_id, running=False):
 
     # Add the activity to the database
     res = cur.execute("INSERT INTO Activity (Title, CategoryID, StartTime, EndTime, Date, GoalID, UserID, Running) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", (activity_title, activity_category_id, activity_start_time, activity_end_time, activity_date, goal_id, user_id, running))
+
+    con.commit()
+    con.close()
+    return True
+
+def add_scheduled_activity_to_database(scheduled_activity, user_id):
+    # Connect to the database
+    con = sqlite3.connect("timeaudit.db")
+    cur = con.cursor()
+
+    # Get scheduled activity data
+    activity_title = scheduled_activity["title"]
+    activity_category = scheduled_activity["category"]
+    activity_start_time = scheduled_activity["startTime"]
+    activity_end_time = scheduled_activity["endTime"]
+    activity_date = scheduled_activity["date"]
+
+    # Get the correct CategoryID from the category table
+    res = cur.execute("SELECT CategoryID FROM Category WHERE Name = ?;", (activity_category,))
+    one_item_tuple = res.fetchone()
+    if one_item_tuple == None:
+        print("Error: No such category exists.")
+        return False
+    activity_category_id = one_item_tuple[0]
+
+    # Add the scheduled activity to the database
+    res = cur.execute("INSERT INTO ScheduledActivity (Title, CategoryID, StartTime, EndTime, Date, UserID) VALUES (?, ?, ?, ?, ?, ?)", (activity_title, activity_category_id, activity_start_time, activity_end_time, activity_date, user_id))
 
     con.commit()
     con.close()
@@ -1082,6 +1316,18 @@ def initialise_database():
                 FOREIGN KEY (UserID) REFERENCES User(UserID)
                 )""")
     
+    cur.execute("""CREATE TABLE IF NOT EXISTS ScheduledActivity(
+                ScheduledActivityID INTEGER PRIMARY KEY AUTOINCREMENT,
+                Title TEXT,
+                CategoryID INTEGER,
+                StartTime INTEGER,
+                EndTime INTEGER,
+                Date TEXT,
+                UserID INTEGER,
+                FOREIGN KEY (CategoryID) REFERENCES Category(CategoryID),
+                FOREIGN KEY (UserID) REFERENCES User(UserID)
+                )""")
+
     cur.execute("""CREATE TABLE IF NOT EXISTS Goal(
                 GoalID INTEGER PRIMARY KEY AUTOINCREMENT,
                 Title TEXT,

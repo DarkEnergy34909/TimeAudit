@@ -54,9 +54,6 @@ a {
     margin-left: auto; /* Center the container */
     margin-right: auto; /* Center the container */
     /*padding-bottom: 20px;*/
-}
-
-.home-container {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -405,6 +402,18 @@ a {
 
 }
 
+#scheduled-add-button {
+    background-color: #2563eb; /* Blue */
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 0.3s ease;
+    margin-right: 20px; /* Add margin to the right */
+}
+
 #stop-button {
     background-color: #dc2626; /* Red */
     color: white;
@@ -417,6 +426,10 @@ a {
 }
 
 #add-button:hover {
+    background-color: #1d4ed8; /* Darker Blue */
+}
+
+#scheduled-add-button:hover {
     background-color: #1d4ed8; /* Darker Blue */
 }
 
@@ -857,6 +870,71 @@ a {
     z-index: 20; /* Bring to the front on hover */
 }
 
+.scheduled-block {
+    box-sizing: border-box; /* Ensure padding and border are included in the element's total width and height */
+    position: absolute; /* Allows precise positioning */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(0, 0, 0, 0); 
+    border-color: rgba(0, 0, 0, 1);;
+    color: black;
+    border-style: dashed;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    text-align: center;
+    z-index: 5; /* Appears above grid cells but below blocks */
+    width: 100%; /* Span the full width of the column */
+    overflow: hidden; /* Hide overflow */
+    white-space: nowrap; /* Prevent text wrapping */
+    transition: background-color 0.3s ease;
+}
+
+.scheduled-block-text{
+    font-size: 0.9rem; /* Smaller font size for text */
+    text-align: center; /* Center the text */
+    overflow: hidden; /* Hide overflow */
+    white-space: nowrap; /* Prevent text wrapping */
+    text-overflow: hidden; /* Hide overflow text */
+}
+
+.scheduled-block-time {
+    position: absolute;
+    bottom: 0px;
+    left: 5px;
+    font-size: 0.75rem; /* Smaller font size for time */
+    color: white; /* White text color */
+    text-align: left; /* Center the text */
+    overflow: hidden; /* Hide overflow */
+    white-space: nowrap; /* Prevent text wrapping */
+    text-overflow: hidden; /* Hide overflow text */
+}
+
+.scheduled-block button {
+    position: absolute;
+    color: white;
+    top: 0px;
+    right: 0px;
+    background-color: transparent; /* Transparent background */
+    border: none; /* No border */
+    font-size: 1rem; /* Font size for the button */
+    cursor: pointer; /* Pointer cursor on hover */
+    width: fit-content;
+    height: fit-content;
+}
+
+#logged-checkbox, #scheduled-checkbox {
+    margin-right: 20px;
+}
+
+@media (max-width: 700px) {
+    #logged-checkbox, #scheduled-checkbox {
+        margin-right: 0px; /* Adjust margin for smaller screens */
+    }
+}
+
+
+
 /* Footer Test Section */
 #test {
     text-align: center;
@@ -1098,6 +1176,14 @@ a {
     margin-left: auto;
 }
 
+.goal-date {
+    position: absolute;
+    bottom: 5px;
+    left: 10px;
+    font-size: 0.9rem; /* Smaller font size for date */
+    color: #1e3a8a;
+}
+
 .goals-container {
     align-items: center;
     text-align: center;
@@ -1325,6 +1411,56 @@ a {
     color: #b91c1c; /* Darker red on hover */
 }
 
+.privacy-policy-container {
+    display: flex;
+    flex-direction: column;
+    align-items: left;
+    margin-top: 100px; 
+    padding: 20px;
+    width: 100%; /* Full width */
+    max-width: 1000px; /* Limit the width of the container */
+    margin-left: auto;
+    margin-right: auto;
+}
+
+@media (max-width: 700px) {
+    .privacy-policy-container {
+        padding: 10px; /* Reduce padding on smaller screens */
+        width: 90%;
+    }
+}
+
+.privacy-policy-container h3 {
+    margin-top: 60px;
+    margin-bottom: 10px;
+    font-size: 1.2rem;
+}
+
+.terms-container {
+    display: flex;
+    flex-direction: column;
+    align-items: left;
+    margin-top: 100px; 
+    padding: 20px;
+    width: 100%; /* Full width */
+    max-width: 1000px; /* Limit the width of the container */
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.terms-container h3 {
+    margin-top: 60px;
+    margin-bottom: 10px;
+    font-size: 1.2rem;
+}
+
+@media (max-width: 700px) {
+    .terms-container {
+        padding: 10px; /* Reduce padding on smaller screens */
+        width: 90%;
+    }
+}
+
 @media (max-width: 700px) {
     .nav-bar,
     .title-bar,
@@ -1332,6 +1468,10 @@ a {
     .month-bar {
         padding: 6px 10px;
         min-height: 32px;
+    }
+
+    .top-bar {
+        justify-content: space-between; /* Space between email and buttons */
     }
 
     .nav-bar a,
@@ -1358,10 +1498,23 @@ a {
     .email-address,
     .logout-button,
     .login-button,
-    #add-button, #stop-button {
+    #add-button, 
+    #stop-button,
+    #scheduled-add-button,
+    #logged-checkbox,
+    #scheduled-checkbox {
         font-size: 0.9rem;
         padding: 4px 8px;
     }
+    #scheduled-add-button,
+    #logged-checkbox,
+    #scheduled-checkbox,
+    #add-button, 
+    #stop-button {
+        margin: 0 5px; /* Adjust margin for smaller screens */
+        font-size: 0.8rem;
+    }
+
 }
 
 .current {
