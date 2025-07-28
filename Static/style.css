@@ -1355,6 +1355,14 @@ a {
     font-size: 1rem;
     color: #1e3a8a; /* Dark Blue */
     margin-right: 10px;
+    margin-left: 10px;
+}
+
+.streak {
+    font-size: 1.2rem;
+    color: #1e3a8a; /* Dark Blue */
+    margin-right: 10px;
+    display: inline-block;
 }
 
 .email-address:hover {
@@ -1500,7 +1508,7 @@ a {
     }
 
     .title-bar h1 {
-        font-size: 1.3rem;
+        font-size: 1.rem;
         margin: 0;
     }
 
@@ -1516,10 +1524,17 @@ a {
     #stop-button,
     #scheduled-add-button,
     #logged-checkbox,
-    #scheduled-checkbox {
-        font-size: 0.9rem;
+    #scheduled-checkbox,
+    .streak,
+    .top-bar label {
+        font-size: 0.8rem;
         padding: 4px 8px;
     }
+    .streak {
+        padding: 0px;
+        white-space: nowrap; /* Prevent text wrapping */
+    }
+
     #scheduled-add-button,
     #logged-checkbox,
     #scheduled-checkbox,
@@ -1528,7 +1543,6 @@ a {
         margin: 0 5px; /* Adjust margin for smaller screens */
         font-size: 0.8rem;
     }
-
 }
 
 .current {
@@ -1536,23 +1550,3 @@ a {
     margin-left: auto;
     margin-right: auto;
 }
-
-/*
-@media (max-width: 700px) {
-    .calendar-grid,
-    .day-headings {
-        grid-template-columns: 1fr !important; /* Only one column 
-    }
-    .day {
-        display: none;
-    }
-    .day.current {
-        display: block;
-    }
-    .grid-item {
-        display: none;
-    }
-    .grid-item.current-day {
-        display: block;
-    }
-}*/

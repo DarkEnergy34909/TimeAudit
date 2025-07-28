@@ -500,6 +500,10 @@ async function saveActivityToServer(activity) {
         }
         else {
             //alert("Posted activity successfully");
+            // Update the streak on the frontend
+            const streakString = activitiesData.streak;
+
+            document.querySelector(".streak").textContent = streakString;
         }
     }
     else if (authStatus == false) {
@@ -597,6 +601,9 @@ async function removeActivityFromServer(activity) {
         }
         else {
             //alert("Deleted activity successfully");
+            // Update the streak on the frontend
+            const streakString = activityData.streak;
+            document.querySelector(".streak").textContent = streakString;
         }
     }
     else if (authStatus == false) {
@@ -1493,8 +1500,17 @@ function loadScheduledActivities() {
                 // Get the day
                 const scheduledActivityDay = (scheduledActivityDateObj.getDay() + 6) % 7;
 
-                // Add the block to the calendar
-                addScheduledActivityBlock(scheduledActivity.title, scheduledActivity.category, scheduledActivity.startTime, scheduledActivity.endTime, scheduledActivityDay);
+                // If on mobile, only add scheduled activities for the current day
+                if (isMobile()) {
+                    if (scheduledActivity.date == getIsoString(new Date())) {
+                        // Add the block
+                        addScheduledActivityBlock(scheduledActivity.title, scheduledActivity.category, scheduledActivity.startTime, scheduledActivity.endTime, scheduledActivityDay);
+                    }
+                }
+                else {
+                    // Add the block to the calendar
+                    addScheduledActivityBlock(scheduledActivity.title, scheduledActivity.category, scheduledActivity.startTime, scheduledActivity.endTime, scheduledActivityDay);
+                }
             }
         }
     }
@@ -1815,74 +1831,63 @@ async function syncLocalStorageToServer() {
 async function pullActivitiesFromServer() {
     // For now, if any activities overlap between local storage and the server, prioritise the server
 
-    const authResult = await checkAuth();
-    if (authResult == true) {
-
-        // Get activities from the server
-        const activitiesResponse = await fetch("/api/activities", {
-            method: "GET",
-            headers: {
-                "X-Requested-With": "XMLHttpRequest"
-            }
-        })
-
-        const activitiesData = await activitiesResponse.json();
-
-        if (activitiesResponse.ok && activitiesData) {
-            // Overwrite local storage (ok because sync was already performed)
-            localStorage.setItem("activities", JSON.stringify(activitiesData));
+    // Get activities from the server
+    const activitiesResponse = await fetch("/api/activities", {
+        method: "GET",
+        headers: {
+            "X-Requested-With": "XMLHttpRequest"
         }
+    })
+
+    const activitiesData = await activitiesResponse.json();
+
+    if (activitiesResponse.ok && activitiesData) {
+        // Overwrite local storage (ok because sync was already performed)
+        localStorage.setItem("activities", JSON.stringify(activitiesData));
     }
 }
 
 async function pullScheduledActivitiesFromServer() {
     // For now, if any scheduled activities overlap between local storage and the server, prioritise the server
 
-    const authResult = await checkAuth();
-    if (authResult == true) {
-        // Get scheduled activities from the server
-        const scheduledActivitiesResponse = await fetch("/api/scheduled-activities", {
-            method: "GET",
-            headers: {
-                "X-Requested-With": "XMLHttpRequest",
-                "Content-Type": "application/json"
-            }
-        });
-
-        const scheduledActivitiesData = await scheduledActivitiesResponse.json();
-
-        if (scheduledActivitiesResponse.ok && scheduledActivitiesData) {
-            // Overwrite local storage (ok because sync was already performed)
-            localStorage.setItem("scheduled_activities", JSON.stringify(scheduledActivitiesData));
+    // Get scheduled activities from the server
+    const scheduledActivitiesResponse = await fetch("/api/scheduled-activities", {
+        method: "GET",
+        headers: {
+            "X-Requested-With": "XMLHttpRequest",
+            "Content-Type": "application/json"
         }
+    });
+
+    const scheduledActivitiesData = await scheduledActivitiesResponse.json();
+
+    if (scheduledActivitiesResponse.ok && scheduledActivitiesData) {
+        // Overwrite local storage (ok because sync was already performed)
+        localStorage.setItem("scheduled_activities", JSON.stringify(scheduledActivitiesData));
     }
 }
 
 async function pullCurrentlyRunningActivity() {
-    const authResult = await checkAuth();
-
-    if (authResult) {
-        // Get currently running activity from server
-        const runningActivityResponse = await fetch("/api/activities/running", {
-            method: "GET",
-            headers: {
-                "X-Requested-With": "XMLHttpRequest",
-                "Content-Type": "application/json"
-            }
-        })
-
-        const runningActivityData = await runningActivityResponse.json();
-
-        if (runningActivityResponse.ok && !runningActivityData.no_activity) {
-            // Store the currently running activity in local storage
-            localStorage.setItem("running_activity", JSON.stringify(runningActivityData));
+    // Get currently running activity from server
+    const runningActivityResponse = await fetch("/api/activities/running", {
+        method: "GET",
+        headers: {
+            "X-Requested-With": "XMLHttpRequest",
+            "Content-Type": "application/json"
         }
-        else {
-            // Remove currently running activity from local storage
-            localStorage.removeItem("running_activity");
-            localStorage.setItem("current_activity", -1); // Reset current activity index
-            currentActivityIndex = -1;
-        }
+    })
+
+    const runningActivityData = await runningActivityResponse.json();
+
+    if (runningActivityResponse.ok && !runningActivityData.no_activity) {
+        // Store the currently running activity in local storage
+        localStorage.setItem("running_activity", JSON.stringify(runningActivityData));
+    }
+    else {
+        // Remove currently running activity from local storage
+        localStorage.removeItem("running_activity");
+        localStorage.setItem("current_activity", -1); // Reset current activity index
+        currentActivityIndex = -1;
     }
 }
 
@@ -1999,6 +2004,28 @@ async function deleteAccount() {
         localStorage.removeItem("running_activity");
     }
 }
+/*
+async function updateStreak() {
+    // Send a POST request to the API
+    const updateStreakResponse = await fetch("/api/account/update-streak", {
+        method: "POST",
+        body: {},
+        headers: {
+            "Content-Type": "application/json",
+            "X-Requested-With": "XMLHttpRequest"
+        }
+    })
+
+    const updateStreakData = await updateStreakResponse.json();
+
+    if (updateStreakResponse.ok && updateStreakData.success) {
+        // TODO
+    }
+    else {
+        // TODO
+    }
+} THIS IS COMPLETELY REDUNDANT BECAUSE I DID THIS ON THE SERVER ON CALENDAR PAGE LOAD
+*/ 
 
 function toggleScheduled() {
     // Check the value of the checkbox
@@ -2034,9 +2061,11 @@ function canShowLogged() {
 
 async function init() {
     //await syncLocalStorageToServer();
-    await pullCurrentlyRunningActivity();
-    await pullActivitiesFromServer()
-    await pullScheduledActivitiesFromServer();
+    if (await checkAuth() == true) {
+        await pullCurrentlyRunningActivity();
+        await pullActivitiesFromServer()
+        await pullScheduledActivitiesFromServer();
+    }
     displayBannerIfExpired();
     populateCalendar();
     setMonthYear(currentDate); 

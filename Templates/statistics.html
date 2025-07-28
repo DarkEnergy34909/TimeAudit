@@ -15,8 +15,9 @@
                 <h1 id="main-title">TimeAudit</h1>
             </a>
 
-            {% if email_address %}
+            {% if email_address and streak %}
                 <div class="email-container">
+                    <span class="streak">{{ streak }}</span>
                     <span class="email-address">{{ email_address }}</span>
                     <button class="logout-button" onclick="logout();">Log out</button>
 
@@ -25,6 +26,7 @@
                         <button class="delete-account-button" onclick="openDeleteAccountMenu()">Delete account</button>
                     </div>
                 </div>
+
             {% else %}
                 <a class="login-button" href="login">Log in</a>
             {% endif %}

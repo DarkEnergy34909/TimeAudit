@@ -5,6 +5,7 @@ import bcrypt
 from email_validator import validate_email, EmailNotValidError
 import jwt
 import time
+import datetime
 from dotenv import load_dotenv
 import json
 
@@ -46,12 +47,19 @@ def statistics():
 
             # Get the user's email address from the database
             email_address = get_email_address_from_user_id(user_id)
-            if (email_address == None):
+
+            # Get the user's streak from the database
+            streak = reset_streak_if_expired(user_id)
+
+            if (email_address == None or streak == None):
                 # TODO
-                return
+                return {}
             else:
+                # Format the streak
+                streak = format_streak(streak)
+
                 # Render template with email address
-                return render_template("statistics.html", email_address=email_address)
+                return render_template("statistics.html", email_address=email_address, streak=streak)
 
     # If the user is not authenticated, render the statistics page without email address    
     return render_template("statistics.html")
@@ -73,12 +81,19 @@ def calendar():
 
             # Get the user's email address from the database
             email_address = get_email_address_from_user_id(user_id)
-            if (email_address == None):
+
+            # Update the user's streak
+            streak = reset_streak_if_expired(user_id)
+
+            if (email_address == None or streak == None):
                 # TODO
-                return
+                return {}
             else:
+                # Format the streak
+                streak = format_streak(streak)
+
                 # Render template with email address
-                return render_template("calendar.html", email_address=email_address)
+                return render_template("calendar.html", email_address=email_address, streak=streak)
 
 
     return render_template("calendar.html")
@@ -100,12 +115,19 @@ def goals():
 
             # Get the user's email address from the database
             email_address = get_email_address_from_user_id(user_id)
-            if (email_address == None):
+
+            # Get the user's streak from the database
+            streak = reset_streak_if_expired(user_id)
+
+            if (email_address == None or streak == None):
                 # TODO
-                return
+                return {}
             else:
+                # Format the streak
+                streak = format_streak(streak)
+
                 # Render template with email address
-                return render_template("goals.html", email_address=email_address)
+                return render_template("goals.html", email_address=email_address, streak=streak)
     
     # If the user is not authenticated, render the goals page without email address
     return render_template("goals.html")
@@ -275,9 +297,15 @@ def activities_api():
             # Add the activities to the database
             result = add_activities_to_database(activities, user_id)
 
+            # Update the user's streak
+            updated_streak = update_streak(user_id)
+
+            # Get a formatted string (with emoji) for the streak
+            formatted_streak = format_streak(updated_streak)
+
             # Check if writing to database was successful
             if (result):
-                return {"success": True}, 200
+                return {"success": True, "streak": formatted_streak}, 200
             else:
                 return {"error": "activities_added_failed"}, 500
             
@@ -410,7 +438,13 @@ def remove_activity_api():
         # Remove the activity from the database
         remove_activity_from_database(activity, user_id)
 
-        return {"success": True}, 200
+        # Reset the streak if applicable
+        new_streak = reset_streak_if_expired(user_id)
+
+        # Format the streak
+        formatted_streak = format_streak(new_streak)
+
+        return {"success": True, "streak": formatted_streak}, 200
     
 @app.route("/api/scheduled-activities/remove", methods=["POST"])
 def remove_scheduled_activity_api():
@@ -651,6 +685,124 @@ def change_email_api():
 
     print("LOL")
     return {"success": True}, 200
+
+@app.route("/api/account/update-streak", methods=["POST"])
+def update_streak_api():
+    # Get the token from the request
+    token = request.cookies["token"]
+
+    # Decode the token
+    decoded_token = decode_jwt_token(token)
+
+    if ("error" in decoded_token):
+        return {"error": "invalid_token"}, 400
+    
+    # Get the user id from the token
+    user_id = decoded_token["user-id"]
+
+    # Update the user's streak
+    updated_streak = reset_streak_if_expired(user_id)
+
+    # Format the streak
+    formatted_streak = format_streak(updated_streak)
+
+    # Send the updated streak to the frontend
+    return {"success": True, "streak": formatted_streak}, 200
+
+def format_streak(streak):
+    if (streak == 0):
+        return "❄️" + str(streak)
+    else:
+        return "🔥" + str(streak)
+
+def get_current_iso_date():
+    return datetime.datetime.now().isoformat().split("T")[0]
+
+def get_yesterdays_iso_date():
+    yesterdays_date = datetime.datetime.now() - datetime.timedelta(1)
+    return yesterdays_date.isoformat().split("T")[0]
+
+
+def get_streak(user_id):
+    # Connect to the database
+    con = sqlite3.connect("timeaudit.db")
+    cur = con.cursor()
+
+    res = cur.execute("SELECT Streak FROM User WHERE UserID = ?;", (user_id,))
+    streak_tuple = res.fetchone()
+
+    if (streak_tuple == None):
+        return None
+    else:
+        return streak_tuple[0]
+    
+def update_streak(user_id):
+
+    # Connect to the database
+    con = sqlite3.connect("timeaudit.db")
+    cur = con.cursor()
+
+    # Get the current date
+    current_date = get_current_iso_date()
+
+    # Get the user's current streak
+    current_streak = get_streak(user_id)
+
+    # First check if the user hasn't already had the streak updated
+    res = cur.execute("SELECT * FROM User JOIN Activity ON User.UserID = Activity.UserID WHERE User.UserID = ? AND Date = ?;", (user_id, current_date))
+    if (len(res.fetchall()) >= 2):
+        # Streak has already been updated, so do nothing
+        return current_streak
+
+    # Get the user's new streak
+    new_streak = current_streak + 1
+
+    # Update the database
+    res = cur.execute("UPDATE User SET Streak = ? WHERE UserID = ?;", (new_streak, user_id))
+
+    # Close the database
+    con.commit()
+    con.close()
+
+    # Return the new streak
+    return new_streak
+
+# On loading the web app, reset the streak if they didn't do anything on the previous day
+def reset_streak_if_expired(user_id):
+    # Connect to the database
+    con = sqlite3.connect("timeaudit.db")
+    cur = con.cursor()
+
+    # Get yesterday's date and today's date in ISO format
+    yesterdays_date = get_yesterdays_iso_date()
+    todays_date = get_current_iso_date()
+
+    # Check if the user has any activities with yesterday's date
+    res = cur.execute("SELECT * FROM Activity WHERE UserID = ? AND Date = ?;", (user_id, yesterdays_date))
+
+    # Get the records from the query
+    records = res.fetchall()
+    no_activities_on_previous_day = len(records) == 0
+
+    # Check if the user has any activities with today's date
+    res = cur.execute("SELECT * FROM Activity WHERE UserID = ? AND Date = ?;", (user_id, todays_date))
+
+    # Get the records from the query
+    records = res.fetchall()
+    no_activities_on_current_day = len(records) == 0
+
+    if (no_activities_on_previous_day and no_activities_on_current_day):
+        # User recorded no activities yesterday so remove their streak
+        res = cur.execute("UPDATE User SET Streak = 0 WHERE UserID = ?;", (user_id,))
+        print("Streak reset")
+
+    # Write changes
+    con.commit()
+    con.close()
+
+    # Return the streak
+    return get_streak(user_id)
+
 
 def get_email_address_from_user_id(user_id):
     con = sqlite3.connect("timeaudit.db")
@@ -1203,7 +1355,7 @@ def insert_user(email_address, hashed_password):
     con = sqlite3.connect("timeaudit.db")
     cur = con.cursor()
 
-    cur.execute("INSERT INTO User (Email, PasswordHash) VALUES (?, ?)", (email_address, hashed_password))
+    cur.execute("INSERT INTO User (Email, PasswordHash, Streak) VALUES (?, ?, ?)", (email_address, hashed_password, 0))
     con.commit()
 
     # Get the UserID of the newly created user
@@ -1288,7 +1440,8 @@ def initialise_database():
     cur.execute("""CREATE TABLE IF NOT EXISTS User(
                 UserID INTEGER PRIMARY KEY AUTOINCREMENT,
                 Email TEXT, 
-                PasswordHash TEXT           
+                PasswordHash TEXT,
+                Streak INTEGER        
                 )""")
     
     cur.execute("""CREATE TABLE IF NOT EXISTS Session(
