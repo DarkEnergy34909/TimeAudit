@@ -34,6 +34,132 @@ let currentActivityIndex = -1;
 // Putting this here to remind myself what a stupid ass design decision this was
 // startTime: float (e.g. 8.5 for 08:30)
 // endTime: float (e.g. 10.0 for 10:00)
+let readyForMove = false;
+
+// Make scheduled calendar blocks vertically resizable
+interact('.scheduled-block').resizable({
+    // Enable resizing from top and bottom edges only
+    edges: { top: true, bottom: true, left: false, right: false },
+
+    listeners: {
+        async start(event) {
+            // Get the block element
+            const target = event.target;
+
+            // Get the block's data attributes
+            let blockDay = parseInt(target.getAttribute("data-day")) || 0;
+            let startTime = parseInt(target.getAttribute("data-start-time")) || 0;
+            let endTime = parseInt(target.getAttribute("data-end-time")) || 0;
+
+            // Get the activity
+            const scheduledActivity = scheduledActivities.find(activity => activity.title == target.querySelector(".scheduled-block-text").textContent && blockDay == (new Date(activity.date).getDay() + 6) % 7 && activity.startTime == startTime && activity.endTime == endTime);
+
+            if (scheduledActivity) {
+                // Delete the scheduled activity from the server
+                console.log("REMOVING ACTIVITY...");
+                await removeScheduledActivityFromServer(scheduledActivity);
+                readyForMove = true;
+            }
+            else {
+                console.log("WTF???");
+            }
+
+        },
+        move (event) {
+            if (!readyForMove) {
+                return;
+            }
+
+            let target = event.target;
+
+            // Get the y position
+            let y = parseFloat(target.style.top) || 0;
+
+            // Get the height
+            let height = event.rect.height;
+
+            // Get the day
+            let blockDay = parseInt(target.getAttribute("data-day")) || 0;
+
+            const calendarGrid = document.querySelector(".calendar-grid");
+            const gridItems = calendarGrid.querySelectorAll(".grid-item");
+
+            // Get the height of a grid row
+            const gridRowHeight = calendarGrid.offsetHeight / 24;
+
+            // Get the width of a grid column
+            const gridColumnWidth = gridItems[0].offsetWidth;
+
+            // Get the start time and end time from the block
+            let startTime = parseInt(target.getAttribute("data-start-time")) || 0;
+            let endTime = parseInt(target.getAttribute("data-end-time")) || 0;
+
+            // Get the activity
+            let scheduledActivity = scheduledActivities.find(activity => activity.title == target.querySelector(".scheduled-block-text").textContent && blockDay == (new Date(activity.date).getDay() + 6) % 7 && activity.startTime == startTime && activity.endTime == endTime);
+            console.log(scheduledActivity);
+
+            // If resizing from the top, adjust the top position
+            if (event.edges.top) {
+                y += event.deltaRect.top;
+                target.style.top = y + 'px';
+            }
+
+            // Adjust the height
+            target.style.height = height + 'px';
+
+            // Update the scheduled activity's start/end times
+            for (let i = 0; i < scheduledActivities.length; i++) {
+                if (JSON.stringify(scheduledActivities[i]) === JSON.stringify(scheduledActivity)) {
+                    // Calculate activity times from y position and height
+                    const newStartTime = Math.floor((y * 60 / gridRowHeight));
+                    const newEndTime = Math.floor(((y + height) * 60 / gridRowHeight));
+
+                    // Adjust the activity's start and end times
+                    scheduledActivity.startTime = newStartTime;
+                    scheduledActivity.endTime = newEndTime;
+
+                    // Update the block's text to reflect the new start and end times
+                    target.querySelector(".scheduled-block-time").textContent = `${getTimeFromMinutes(scheduledActivity.startTime)} - ${getTimeFromMinutes(scheduledActivity.endTime)}`;
+
+                    // Update the scheduled activity in the local storage
+                    scheduledActivities[i] = scheduledActivity;
+                    localStorage.setItem("scheduled_activities", JSON.stringify(scheduledActivities));
+
+                    // Update the block's data attributes
+                    target.setAttribute("data-start-time", newStartTime);
+                    target.setAttribute("data-end-time", newEndTime);
+                }
+            }
+        },
+        end (event) {
+            // Add the scheduled activity back to the server
+            const target = event.target;
+
+            // Get the block's data attributes
+            let blockDay = parseInt(target.getAttribute("data-day")) || 0;
+            let startTime = parseInt(target.getAttribute("data-start-time")) || 0;
+            let endTime = parseInt(target.getAttribute("data-end-time")) || 0;
+
+            // Get the activity
+            const scheduledActivity = scheduledActivities.find(activity => activity.title == target.querySelector(".scheduled-block-text").textContent && blockDay == (new Date(activity.date).getDay() + 6) % 7 && activity.startTime == startTime && activity.endTime == endTime);
+
+            if (scheduledActivity) {
+                // Add the activity to the server
+                saveScheduledActivityToServer(scheduledActivity);
+            }
+
+            // Reset the readyForMove flag
+            readyForMove = false;
+        }
+    },
+    modifiers: [
+        // Restrict resizing to a minimum height
+        interact.modifiers.restrictSize({
+            min: { height: 20 }
+        })
+    ],
+    inertia: true
+});
 
 function initialiseEmailAddress() {
     const emailElement = document.querySelector(".email-address");
@@ -1083,6 +1209,10 @@ function addScheduledActivityBlock(title, category, startTime, endTime, day) {
     // Create a new block
     const block = document.createElement("div");
     block.classList.add("scheduled-block");
+    block.setAttribute("data-category", category); 
+    block.setAttribute("data-day", day);
+    block.setAttribute("data-start-time", startTime);
+    block.setAttribute("data-end-time", endTime);
 
     // Create a text label for the block
     const blockText = document.createElement("span");

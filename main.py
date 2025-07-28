@@ -162,7 +162,7 @@ def login():
                 response.headers["Content-Type"] = "application/json"
                 response.headers["Access-Control-Allow-Credentials"] = "true"
                 
-                response.set_cookie("token", token, domain="192.168.1.136", httponly=True, secure=False, samesite='Lax', expires=time.time() + 86400)  # Cookie expires in 24 hours
+                response.set_cookie("token", token, domain="192.168.1.162", httponly=True, secure=False, samesite='Lax', expires=time.time() + 86400)  # Cookie expires in 24 hours
 
                 # Use make_response here to use cookies
                 return response
@@ -232,7 +232,7 @@ def signup():
                 response.headers["Access-Control-Allow-Credentials"] = "true"
 
                 # Add a cookie to the response
-                response.set_cookie("token", token, domain="192.168.1.136", httponly=True, secure=False, samesite='Lax')
+                response.set_cookie("token", token, domain="192.168.1.162", httponly=True, secure=False, samesite='Lax')
 
                 return response
                 #return {"token": token}, 200
@@ -623,7 +623,7 @@ def logout_api():
 
     # Reset the HttpOnly cookie
     response = make_response({"success": True}, 200)
-    response.set_cookie("token", "", domain="192.168.1.136", expires=0, httponly=True, secure=False, samesite='Lax')
+    response.set_cookie("token", "", domain="192.168.1.162", expires=0, httponly=True, secure=False, samesite='Lax')
     return response
 
 @app.route("/api/account/delete", methods=["POST"])
@@ -645,7 +645,7 @@ def delete_account_api():
 
     # Reset the HttpOnly cookie
     response = make_response({"success": True}, 200)
-    response.set_cookie("token", "", domain="192.168.1.136", expires=0, httponly=True, secure=False, samesite='Lax')
+    response.set_cookie("token", "", domain="192.168.1.162", expires=0, httponly=True, secure=False, samesite='Lax')
     return response
 
 @app.route("/api/account/change-email", methods=["POST"])
@@ -750,7 +750,7 @@ def update_streak(user_id):
 
     # First check if the user hasn't already had the streak updated
     res = cur.execute("SELECT * FROM User JOIN Activity ON User.UserID = Activity.UserID WHERE User.UserID = ? AND Date = ?;", (user_id, current_date))
-    if (len(res.fetchall()) >= 2):
+    if (len(res.fetchall()) >= 2 and current_streak != 0):
         # Streak has already been updated, so do nothing
         return current_streak
 
@@ -1027,7 +1027,7 @@ def remove_activity_from_database(activity, user_id):
     cur = con.cursor()
 
     # Remove the activity from the database
-    res = cur.execute("DELETE FROM Activity WHERE Title = ? AND StartTime = ? AND EndTime = ? AND Date = ? AND UserID = ?", (activity["title"], activity["startTime"], activity["endTime"], activity["date"], user_id))
+    res = cur.execute("DELETE FROM Activity WHERE Title = ? AND StartTime = ? AND EndTime = ? AND Date = ? AND UserID = ?;", (activity["title"], activity["startTime"], activity["endTime"], activity["date"], user_id))
     
     # Commit to database
     con.commit()
@@ -1040,8 +1040,9 @@ def remove_scheduled_activity_from_database(scheduled_activity, user_id):
     cur = con.cursor()
 
     # Remove the scheduled activity from the database
-    res = cur.execute("DELETE FROM ScheduledActivity WHERE Title = ? AND Category = ? AND StartTime = ? AND EndTime = ? AND Date = ? AND UserID = ?", (scheduled_activity["title"], scheduled_activity["category"], scheduled_activity["startTime"], scheduled_activity["endTime"], scheduled_activity["date"], user_id))
-    
+    res = cur.execute("DELETE FROM ScheduledActivity WHERE Title = ? AND StartTime = ? AND EndTime = ? AND Date = ? AND UserID = ?;", (scheduled_activity["title"], scheduled_activity["startTime"], scheduled_activity["endTime"], scheduled_activity["date"], user_id))
+    print("DELETED SCHEDULED ACTIVITY: ", scheduled_activity["title"], scheduled_activity["startTime"], scheduled_activity["endTime"], scheduled_activity["date"], user_id)
+
     # Commit to database
     con.commit()
     con.close()
@@ -1286,7 +1287,10 @@ def add_activity_to_database(activity, user_id, running=False):
 
     # GoalID will be None (NULL) if there is no goal associated with the activity
     goal_id = None
-    activity_goal_name = activity["goalName"]
+    activity_goal_name = "None"
+    if ("goalName" in activity):
+        # Get the goal name
+        activity_goal_name = activity["goalName"]
 
     if (activity_goal_name != "None"):
         # Get the GoalID of the goal associated with that activity (if there is one)
