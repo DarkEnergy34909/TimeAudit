@@ -1,4 +1,7 @@
 # Ignore .env file
 .env
 
+# Ignore config files
+.ebextensions/
+
 # TODO: Ignore database file later
