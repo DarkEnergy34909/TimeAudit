@@ -1043,6 +1043,10 @@ async function deleteAccount() {
     }
 }
 
+function removeLoadingScreen() {
+    document.querySelector(".loading-screen").remove();
+}
+
 async function init() {
     await pullGoalsFromServer();
     await pullActivitiesFromServer();
@@ -1060,6 +1064,8 @@ async function init() {
     loadGoalsBarChart();
 
     initialiseEmailAddress();
+
+    removeLoadingScreen();
 }
 
 init();

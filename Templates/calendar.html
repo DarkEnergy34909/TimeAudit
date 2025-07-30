@@ -11,6 +11,14 @@
     </head>
 
     <body onresize="if (canShowLogged()) {removeActivityBlocks(); loadActivities(); } if (canShowScheduled()) {removeScheduledActivityBlocks(); loadScheduledActivities(); } " style="font-family: 'Poppins';">
+        <div class="loading-screen" id="loading-screen">
+            <div class="loading-text-container">
+                <span class="loading-text">Loading</span>
+                <span class="loading-logo">TimeAudit</span>
+            </div>
+            <div class="loading-spinner"></div>
+        </div>
+
         <div class="title-bar">
             <a href="/">
                 <h1 id="main-title">TimeAudit</h1>
@@ -44,6 +52,7 @@
         </div>
 
         <div class="top-bar">
+
             <label for="scheduled-checkbox" class="scheduled-checkbox-label">Show scheduled</label>
             <input type="checkbox" id="scheduled-checkbox" name="scheduled-checkbox" onchange="toggleScheduled()" checked>
 

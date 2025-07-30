@@ -43,6 +43,11 @@ interact('.scheduled-block').resizable({
 
     listeners: {
         async start(event) {
+            // Prevent this on mobile
+            if (isMobile()) {
+                return;
+            }
+
             // Get the block element
             const target = event.target;
 
@@ -66,6 +71,11 @@ interact('.scheduled-block').resizable({
 
         },
         move (event) {
+            // Prevent this on mobile
+            if (isMobile()) {
+                return;
+            }
+
             if (!readyForMove) {
                 return;
             }
@@ -132,6 +142,11 @@ interact('.scheduled-block').resizable({
             }
         },
         end (event) {
+            // Prevent this on mobile
+            if (isMobile()) {
+                return;
+            }
+
             // Add the scheduled activity back to the server
             const target = event.target;
 
@@ -2189,6 +2204,10 @@ function canShowLogged() {
     return document.querySelector("#logged-checkbox").checked;
 }
 
+function removeLoadingScreen() {
+    document.querySelector(".loading-screen").remove();
+}
+
 async function init() {
     //await syncLocalStorageToServer();
     if (await checkAuth() == true) {
@@ -2206,6 +2225,7 @@ async function init() {
     initialiseTopButton();
     setTimeLinePosition();
     initialiseEmailAddress();
+    removeLoadingScreen();
 
     // Reset the time line position every second
     //setInterval(setTimeLinePosition, 1000);

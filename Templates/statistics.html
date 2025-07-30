@@ -10,6 +10,14 @@
         <script src="{{ url_for('static', filename='statistics.js') }}" defer></script>
     </head>
     <body style="font-family: 'Poppins';">
+        <div class="loading-screen" id="loading-screen">
+            <div class="loading-text-container">
+                <span class="loading-text">Loading</span>
+                <span class="loading-logo">TimeAudit</span>
+            </div>
+            <div class="loading-spinner"></div>
+        </div>
+
         <div class="title-bar">
             <a href="/">
                 <h1 id="main-title">TimeAudit</h1>

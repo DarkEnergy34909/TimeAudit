@@ -760,11 +760,16 @@ async function deleteAccount() {
     }
 }
 
+function removeLoadingScreen() {
+    document.querySelector(".loading-screen").remove();
+}
+
 async function init() {
     await pullGoalsFromServer();
     loadGoals(true);
     initialiseGoalSelectorButtons();
     initialiseEmailAddress();
+    removeLoadingScreen();
 }
 
 init();
