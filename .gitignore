@@ -3,5 +3,6 @@
 
 # Ignore config files
 .ebextensions/
+app.config
 
 # TODO: Ignore database file later
