@@ -900,6 +900,13 @@ async function logout() {
         const logoutData = await logoutResponse.json();
 
         if (logoutResponse.ok && logoutData.success) {
+            // Clear local storage
+            localStorage.removeItem("activities");
+            localStorage.removeItem("goals");
+            localStorage.removeItem("current_activity");
+            localStorage.removeItem("running_activity");
+            localStorage.removeItem("scheduled_activities");
+
             // Redirect to landing page
             window.location.href = "/";
         }

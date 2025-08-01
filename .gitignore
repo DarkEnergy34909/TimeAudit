@@ -3,6 +3,9 @@
 
 # Ignore config files
 .ebextensions/
+.ebextensions/*.config
 app.config
 
+# Ignore zip files
+timeaudit.zip
 # TODO: Ignore database file later

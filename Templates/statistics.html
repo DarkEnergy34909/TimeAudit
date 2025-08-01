@@ -3,7 +3,8 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width">
-        <title>TimeAudit</title>
+        <title>Statistics | TimeAudit</title>
+        <meta name="description" content="View your time tracking statistics with TimeAudit. Analyze your time spent on activities, track your goals, and improve your productivity.">
         <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
         <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Poppins">
         <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.js"></script>
@@ -20,7 +21,7 @@
 
         <div class="title-bar">
             <a href="/">
-                <h1 id="main-title">TimeAudit</h1>
+                <p id="main-title">TimeAudit</p>
             </a>
 
             {% if email_address and streak %}

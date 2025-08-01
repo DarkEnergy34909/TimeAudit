@@ -1,5 +1,6 @@
 import os
 from flask import Flask, request, render_template, make_response, jsonify
+from openai import OpenAI
 import sqlite3
 import bcrypt
 from email_validator import validate_email, EmailNotValidError
@@ -7,15 +8,25 @@ import jwt
 import time
 import datetime
 from dotenv import load_dotenv
+import requests
 import json
 
 # Load environment variables
 load_dotenv()
 
 # Secret key
-# TODO: Move to .env file
+# Get keys
 SECRET_KEY = os.getenv("SECRET_KEY")
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
+# Constants
+# Cookies expire in 48 hours
+COOKIE_EXPIRY_TIME = int(172800)
+
+# Connect to OpenAI API
+openai_client = OpenAI(api_key=OPENAI_API_KEY)
+
+# Define the flask app
 app = Flask(__name__)
 
 @app.route('/', methods = ['GET', 'POST'])
@@ -66,6 +77,8 @@ def statistics():
 
 @app.route("/calendar", methods = ["GET"])
 def calendar():
+    print(request.cookies)
+
     # Check if the user is authenticated
     if ("token" in request.cookies):
         # Get the token from HttpOnly cookie
@@ -95,7 +108,7 @@ def calendar():
                 # Render template with email address
                 return render_template("calendar.html", email_address=email_address, streak=streak)
 
-
+    print("NO TOKEN???")
     return render_template("calendar.html")
         
 @app.route("/goals", methods = ["GET"])
@@ -162,7 +175,7 @@ def login():
                 response.headers["Content-Type"] = "application/json"
                 response.headers["Access-Control-Allow-Credentials"] = "true"
                 
-                response.set_cookie("token", token, domain="timeaudit.net", httponly=True, secure=False, samesite='Lax', expires=time.time() + 86400)  # Cookie expires in 24 hours
+                response.set_cookie("token", token, domain="192.168.1.136", httponly=True, secure=False, samesite='Lax', expires=time.time() + COOKIE_EXPIRY_TIME)  # Cookie expires in 48 hours
 
                 # Use make_response here to use cookies
                 return response
@@ -232,7 +245,7 @@ def signup():
                 response.headers["Access-Control-Allow-Credentials"] = "true"
 
                 # Add a cookie to the response
-                response.set_cookie("token", token, domain="timeaudit.net", httponly=True, secure=False, samesite='Lax')
+                response.set_cookie("token", token, domain="192.168.1.136", httponly=True, secure=False, samesite='Lax', expires=time.time() + COOKIE_EXPIRY_TIME)
 
                 return response
                 #return {"token": token}, 200
@@ -623,7 +636,7 @@ def logout_api():
 
     # Reset the HttpOnly cookie
     response = make_response({"success": True}, 200)
-    response.set_cookie("token", "", domain="timeaudit.net", expires=0, httponly=True, secure=False, samesite='Lax')
+    response.set_cookie("token", "", domain="192.168.1.136", expires=0, httponly=True, secure=False, samesite='Lax')
     return response
 
 @app.route("/api/account/delete", methods=["POST"])
@@ -645,7 +658,7 @@ def delete_account_api():
 
     # Reset the HttpOnly cookie
     response = make_response({"success": True}, 200)
-    response.set_cookie("token", "", domain="timeaudit.net", expires=0, httponly=True, secure=False, samesite='Lax')
+    response.set_cookie("token", "", domain="192.168.1.136", expires=0, httponly=True, secure=False, samesite='Lax')
     return response
 
 @app.route("/api/account/change-email", methods=["POST"])
@@ -708,6 +721,95 @@ def update_streak_api():
 
     # Send the updated streak to the frontend
     return {"success": True, "streak": formatted_streak}, 200
+
+@app.route("/api/account/generate-schedule", methods=["POST"])
+def generate_schedule_api():
+    # Get the token from the request
+    token = request.cookies["token"]
+
+    # Decode the token
+    decoded_token = decode_jwt_token(token)
+
+    if ("error" in decoded_token):
+        return {"error": "invalid_token"}, 400
+
+    # Get the user id from the token
+    user_id = decoded_token["user-id"]
+
+    # Get the date from the request
+    request_data = request.get_json()
+    date = request_data["date"]
+
+    # Generate the user's schedule
+    schedule = generate_user_schedule(user_id, date) 
+
+    return jsonify({"success": True, "schedule": schedule}), 200
+
+def get_categories():
+    categories = []
+
+    # Connect to the database
+    con = sqlite3.connect("timeaudit.db")
+    cur = con.cursor()
+
+    # Get all categories
+    res = cur.execute("SELECT Name FROM Category;")
+
+    for category in res.fetchall():
+        categories.append(category[0])
+
+    return categories
+
+
+def generate_user_schedule(user_id, date): 
+    # Get scheduled activities from the database
+    scheduled_activities = get_scheduled_activities_from_database_as_dicts(user_id)
+
+    # Get activities from the database
+    activities = get_activities_from_database_as_dicts(user_id)
+
+    # Get goals from the database
+    goals = get_goals_from_database_as_dicts(user_id)
+
+    # Get categories from the database
+    categories = get_categories()
+
+    # The initial context prompt for the AI
+    context_prompt = """
+    You are a helpful assistant that creates daily schedules for users based on their goals, past logged activities, and scheduled plans. 
+    Please generate a schedule for the user on the given date which:
+    1. Covers all their goals (e.g. 2hrs revision)
+    2. Does not conflict with any activities already scheduled (scheduled_activities) on this date
+    3. Fits within reasonable times (8am-10pm)
+    Your output should be a JSON array of activities in the following format:
+    { 'title': 'Maths revision', 'category': 'Work/Study', 'startTime': 510, 'endTime': 600, 'date': '2025-08-01' }
+    where the 'category' attribute can only be a string from the categories array below, and the 'startTime' and 'endTime' are the times in minutes since midnight on that day.
+    DO NOT include any explanatory text, just return the JSON array.
+    """
+
+    # Create the full prompt 
+    prompt = [
+        {
+            "role": "system",
+            "content": context_prompt
+        },
+        {
+            "role": "user",
+            "content": {
+                "date": date,
+                "categories": categories,
+                "activities": activities,
+                "scheduled_activities": scheduled_activities,
+                "goals": goals
+            }
+        }
+    ]
+
+    # TODO: Call OpenAI API
+    return []
+
+
+
 
 def format_streak(streak):
     if (streak == 0):
@@ -863,8 +965,8 @@ def create_jwt_token(user_id):
     # Get the current timestamp (in SECONDS)
     current_time = int(time.time())
 
-    # Set the expiration time to 12 hours from now
-    expiration_time = current_time + 12 * 60 * 60
+    # Set the expiration time to 48 hours from now
+    expiration_time = current_time + COOKIE_EXPIRY_TIME
 
     # Create a new JWT token
     token = jwt.encode({"user-id": user_id, "exp": expiration_time}, SECRET_KEY, algorithm="HS256")
@@ -962,7 +1064,7 @@ def sync_scheduled_activities_with_database(scheduled_activities, user_id):
         exists = False
 
         for database_scheduled_activity in database_scheduled_activities:
-            if scheduled_activity["title"] == database_scheduled_activity[1] and scheduled_activity["category"] == database_scheduled_activity[2] and scheduled_activity["startTime"] == database_scheduled_activity[3] and scheduled_activity["endTime"] == database_scheduled_activity[4] and scheduled_activity["date"] == database_scheduled_activity[5] and user_id == database_scheduled_activity[6]:
+            if scheduled_activity["title"] == database_scheduled_activity[1] and scheduled_activity["startTime"] == database_scheduled_activity[3] and scheduled_activity["endTime"] == database_scheduled_activity[4] and scheduled_activity["date"] == database_scheduled_activity[5] and user_id == database_scheduled_activity[6]:
                 exists = True
                 break
 

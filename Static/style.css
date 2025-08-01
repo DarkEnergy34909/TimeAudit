@@ -27,8 +27,23 @@ h1#main-title {
     height: auto;
 }
 
+p#main-title {
+    font-size: min(2rem, 5vw); /* Responsive font size */
+    text-align: left;
+    margin-left: 20px;
+    color: #1e3a8a; /* Dark Blue */
+    max-width: 25%;
+    height: auto;
+    font-weight: bold;
+    margin-top: 0.67em;
+    margin-bottom: 0.67em;
+}
+
 @media (max-width: 700px) {
     h1#main-title {
+        margin-left: 0px;
+    }
+    p#main-title {
         margin-left: 0px;
     }
 }
@@ -41,9 +56,15 @@ a {
     top: 0;
     left: 0;
     width: 100%;
-    height: 80%;
+    height: 40%;
     background: linear-gradient(to bottom, rgba(37, 99, 235, 0.8), rgba(249, 249, 249, 0.0), rgba(249, 249, 249, 0.0));
     z-index: -1; /* Ensure it stays behind other content */
+}
+
+@media (max-width: 700px) {
+    .gradient-overlay {
+        height: 60%; /* Adjust height for smaller screens */
+    }
 }
 
 .home-container {
@@ -77,10 +98,15 @@ a {
 .hero {
     font-size: 4rem;
     text-align: center;
-    font-weight: bold;
+    font-weight: normal;
     margin-top: 160px;
     max-width: 90%;
     margin-bottom: 40px;
+}
+
+.highlight {
+    color: #2563eb; /* Blue */
+    font-weight: bold;
 }
 
 @media (max-width: 700px) {
@@ -99,10 +125,43 @@ a {
 }
 
 .hero-explanation {
-    color: #1e3a8a; /* Dark Blue */
+    color: black; /* Dark Blue */
     font-size: 1.2rem;
     max-width: 90%;
     margin-top: 20px;
+    font-weight: normal;
+}
+
+.top-start-tracking-button {
+    background-color: #2563eb; /* Blue */
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: min(1rem, 2vw);
+    transition: background-color 0.3s ease;
+    margin-right: 20px;
+}
+
+.top-start-tracking-button:hover {
+    background-color: #1d4ed8; /* Darker Blue */
+}
+
+.landing-page-login-button {
+    background-color: none;
+    color: black;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: min(1rem, 2vw);
+    transition: background-color 0.3s ease;
+    margin-right: 20px;
+}
+
+.landing-page-login-button:hover {
+    color: #2563eb; 
 }
 
 .login-button {
@@ -117,15 +176,16 @@ a {
     margin-right: 20px;
 }
 
-@media (max-width: 700px) {
-    .login-button {
-        font-size: 0.5rem; /* Smaller font size for smaller screens */
-        margin-right: 10px; /* Adjust margin for smaller screens */
-    }
-}
-
 .login-button:hover {
     background-color: #1d4ed8; /* Darker Blue */
+}
+
+@media (max-width: 700px) {
+    .landing-page-login-button, .top-start-tracking-button, .login-button {
+        font-size: 0.8rem; /* Smaller font size for smaller screens */
+        margin-right: 10px; /* Adjust margin for smaller screens */
+        display: inline-block; /* Ensure buttons are inline */
+    }
 }
 
 .title-bar {
@@ -135,6 +195,7 @@ a {
     align-items: center;
     background-color: #FFFFFF; 
     border-bottom: 1px solid #ddd; /* Light gray border at the bottom */
+    z-index: 9999;
 }
 
 .start-tracking-button:hover {

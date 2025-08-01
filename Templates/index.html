@@ -3,7 +3,9 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>TimeAudit</title>
+        <title>TimeAudit | Free Time Tracking for Students and Professionals</title>
+        <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
+        <meta name="description" content="TimeAudit is a free time tracking tool designed for both students and professionals. Track your time, plan your tasks, and improve your productivity effortlessly - no signup required.">
         <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
         <!--<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto">-->
         <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Poppins">
@@ -12,11 +14,11 @@
     <body style="font-family: 'Poppins';">
         <div class="title-bar" style="position: fixed; top: 0;">
             <a href="/">
-                <h1 id="main-title">TimeAudit</h1>
+                <p id="main-title">TimeAudit</p>
             </a>
             <div class="button-container">
-                <a class="login-button" href="/login">Log in</a>
-                <a class="login-button" href="/calendar">Start tracking for free</a>
+                <a class="landing-page-login-button" href="/login">Log in</a>
+                <a class="top-start-tracking-button" href="/calendar">Start tracking for free</a>
             </div>
         </div>
 
@@ -33,17 +35,16 @@
         <!--<div class="top-bar"></div>-->
 
         <div class="home-container">
-            <!--<div class="gradient-overlay"></div>-->
+            <div class="gradient-overlay"></div>
 
             <div class="hero-container">
-                <h1 class="hero">Take control of your day.</h1>
+                <h1 class="hero">Master your <span class="highlight">time</span>. Build better <span class="highlight">habits</span>.</h1>
 
-                <img class="hero-image" src="{{url_for('static', filename='hero_image.png') }}" alt="TimeAudit tracking interface" width="1000", height="600">
-
-                <h3 class="hero-explanation">Organise your time, and see exactly where it all goes with TimeAudit, a simple, powerful, and free tool that combines scheduling and time tracking to help you stay on top of your tasks.</h3>
-                <h3 class="hero-explanation">No sign-up required - start tracking your time instantly.</h3>
+                <h3 class="hero-explanation">TimeAudit combines scheduling and time tracking to help you take control of your time. Plan, track and analyse your time effortlessly: no sign-up required.</h3>
 
                 <a href="calendar" class="start-tracking-button">Start tracking for free</a>
+
+                <img class="hero-image" src="{{url_for('static', filename='hero_image.png') }}" alt="TimeAudit tracking interface" width="1000", height="600">
             </div>
 
             <div class="landing-page-banner">
@@ -90,7 +91,7 @@
                 <!--<h2 class="testimonial-heading">What our users say</h3>-->
 
                 <div class="testimonial-box">
-                    <p class="testimonial-text">"INSERT TESTIMONIAL HERE"</p>
+                    <p class="testimonial-text">"TimeAudit is so effortless to use, and it has made me so much more productive."</p>
                     <span class="testimonial-author">- Alex, Freelance Designer</span>
                 </div>
             </div>
@@ -132,7 +133,7 @@
             </div>
 
             <a href="calendar" class="start-tracking-button">Start tracking now</a>
-            <div class="footer">
+            <footer class="footer">
                 <span class="copyright">© 2025 TimeAudit. All rights reserved.</span>
 
                 <div class="footer-link-container">
@@ -148,7 +149,7 @@
                         <span class="contact-us">Contact us</span>
                     </a>
                 </div>
-            </div>
+            </footer>
         </div>
     </body>
 </html>
