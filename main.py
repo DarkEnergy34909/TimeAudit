@@ -805,10 +805,21 @@ def generate_user_schedule(user_id, date):
         }
     ]
 
-    # TODO: Call OpenAI API
-    return []
+    # Call OpenAI API
+    response = openai_client.chat.completions.create(
+        model="gpt-4o",
+        messages=prompt,
+        max_tokens=1000,
+        temperature=0.5,
+        top_p=1.0,
+        n=1,
+        response_format={"type": "json_schema"}
+    )
 
-
+    if response.choices:
+        return response.choices[0].message.content
+    else:
+        return []
 
 
 def format_streak(streak):
@@ -1607,5 +1618,6 @@ def initialise_database():
 
 if (__name__ == "__main__"):
     #initialise_database()
+    print(generate_user_schedule(16, "2025-08-01"))
     app.run(debug=True, host="0.0.0.0", port=5000)
     #app.run(debug=True, port=5000)
