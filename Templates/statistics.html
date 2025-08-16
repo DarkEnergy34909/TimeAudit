@@ -27,7 +27,7 @@
             {% if email_address and streak %}
                 <div class="email-container">
                     <span class="streak">{{ streak }}</span>
-                    <span class="email-address">{{ email_address }}</span>
+                    <span class="email-address prevent-select">{{ email_address }}</span>
                     <button class="logout-button" onclick="logout();">Log out</button>
 
                     <div class="email-menu" hidden>
@@ -46,7 +46,7 @@
                 <!--<a href="/">Home</a>-->
                 <a href="calendar">Calendar</a>
                 <a href="statistics">Statistics</a>
-                <a href="goals">Goals</a>
+                <a href="tasks">Tasks</a>
             </nav>
 
         </div>
@@ -138,7 +138,7 @@
                 </div>
 
                 <div class="chart-container">
-                    <h3>Goals completed by day</h3>
+                    <h3>Tasks completed by day</h3>
 
                     <div class="chart" id="goals-completed-container">
                         <canvas id="goals-bar-chart"></canvas>

@@ -3,7 +3,7 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width">
-        <title>Goals | TimeAudit</title>
+        <title>Tasks | TimeAudit</title>
         <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
         <!--<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto">-->
         <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Poppins">
@@ -27,7 +27,7 @@
             {% if email_address and streak %}
                 <div class="email-container">
                     <span class="streak">{{ streak }}</span>
-                    <span class="email-address">{{ email_address }}</span>
+                    <span class="email-address prevent-select">{{ email_address }}</span>
                     <button class="logout-button" onclick="logout();">Log out</button>
 
                     <div class="email-menu" hidden>
@@ -46,24 +46,24 @@
                 <!--<a href="/">Home</a>-->
                 <a href="calendar">Calendar</a>
                 <a href="statistics">Statistics</a>
-                <a href="goals">Goals</a>
+                <a href="tasks">Tasks</a>
             </nav>
 
         </div>
 
         <div class="top-bar">
-            <button id="add-button" onclick="openAddMenu();">Add goal</button>
+            <button id="add-goal-button" onclick="openAddMenu();">Add task</button>
         </div>
 
         <div class="goals-container">
             <div class="goals-menu">
                 <div id="goals-title">
-                    <h2>Your goals</h2>
+                    <h2>Your tasks</h2>
                 </div>
 
                 <div class="goal-selector-row">
-                    <button class="goal-selector-button" id="today-button" onclick="onTodayButtonClick();">Today's goals</button>
-                    <button class="goal-selector-button" id="previous-button" onclick="onPreviousButtonClick();">Previous goals</button>
+                    <button class="goal-selector-button" id="today-button" onclick="onTodayButtonClick();">Today's tasks</button>
+                    <button class="goal-selector-button" id="previous-button" onclick="onPreviousButtonClick();">Previous tasks</button>
                 </div>
 
                 <div id="goals-list">
@@ -73,12 +73,12 @@
         </div>
 
         <div class="add-menu" hidden="true">
-            <h2>Add a goal</h2>
+            <h2>Add a task</h2>
             <form action="" method="POST">
-                <label for="goal-name">Goal name</label>
+                <label for="goal-name">Task name</label>
                 <input type="text" id="goal-name" name="goal-name" required><br><br>
 
-                <p class="error-text" id="goal-name-error" hidden>Please enter a goal name.</p>
+                <p class="error-text" id="goal-name-error" hidden>Please enter a task name.</p>
 
                 <label for="goal-duration-hours">Duration (hours)</label>
                 <input type="number" id="goal-duration-hours" name="goal-duration-hours" min="0" value="0" required><br><br>
@@ -89,7 +89,7 @@
                 <p class="error-text" id="duration-error" hidden>Please enter a duration.</p>
 
                 <button type="button" onclick="closeAddMenu();">Cancel</button>
-                <button type="button" onclick="addGoal();">Add goal</button>
+                <button type="button" onclick="addGoal();">Add task</button>
             </form>
         </div>
 

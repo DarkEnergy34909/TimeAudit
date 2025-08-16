@@ -20,6 +20,14 @@
             <div class="loading-spinner"></div>
         </div>
 
+        <div class="generate-schedule-loading-screen" id="generate-schedule-loading-screen" hidden>
+            <div class="loading-text-container">
+                <span class="loading-text">Generating schedule...</span>
+            </div>
+            <div class="loading-spinner"></div>
+        </div>
+
+
         <div class="title-bar">
             <a href="/">
                 <p id="main-title">TimeAudit</p>
@@ -28,7 +36,7 @@
             {% if email_address and streak %}
                 <div class="email-container">
                     <span class="streak">{{ streak }}</span>
-                    <span class="email-address">{{ email_address }}</span>
+                    <span class="email-address prevent-select">{{ email_address }}</span>
                     <button class="logout-button" onclick="logout();">Log out</button>
 
                     <div class="email-menu" hidden>
@@ -47,7 +55,7 @@
                 <!--<a href="/">Home</a>-->
                 <a href="calendar">Calendar</a>
                 <a href="statistics">Statistics</a>
-                <a href="goals">Goals</a>
+                <a href="tasks">Tasks</a>
             </nav>
 
         </div>
@@ -63,6 +71,11 @@
             <button id="scheduled-add-button" onclick="openScheduledAddMenu(); closeAddMenu();">Schedule activity</button>
             <button id="stop-button" onclick="stopActivity();" hidden>Stop activity</button>
             <button id="add-button" onclick="openAddMenu(); closeScheduledAddMenu();">Start/log activity</button>
+
+            <button id="generate-schedule-button" onclick="generateSchedule();">✨Generate schedule✨</button>
+            <button id="confirm-schedule-button" onclick="confirmSchedule();" hidden>✓</button>
+            <button id="refresh-schedule-button" onclick="refreshSchedule();" hidden>⟳</button>
+            <button id="cancel-schedule-button" onclick="cancelSchedule();" hidden>×</button>
         </div>
 
         <div class="month-bar">
@@ -112,7 +125,7 @@
 
                 <p class="error-text" id="time-input-error" hidden>Please enter a valid pair of times that aren't already occupied by an activity.</p>
 
-                <label for="link-to-goal">Link to goal?</label>
+                <label for="link-to-goal">Link to task?</label>
                 <select id="link-to-goal" name="link-to-goal">
                     <!--Will be populated with JS-->
                 </select><br><br>

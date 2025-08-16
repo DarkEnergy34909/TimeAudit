@@ -167,7 +167,7 @@ function addGoal() {
     }
 
     // If the duration is not a number, display an error message
-    if (goalDuration == NaN || goalDuration == 0) {
+    if (isNaN(goalDuration) || goalDuration == 0) {
         document.querySelector("#duration-error").hidden = false;
         return;
     }
@@ -449,7 +449,7 @@ function loadGoals(todaysGoals) {
                 const goalsMenu = document.querySelector(".goals-menu");
 
                 const goalMessage = document.createElement("span");
-                goalMessage.textContent = "You have no current goals. Add a goal to get started.";
+                goalMessage.textContent = "You have no current tasks. Add a task to get started.";
                 goalMessage.classList.add("no-goals-text");
 
                 goalsMenu.appendChild(goalMessage);
@@ -458,7 +458,7 @@ function loadGoals(todaysGoals) {
                 const goalsMenu = document.querySelector(".goals-menu");
 
                 const goalMessage = document.createElement("span");
-                goalMessage.textContent = "You have no previous goals.";
+                goalMessage.textContent = "You have no previous tasks.";
                 goalMessage.classList.add("no-goals-text");
 
                 goalsMenu.appendChild(goalMessage);

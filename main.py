@@ -1,5 +1,6 @@
 import os
 from flask import Flask, request, render_template, make_response, jsonify
+from flask_limiter import Limiter
 from openai import OpenAI
 import sqlite3
 import bcrypt
@@ -8,8 +9,8 @@ import jwt
 import time
 import datetime
 from dotenv import load_dotenv
-import requests
 import json
+
 
 # Load environment variables
 load_dotenv()
@@ -28,6 +29,9 @@ openai_client = OpenAI(api_key=OPENAI_API_KEY)
 
 # Define the flask app
 app = Flask(__name__)
+
+# Define the rate limiter
+limiter = Limiter(app)
 
 @app.route('/', methods = ['GET', 'POST'])
 def index():
@@ -111,8 +115,8 @@ def calendar():
     print("NO TOKEN???")
     return render_template("calendar.html")
         
-@app.route("/goals", methods = ["GET"])
-def goals():
+@app.route("/tasks", methods = ["GET"])
+def tasks():
     # Check if the user is authenticated
     if ("token" in request.cookies):
         # Get the token from HttpOnly cookie
@@ -723,6 +727,7 @@ def update_streak_api():
     return {"success": True, "streak": formatted_streak}, 200
 
 @app.route("/api/account/generate-schedule", methods=["POST"])
+@limiter.limit("5 per hour")
 def generate_schedule_api():
     # Get the token from the request
     token = request.cookies["token"]
@@ -742,8 +747,9 @@ def generate_schedule_api():
 
     # Generate the user's schedule
     schedule = generate_user_schedule(user_id, date) 
+    #schedule = '[{"title": "Maths revision", "category": "Work/Study", "startTime": 510, "endTime": 600, "date": "2025-08-01"}]'  # Placeholder for testing
 
-    return jsonify({"success": True, "schedule": schedule}), 200
+    return {"success": True, "schedule": schedule}, 200
 
 def get_categories():
     categories = []
@@ -764,12 +770,22 @@ def get_categories():
 def generate_user_schedule(user_id, date): 
     # Get scheduled activities from the database
     scheduled_activities = get_scheduled_activities_from_database_as_dicts(user_id)
+    #print(scheduled_activities)
 
     # Get activities from the database
     activities = get_activities_from_database_as_dicts(user_id)
 
+    # Narrow down activities to just those in the past 2 weeks
+    iso_two_weeks_ago = get_iso_date_from__datetime(datetime.datetime.now() - datetime.timedelta(weeks=2))
+
+    # Didn't know you could do this lol
+    activities = [activity for activity in activities if activity["date"] >= iso_two_weeks_ago]
+    scheduled_activities = [activity for activity in scheduled_activities if activity["date"] >= iso_two_weeks_ago]
+
+
     # Get goals from the database
-    goals = get_goals_from_database_as_dicts(user_id)
+    goals = get_todays_goals_from_database_as_dicts(user_id)
+    #print(goals)
 
     # Get categories from the database
     categories = get_categories()
@@ -779,13 +795,23 @@ def generate_user_schedule(user_id, date):
     You are a helpful assistant that creates daily schedules for users based on their goals, past logged activities, and scheduled plans. 
     Please generate a schedule for the user on the given date which:
     1. Covers all their goals (e.g. 2hrs revision)
-    2. Does not conflict with any activities already scheduled (scheduled_activities) on this date
-    3. Fits within reasonable times (8am-10pm)
+    2. Does not conflict with any activities already scheduled (scheduled_activities) on this date (if an activity is already scheduled, it should NOT be included in the schedule)
+    3. Fits within reasonable times (8am-10pm) (UNDER NO CIRUMSTANCES SHOULD THE SCHEDULE INCLUDE TIMES WHICH EXCEED MIDNIGHT (1440 minutes))
+    4. Includes short breaks between activities if possible
+    5. Includes activities not in their goals if they are relevant to the user's interests or past activities
     Your output should be a JSON array of activities in the following format:
     { 'title': 'Maths revision', 'category': 'Work/Study', 'startTime': 510, 'endTime': 600, 'date': '2025-08-01' }
     where the 'category' attribute can only be a string from the categories array below, and the 'startTime' and 'endTime' are the times in minutes since midnight on that day.
-    DO NOT include any explanatory text, just return the JSON array.
+    DO NOT include any explanatory text, just return the JSON array. DO NOT WRAP THE JSON ARRAY IN ANY OTHER TEXT OR MARKUP.
     """
+
+    prompt_content = json.dumps({
+        "date": date,
+        "categories": categories,
+        "activities": activities,
+        "scheduled_activities": scheduled_activities,
+        "goals": goals
+    })
 
     # Create the full prompt 
     prompt = [
@@ -795,13 +821,7 @@ def generate_user_schedule(user_id, date):
         },
         {
             "role": "user",
-            "content": {
-                "date": date,
-                "categories": categories,
-                "activities": activities,
-                "scheduled_activities": scheduled_activities,
-                "goals": goals
-            }
+            "content": prompt_content
         }
     ]
 
@@ -809,14 +829,14 @@ def generate_user_schedule(user_id, date):
     response = openai_client.chat.completions.create(
         model="gpt-4o",
         messages=prompt,
-        max_tokens=1000,
         temperature=0.5,
         top_p=1.0,
         n=1,
-        response_format={"type": "json_schema"}
+        #response_format={"type": "json_array"}
     )
 
-    if response.choices:
+    # Get the generated schedule from the response
+    if (response.choices and len(response.choices) > 0):
         return response.choices[0].message.content
     else:
         return []
@@ -834,6 +854,9 @@ def get_current_iso_date():
 def get_yesterdays_iso_date():
     yesterdays_date = datetime.datetime.now() - datetime.timedelta(1)
     return yesterdays_date.isoformat().split("T")[0]
+
+def get_iso_date_from__datetime(dt):
+    return dt.isoformat().split("T")[0]
 
 
 def get_streak(user_id):
@@ -1132,6 +1155,17 @@ def get_goals_from_database_as_dicts(user_id):
         dict_list.append(goal_dict)
 
     return dict_list
+
+def get_todays_goals_from_database_as_dicts(user_id):
+    goals = get_goals_from_database_as_dicts(user_id)
+    todays_date = get_current_iso_date()
+
+    todays_goals = []
+    for goal in goals:
+        if (goal["date"] == todays_date):
+            todays_goals.append(goal)
+
+    return todays_goals
 
 
 
@@ -1618,6 +1652,6 @@ def initialise_database():
 
 if (__name__ == "__main__"):
     #initialise_database()
-    print(generate_user_schedule(16, "2025-08-01"))
+    #print(generate_user_schedule(16, "2025-08-01"))
     app.run(debug=True, host="0.0.0.0", port=5000)
     #app.run(debug=True, port=5000)

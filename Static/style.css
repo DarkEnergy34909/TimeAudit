@@ -1,5 +1,11 @@
 /* General Styles */
 
+.prevent-select {
+  -webkit-user-select: none; /* Safari */
+  -ms-user-select: none; /* IE 10 and IE 11 */
+  user-select: none; /* Standard syntax */
+}
+
 body {
     font-family: sans-serif;
     background-color: #f9f9f9;
@@ -470,6 +476,22 @@ a {
     /*text-align: center;*/
 }
 
+.generate-schedule-loading-screen {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: white;
+    color: #2563eb;
+    z-index: 10000;
+    display: none; /* Hidden by default */
+    flex-direction: column;
+    justify-content: center;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+}
+
 .loading-text-container {
     margin-left: auto;
     margin-right: auto;
@@ -525,7 +547,19 @@ a {
     cursor: pointer;
     font-size: 1rem;
     transition: background-color 0.3s ease;
+    margin-right: 20px; /* Add margin to the right */
 
+}
+
+#add-goal-button {
+    background-color: #2563eb; /* Blue */
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 0.3s ease;
 }
 
 #scheduled-add-button {
@@ -540,7 +574,55 @@ a {
     margin-right: 20px; /* Add margin to the right */
 }
 
-#stop-button {
+#generate-schedule-button {
+    background-color: #2563eb; /* Blue */
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 0.3s ease;
+    /*margin-right: 20px; /* Add margin to the right */
+}
+
+#generate-schedule-button:hover {
+    background-color: #1d4ed8; /* Darker Blue */
+}
+
+#confirm-schedule-button {
+    background-color: #4caf50; /* Green */
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 0.3s ease;
+    margin-right: 20px; /* Add margin to the right */
+}
+
+#confirm-schedule-button:hover {
+    background-color: #388e3c; /* Darker Green */
+}
+
+#refresh-schedule-button {
+    background-color: #2563eb; /* Blue */
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 0.3s ease;
+    margin-right: 20px; /* Add margin to the right */
+}
+
+#refresh-schedule-button:hover {
+    background-color: #1d4ed8; /* Darker Blue */
+}
+
+#cancel-schedule-button {
     background-color: #dc2626; /* Red */
     color: white;
     border: none;
@@ -551,7 +633,27 @@ a {
     transition: background-color 0.3s ease;
 }
 
+#cancel-schedule-button:hover {
+    background-color: #b91c1c; /* Darker Red */
+}
+
+#stop-button {
+    background-color: #dc2626; /* Red */
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 0.3s ease;
+    margin-right: 20px; /* Add margin to the right */
+}
+
 #add-button:hover {
+    background-color: #1d4ed8; /* Darker Blue */
+}
+
+#add-goal-button:hover {
     background-color: #1d4ed8; /* Darker Blue */
 }
 
@@ -1014,6 +1116,10 @@ a {
     overflow: hidden; /* Hide overflow */
     white-space: nowrap; /* Prevent text wrapping */
     transition: background-color 0.3s ease;
+}
+
+.suggested-scheduled-block {
+    opacity: 0.5;
 }
 
 .scheduled-block-text{
@@ -1632,6 +1738,7 @@ a {
     #add-button, 
     #stop-button,
     #scheduled-add-button,
+    #generate-schedule-button,
     #logged-checkbox,
     #scheduled-checkbox,
     .streak,
@@ -1647,7 +1754,11 @@ a {
     #scheduled-add-button,
     #logged-checkbox,
     #scheduled-checkbox,
-    #add-button, 
+    #add-button,
+    #generate-schedule-button {
+        margin: 0 2px; /* Adjust margin for smaller screens */
+        font-size: 0.8rem;
+    }
     #stop-button {
         margin: 0 5px; /* Adjust margin for smaller screens */
         font-size: 0.8rem;

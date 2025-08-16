@@ -3,3 +3,6 @@ python-dotenv
 bcrypt
 PyJWT
 email-validator
+openai
+json
+Flask-Limiter

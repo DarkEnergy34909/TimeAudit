@@ -13,6 +13,9 @@ let activities = [];
 // A list of all scheduled activities
 let scheduledActivities = [];
 
+// A list of all suggested scheduled activities
+let suggestedScheduledActivities = [];
+
 // The index of the current activity in the activities array
 let currentActivityIndex = -1;
 
@@ -35,6 +38,139 @@ let currentActivityIndex = -1;
 // startTime: float (e.g. 8.5 for 08:30)
 // endTime: float (e.g. 10.0 for 10:00)
 let readyForMove = false;
+
+// Make it so that calendar blocks are vertically draggable
+interact('.scheduled-block').draggable({
+    // Enable dragging along the y-axis only
+    axis: 'y',
+    modifiers: [
+        interact.modifiers.restrict({
+            //restriction: 'parent',
+            endOnly: true
+        })
+    ],
+    listeners: {
+        async start(event) {
+            // Prevent this on mobile
+            if (isMobile()) {
+                return;
+            }
+
+            // Get the block element
+            const target = event.target;
+
+            // Get the block's data attributes
+            let blockDay = parseInt(target.getAttribute("data-day")) || 0;
+            let startTime = parseInt(target.getAttribute("data-start-time")) || 0;
+            let endTime = parseInt(target.getAttribute("data-end-time")) || 0;
+
+            // Get the activity
+            const scheduledActivity = scheduledActivities.find(activity => activity.title == target.querySelector(".scheduled-block-text").textContent && blockDay == (new Date(activity.date).getDay() + 6) % 7 && activity.startTime == startTime && activity.endTime == endTime);
+
+            if (scheduledActivity) {
+                // Delete the scheduled activity from the server
+                console.log("REMOVING ACTIVITY...");
+                await removeScheduledActivityFromServer(scheduledActivity);
+                readyForMove = true;
+            }
+            else {
+                console.log("WTF???");
+            }
+        },
+
+        move (event) {
+            // Prevent this on mobile
+            if (isMobile()) {
+                return;
+            }
+
+            if (!readyForMove) {
+                return;
+            }
+
+            // Get the calendar grid
+            const calendarGrid = document.querySelector(".calendar-grid");
+
+            // Get the element
+            const target = event.target;
+
+            // Get the block's data attributes
+            let blockDay = parseInt(target.getAttribute("data-day")) || 0;
+            let startTime = parseInt(target.getAttribute("data-start-time")) || 0;
+            let endTime = parseInt(target.getAttribute("data-end-time")) || 0;
+
+            // Get the y position
+            let y = parseFloat(target.style.top) || 0;
+
+            // Get the height
+            let height = event.rect.height;
+
+            // Adjust the y position
+            target.style.top = y + event.dy + 'px';
+
+            // Get the height of a grid row
+            const gridRowHeight = calendarGrid.offsetHeight / 24;
+
+            // Get the scheduled activity
+            let scheduledActivity = scheduledActivities.find(activity => activity.title == target.querySelector(".scheduled-block-text").textContent && blockDay == (new Date(activity.date).getDay() + 6) % 7 && activity.startTime == startTime && activity.endTime == endTime);
+
+            if (!scheduledActivity) {
+                return;
+            }
+            // Update the scheduled activity's start/end times
+            for (let i = 0; i < scheduledActivities.length; i++) {
+                if (JSON.stringify(scheduledActivities[i]) === JSON.stringify(scheduledActivity)) {
+                    // Calculate activity times from y position and height
+                    const newStartTime = Math.floor((y * 60 / gridRowHeight));
+                    const newEndTime = Math.floor(((y + height) * 60 / gridRowHeight));
+
+                    // Adjust the activity's start and end times
+                    scheduledActivity.startTime = newStartTime;
+                    scheduledActivity.endTime = newEndTime;
+
+                    // Update the block's text to reflect the new start and end times
+                    target.querySelector(".scheduled-block-time").textContent = `${getTimeFromMinutes(scheduledActivity.startTime)} - ${getTimeFromMinutes(scheduledActivity.endTime)}`;
+
+                    // Update the scheduled activity in the local storage
+                    scheduledActivities[i] = scheduledActivity;
+                    localStorage.setItem("scheduled_activities", JSON.stringify(scheduledActivities));
+
+                    // Update the block's data attributes
+                    target.setAttribute("data-start-time", newStartTime);
+                    target.setAttribute("data-end-time", newEndTime);
+                }
+            }
+
+        },
+
+        end (event) {
+            // Prevent this on mobile
+            if (isMobile()) {
+                return;
+            }
+
+            // Add the scheduled activity back to the server
+            const target = event.target;
+
+            // Get the block's data attributes
+            let blockDay = parseInt(target.getAttribute("data-day")) || 0;
+            let startTime = parseInt(target.getAttribute("data-start-time")) || 0;
+            let endTime = parseInt(target.getAttribute("data-end-time")) || 0;
+
+            // Get the activity
+            const scheduledActivity = scheduledActivities.find(activity => activity.title == target.querySelector(".scheduled-block-text").textContent && blockDay == (new Date(activity.date).getDay() + 6) % 7 && activity.startTime == startTime && activity.endTime == endTime);
+
+            if (scheduledActivity) {
+                // Add the activity to the server
+                saveScheduledActivityToServer(scheduledActivity);
+            }
+
+            // Reset the readyForMove flag
+            readyForMove = false;
+        }
+    },
+    inertia: true
+});
 
 // Make scheduled calendar blocks vertically resizable
 interact('.scheduled-block').resizable({
@@ -718,6 +854,37 @@ async function saveScheduledActivityToServer(scheduledActivity) {
     }
 }
 
+async function saveScheduledActivitiesToServer(scheduledActivities) {
+    // Check if authenticated
+    const authStatus = await checkAuth();
+    if (authStatus == true) {
+        // Convert the scheduled activities to a JSON string
+        const scheduledActivitiesString = JSON.stringify(scheduledActivities);
+
+        // Send a POST request with the scheduled activities
+        const scheduledActivitiesResponse = await fetch("/api/scheduled-activities", {
+            method: "POST",
+            body: scheduledActivitiesString,
+            headers: {
+                "Content-Type": "application/json",
+                "X-Requested-With": "XMLHttpRequest",
+            }
+        });
+
+        const scheduledActivitiesData = await scheduledActivitiesResponse.json();
+
+        if (!scheduledActivitiesResponse.ok || !scheduledActivitiesData.success) {
+            // Send an alert that the scheduled activities were NOT posted to the server
+            //alert("Failed to post scheduled activities to the server. Check your network connection.");
+        }
+        else {
+            //alert("Posted scheduled activities successfully");
+        }
+    } else if (authStatus == false) {
+        //alert("NOT AUTHENTICATED");
+    }
+}
+
 async function removeActivityFromServer(activity) {
     // Check if authenticated
     const authStatus = await checkAuth();
@@ -1019,6 +1186,7 @@ function addBlock(title, category, startTime, endTime, day, ongoing) {
     // Create a new block
     const block = document.createElement("div");
     block.classList.add("block");
+    block.classList.add("prevent-select");
 
     // If the activity is ongoing, set the block to be flashing
     if (ongoing) {
@@ -1209,7 +1377,7 @@ function rgbToRgba(rgb, alpha) {
     return `rgba(${parts[0]}, ${parts[1]}, ${parts[2]}, ${alpha})`;
 }
 
-function addScheduledActivityBlock(title, category, startTime, endTime, day) {
+function addScheduledActivityBlock(title, category, startTime, endTime, day, suggested = false) {
     const calendarGrid = document.querySelector(".calendar-grid");
     const gridItems = calendarGrid.querySelectorAll(".grid-item");
 
@@ -1224,6 +1392,7 @@ function addScheduledActivityBlock(title, category, startTime, endTime, day) {
     // Create a new block
     const block = document.createElement("div");
     block.classList.add("scheduled-block");
+    block.classList.add("prevent-select");
     block.setAttribute("data-category", category); 
     block.setAttribute("data-day", day);
     block.setAttribute("data-start-time", startTime);
@@ -1392,8 +1561,18 @@ function addScheduledActivityBlock(title, category, startTime, endTime, day) {
 
     // Add the text label and the delete button to the block
     block.appendChild(blockText);
-    block.appendChild(deleteButton);
     block.appendChild(blockTime);
+
+    // Only add the delete button if the block is not a suggested activity
+    if (!suggested) {
+        block.appendChild(deleteButton);
+    }
+
+    // If the block is a suggested activity make it slightly transparent and remove the delete button
+    if (suggested == true) {
+        block.classList.add("suggested-scheduled-block");
+        deleteButton.remove();
+    }
 
     // Add the block to the calendar grid
     calendarGrid.appendChild(block);
@@ -1661,6 +1840,135 @@ function loadScheduledActivities() {
     }
 }
 
+async function generateSchedule() {
+    // If a request has already been sent, do not send another one
+    const loadingScreen = document.querySelector("#generate-schedule-loading-screen");
+    if (loadingScreen.style.display == "flex") {
+        return;
+    }
+
+    // Show the loading screen
+    loadingScreen.style.display = "flex";
+
+    // Check if the user is logged in
+    if (await checkAuth() == false) {
+        // Redirect to the login page
+        window.location.href = "/login";
+
+        // Hide the loading screen
+        loadingScreen.style.display = "none";
+        return;
+    }
+
+    // Clear any existing suggested activities
+    suggestedScheduledActivities = [];
+
+    // Send a request to the server to generate suggested activities
+    const scheduleResponse = await fetch("/api/account/generate-schedule", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-Requested-With": "XMLHttpRequest"
+        },
+        body: JSON.stringify({
+            date: getIsoString(new Date())
+        })
+    });
+
+    const scheduleData = await scheduleResponse.json();
+
+    if (scheduleResponse.ok && scheduleData.success == true) {
+        console.log(scheduleData.schedule);
+        suggestedScheduledActivities = JSON.parse(scheduleData.schedule);
+        console.log("Suggested activities: ", suggestedScheduledActivities); // Log the suggested activities
+
+    }
+
+    // Display the suggested activities
+    showSuggestedActivities();
+
+    // Show the confirm/refresh/cancel buttons
+    document.querySelector("#confirm-schedule-button").hidden = false;
+    document.querySelector("#refresh-schedule-button").hidden = false;
+    document.querySelector("#cancel-schedule-button").hidden = false;
+
+    // Hide the generate schedule button
+    document.querySelector("#generate-schedule-button").hidden = true;
+
+    // Hide the loading screen
+    loadingScreen.style.display = "none";
+}
+
+function showSuggestedActivities() {
+    if (suggestedScheduledActivities.length == 0) {
+        return;
+    }
+
+    // Show the suggested activities
+    for (let i = 0; i < suggestedScheduledActivities.length; i++) {
+        const suggestedActivity = suggestedScheduledActivities[i];
+        addScheduledActivityBlock(suggestedActivity.title, suggestedActivity.category, suggestedActivity.startTime, suggestedActivity.endTime, getCurrentDay(), true);
+    }
+}
+
+function confirmSchedule() {
+    // Hide the confirm/refresh/cancel buttons
+    document.querySelector("#confirm-schedule-button").hidden = true;
+    document.querySelector("#refresh-schedule-button").hidden = true;
+    document.querySelector("#cancel-schedule-button").hidden = true;
+
+    // Show the generate schedule button
+    document.querySelector("#generate-schedule-button").hidden = false;
+
+    // Remove all suggested scheduled activity blocks
+    removeSuggestedScheduledActivityBlocks();
+
+    // Show the suggested scheduled activities in the calendar
+    for (let i = 0; i < suggestedScheduledActivities.length; i++) {
+        const suggestedActivity = suggestedScheduledActivities[i];
+
+        // Add the scheduled activity to the scheduled activities array
+        saveScheduledActivity(suggestedActivity);
+
+        // Add the block to the calendar
+        addScheduledActivityBlock(suggestedActivity.title, suggestedActivity.category, suggestedActivity.startTime, suggestedActivity.endTime, getCurrentDay());
+
+    }
+
+    // Save the newly-scheduled activities to the server
+    saveScheduledActivitiesToServer(suggestedScheduledActivities);
+
+    // Clear the suggested scheduled activities array
+    suggestedScheduledActivities = [];
+}
+
+function refreshSchedule() {
+    // Remove all suggested scheduled activity blocks
+    removeSuggestedScheduledActivityBlocks();
+
+    // Clear the suggested scheduled activities array
+    suggestedScheduledActivities = [];
+
+    // Generate a new schedule
+    generateSchedule();
+}
+
+function cancelSchedule() {
+    // Hide the confirm/refresh/cancel buttons
+    document.querySelector("#confirm-schedule-button").hidden = true;
+    document.querySelector("#refresh-schedule-button").hidden = true;
+    document.querySelector("#cancel-schedule-button").hidden = true;
+
+    // Show the generate schedule button
+    document.querySelector("#generate-schedule-button").hidden = false;
+
+    // Remove all suggested scheduled activity blocks
+    removeSuggestedScheduledActivityBlocks();
+
+    // Remove all activities from the suggested scheduled activities array
+    suggestedScheduledActivities = [];
+}
+
 function saveActivity(activity) {
     // Add the activity to the activities array
     activities.push(activity); 
@@ -1708,6 +2016,15 @@ function removeScheduledActivityBlocks() {
 
     for (let i = 0; i < scheduledActivityBlocks.length; i++) {
         const block = scheduledActivityBlocks[i];
+        block.remove();
+    }
+}
+
+function removeSuggestedScheduledActivityBlocks() {
+    let suggestedScheduledActivityBlocks = document.querySelectorAll(".suggested-scheduled-block");
+
+    for (let i = 0; i < suggestedScheduledActivityBlocks.length; i++) {
+        const block = suggestedScheduledActivityBlocks[i];
         block.remove();
     }
 }
@@ -1834,6 +2151,12 @@ function initialiseTopButton() {
         addButton.hidden = false;
 
         stopButton.hidden = true;
+    }
+
+    // If on mobile, delete the generate schedule button
+    if (isMobile()) {
+        const generateScheduleButton = document.querySelector("#generate-schedule-button");
+        generateScheduleButton.remove();
     }
 }
 
