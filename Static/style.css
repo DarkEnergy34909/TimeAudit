@@ -695,7 +695,32 @@ a {
     margin-left: auto;
 }
 
-/* Add menu */
+/* Toast notification */
+.toast-notification {
+    position: fixed;
+    bottom: 40px;
+    right: 40px;
+    background-color: #2563eb; /* Blue background */
+    color: white; /* White text */
+    padding: 15px 20px;
+    border-radius: 5px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+    z-index: 10000; /* Ensure it appears above other elements */
+    display: none; /* Hidden by default */
+    align-items: center;
+    justify-content: space-between;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.toast-close-button {
+    background-color: transparent;
+    border: none;
+    color: white; /* White text */
+    font-size: 1.5rem;
+    cursor: pointer;
+    margin-left: 10px;
+}
 
 /* Add Activity Menu */
 .add-menu {

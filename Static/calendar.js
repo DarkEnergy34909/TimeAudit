@@ -748,6 +748,26 @@ async function stopActivity() {
     loadActivities();
 }
 
+function showToastNotification(message) {
+    // Unhide the toast notification element
+    const toastNotification = document.querySelector(".toast-notification");
+    toastNotification.style.display = "flex";
+
+    // Set the message
+    const toastMessage = document.querySelector(".toast-message");
+    toastMessage.textContent = message;
+}
+
+function closeToastNotification() {
+    // Hide the toast notification element
+    const toastNotification = document.querySelector(".toast-notification");
+    toastNotification.style.display = "none";
+
+    // Clear the message
+    const toastMessage = document.querySelector(".toast-message");
+    toastMessage.textContent = "";
+}
+
 async function saveActivityToServer(activity) {
     // Check if authenticated
     const authStatus = await checkAuth();
@@ -779,6 +799,11 @@ async function saveActivityToServer(activity) {
             //alert("Posted activity successfully");
             // Update the streak on the frontend
             const streakString = activitiesData.streak;
+
+            // If the user has started a streak, display a toast notification
+            if (streakString == "🔥1" && document.querySelector(".streak").textContent != streakString) {
+                showToastNotification("You have started a streak! Keep it up! 🔥");
+            }
 
             document.querySelector(".streak").textContent = streakString;
         }
@@ -962,6 +987,11 @@ function addTimeToGoal(activity) {
             if (goals[i].title == activity.goalName && goals[i].date == activity.date) {
                 // Goal has been found - update its time
                 goals[i].timeDone += (activity.endTime - activity.startTime);
+
+                // If the goal is complete, display a toast notification
+                if (goals[i].timeDone >= goals[i].duration) {
+                    showToastNotification(`Task '${goals[i].title}' completed! 🎉`);
+                }
 
                 break;
             }
@@ -1840,6 +1870,20 @@ function loadScheduledActivities() {
     }
 }
 
+function hasGoalsFromToday() {
+    // Check if there are any goals for today
+    const goalsString = localStorage.getItem("goals");
+    if (goalsString) {
+        const goals = JSON.parse(goalsString);
+        for (let i = 0; i < goals.length; i++) {
+            if (goals[i].date == getIsoString(new Date())) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+ 
 async function generateSchedule() {
     // If a request has already been sent, do not send another one
     const loadingScreen = document.querySelector("#generate-schedule-loading-screen");
@@ -1847,18 +1891,28 @@ async function generateSchedule() {
         return;
     }
 
-    // Show the loading screen
-    loadingScreen.style.display = "flex";
-
     // Check if the user is logged in
     if (await checkAuth() == false) {
         // Redirect to the login page
         window.location.href = "/login";
-
-        // Hide the loading screen
-        loadingScreen.style.display = "none";
         return;
     }
+
+    // If the user has no tasks, prompt them to add some
+    const goalsString = localStorage.getItem("goals");
+    if (!goalsString || !hasGoalsFromToday()) {
+        showToastNotification("⚠️ No tasks for today found. Please add some tasks to generate a schedule. ⚠️");
+        return;
+    }
+
+    // If the user has no scheduled activities, prompt them to add some
+    //if (scheduledActivities.length == 0) {
+        //showToastNotification("⚠️ No scheduled activities for today found. Please add some scheduled activities to generate a schedule. ⚠️");
+        //return;
+    //}
+
+    // Show the loading screen
+    loadingScreen.style.display = "flex";
 
     // Clear any existing suggested activities
     suggestedScheduledActivities = [];
@@ -2227,7 +2281,10 @@ async function displayBannerIfExpired() {
 
     if (authData.authenticated == false /*&& authData.expired == true*/) {
         // Unhide banner
-        document.querySelector(".banner").hidden = false;
+        //document.querySelector(".banner").hidden = false;
+
+        // Use a toast instead
+        showToastNotification("⚠️ You are currently not logged in. Log in to sync your activities. ⚠️")
 
     }
 }

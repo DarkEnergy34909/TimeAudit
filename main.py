@@ -179,7 +179,7 @@ def login():
                 response.headers["Content-Type"] = "application/json"
                 response.headers["Access-Control-Allow-Credentials"] = "true"
                 
-                response.set_cookie("token", token, domain="192.168.1.136", httponly=True, secure=False, samesite='Lax', expires=time.time() + COOKIE_EXPIRY_TIME)  # Cookie expires in 48 hours
+                response.set_cookie("token", token, domain="192.168.1.162", httponly=True, secure=False, samesite='Lax', expires=time.time() + COOKIE_EXPIRY_TIME)  # Cookie expires in 48 hours
 
                 # Use make_response here to use cookies
                 return response
@@ -249,7 +249,7 @@ def signup():
                 response.headers["Access-Control-Allow-Credentials"] = "true"
 
                 # Add a cookie to the response
-                response.set_cookie("token", token, domain="192.168.1.136", httponly=True, secure=False, samesite='Lax', expires=time.time() + COOKIE_EXPIRY_TIME)
+                response.set_cookie("token", token, domain="192.168.1.162", httponly=True, secure=False, samesite='Lax', expires=time.time() + COOKIE_EXPIRY_TIME)
 
                 return response
                 #return {"token": token}, 200
@@ -640,7 +640,7 @@ def logout_api():
 
     # Reset the HttpOnly cookie
     response = make_response({"success": True}, 200)
-    response.set_cookie("token", "", domain="192.168.1.136", expires=0, httponly=True, secure=False, samesite='Lax')
+    response.set_cookie("token", "", domain="192.168.1.162", expires=0, httponly=True, secure=False, samesite='Lax')
     return response
 
 @app.route("/api/account/delete", methods=["POST"])
@@ -662,7 +662,7 @@ def delete_account_api():
 
     # Reset the HttpOnly cookie
     response = make_response({"success": True}, 200)
-    response.set_cookie("token", "", domain="192.168.1.136", expires=0, httponly=True, secure=False, samesite='Lax')
+    response.set_cookie("token", "", domain="192.168.1.162", expires=0, httponly=True, secure=False, samesite='Lax')
     return response
 
 @app.route("/api/account/change-email", methods=["POST"])

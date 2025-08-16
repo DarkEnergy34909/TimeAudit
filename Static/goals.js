@@ -86,7 +86,7 @@ Chart.pluginService.register({
 
 // A goal has the following properties:
 // title: string (e.g. "Get money")
-// duration: int (e.g. 60 for 60 minutes, or can be 0 if not a time-limited goal)
+// duration: int (e.g. 60 for 60 minutes)
 // timeDone: int (e.g. 30 for 30 minutes of the goal done)
 // date: string (ISO)
 
