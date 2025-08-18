@@ -939,7 +939,7 @@ async function pullActivitiesFromServer() {
 
 // Retrieves goals from server
 async function pullGoalsFromServer() {
-    const authResult = checkAuth();
+    const authResult = await checkAuth();
     if (authResult == true) {
         // Get goals from server
         const goalsResponse = await fetch("/api/goals", {

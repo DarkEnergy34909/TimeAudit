@@ -435,6 +435,27 @@ def remove_goal_api():
         remove_goal_from_database(goal, user_id)
 
         return {"success": True}, 200
+    
+@app.route("/api/goals/update", methods=["POST"])
+def update_goal_api():
+    # Get the goal
+    goal = request.get_json()
+
+    # Get the token
+    token = request.cookies.get("token")
+    decoded_token = decode_jwt_token(token)
+
+    # Check if the token is valid
+    if ("error" in decoded_token):
+        return {"error": "authentication_failed"}, 400
+    else:
+        # Get the user id 
+        user_id = decoded_token["user-id"]
+
+        # Update the goal in the database
+        update_goal_in_database(goal, user_id)
+
+        return {"success": True}, 200
             
 @app.route("/api/activities/remove", methods=["POST"])
 def remove_activity_api():
@@ -744,9 +765,11 @@ def generate_schedule_api():
     # Get the date from the request
     request_data = request.get_json()
     date = request_data["date"]
+    startTime = request_data["startTime"]
+    endTime = request_data["endTime"]
 
     # Generate the user's schedule
-    schedule = generate_user_schedule(user_id, date) 
+    schedule = generate_user_schedule(user_id, date, startTime, endTime) 
     #schedule = '[{"title": "Maths revision", "category": "Work/Study", "startTime": 510, "endTime": 600, "date": "2025-08-01"}]'  # Placeholder for testing
 
     return {"success": True, "schedule": schedule}, 200
@@ -767,7 +790,7 @@ def get_categories():
     return categories
 
 
-def generate_user_schedule(user_id, date): 
+def generate_user_schedule(user_id, date, startTime, endTime): 
     # Get scheduled activities from the database
     scheduled_activities = get_scheduled_activities_from_database_as_dicts(user_id)
     #print(scheduled_activities)
@@ -793,10 +816,10 @@ def generate_user_schedule(user_id, date):
     # The initial context prompt for the AI
     context_prompt = """
     You are a helpful assistant that creates daily schedules for users based on their goals, past logged activities, and scheduled plans. 
-    Please generate a schedule for the user on the given date which:
+    Generate a schedule for the user on the given date which:
     1. Covers all their goals (e.g. 2hrs revision)
     2. Does not conflict with any activities already scheduled (scheduled_activities) on this date (if an activity is already scheduled, it should NOT be included in the schedule)
-    3. Fits within reasonable times (8am-10pm) (UNDER NO CIRUMSTANCES SHOULD THE SCHEDULE INCLUDE TIMES WHICH EXCEED MIDNIGHT (1440 minutes))
+    3. Fits in time limits given (in minutes since midnight)
     4. Includes short breaks between activities if possible
     5. Includes activities not in their goals if they are relevant to the user's interests or past activities
     Your output should be a JSON array of activities in the following format:
@@ -807,6 +830,8 @@ def generate_user_schedule(user_id, date):
 
     prompt_content = json.dumps({
         "date": date,
+        "startTime": startTime,
+        "endTime": endTime,
         "categories": categories,
         "activities": activities,
         "scheduled_activities": scheduled_activities,
@@ -1051,6 +1076,20 @@ def add_goal_to_database(goal, user_id):
     # Insert the goal into the database
     res = cur.execute("INSERT INTO Goal (Title, Duration, TimeDone, Date, UserID) VALUES (?, ?, ?, ?, ?);", (goal_title, goal_duration, goal_time_done, goal_date, user_id))
     
+    # Commit to database
+    con.commit()
+    con.close()
+
+    return True
+
+def update_goal_in_database(goal, user_id):
+    # Connect to the database
+    con = sqlite3.connect("timeaudit.db")
+    cur = con.cursor()
+
+    # Update the goal in the database
+    res = cur.execute("UPDATE Goal SET TimeDone = ? WHERE Title = ? AND Duration = ? AND Date = ? AND UserID = ?;", (goal["timeDone"], goal["title"], goal["duration"], goal["date"], user_id))
+
     # Commit to database
     con.commit()
     con.close()

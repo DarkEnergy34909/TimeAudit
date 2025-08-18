@@ -154,6 +154,26 @@ function closeAddMenu() {
     addMenu.hidden = true;
 }
 
+function showToastNotification(message) {
+    // Unhide the toast notification element
+    const toastNotification = document.querySelector(".toast-notification");
+    toastNotification.style.display = "flex";
+
+    // Set the message
+    const toastMessage = document.querySelector(".toast-message");
+    toastMessage.textContent = message;
+}
+
+function closeToastNotification() {
+    // Hide the toast notification element
+    const toastNotification = document.querySelector(".toast-notification");
+    toastNotification.style.display = "none";
+
+    // Clear the message
+    const toastMessage = document.querySelector(".toast-message");
+    toastMessage.textContent = "";
+}
+
 function addGoal() {
     // Get the goal attributes
     const goalName = document.querySelector("#goal-name").value;
@@ -231,9 +251,12 @@ async function saveGoalToServer(goal) {
         if (!goalsResponse.ok ||!goalsData.success) {
             // Send an alert that the activity was NOT posted to the server
             //alert("Failed to post goal to the server. Check your network connection.");
+            showToastNotification("Failed to post task to server. Check your network connection.");
         }
         else {
             //alert("Posted goal successfully");
+            // Show a toast notification
+            showToastNotification(`Task '${goal.title}' added successfully! 🎉`);
         }
     }
     else if (authStatus == false) {
@@ -262,13 +285,47 @@ async function removeGoalFromServer(goal) {
         if (!goalResponse.ok ||!goalData.success) {
             // Send an alert that the goal was NOT posted to the server
             //alert("Failed to delete activity from server. Check your network connection.");
+            showToastNotification("Failed to delete task from server. Check your network connection.");
         }
         else {
             //alert("Deleted activity successfully");
+            // Show a toast notification
+            showToastNotification(`Task '${goal.title}' deleted successfully.`);
         }
     }
     else if (authStatus == false) {
         //alert("NOT AUTHENTICATED");
+    }
+}
+
+async function updateGoalOnServer(goal) {
+    // Check if authenticated
+    const authStatus = await checkAuth();
+
+    if (!authStatus) {
+        return;
+    }
+
+    // Send a POST request to the server
+    const goalResponse = await fetch("/api/goals/update", {
+        method: "POST",
+        body: JSON.stringify(goal),
+        headers: {
+            "Content-Type": "application/json",
+            "X-Requested-With": "XMLHttpRequest",
+        }
+    })
+
+    const goalData = await goalResponse.json();
+    if (!goalResponse.ok || !goalData.success) {
+        // Send an alert that the goal was NOT updated on the server
+        //alert("Failed to update goal on server. Check your network connection.");
+        showToastNotification("Failed to sync task to server. Check your network connection.");
+    }
+    else {
+        // Goal has been updated successfully
+        // Show toast notification
+        showToastNotification(`Task '${goal.title}' updated successfully.`);
     }
 }
 
@@ -323,10 +380,11 @@ function addGoalCard(goal, today) {
 
     // Create a delete (X) button for the goal
     const deleteButton = document.createElement("button");
+    deleteButton.classList.add("goal-delete-button");
     deleteButton.textContent = "×";
     deleteButton.hidden = true;
 
-    deleteButton.onclick = function() {
+    deleteButton.onclick = async function() {
         // Remove the goal element
         goalDiv.remove();
 
@@ -334,13 +392,13 @@ function addGoalCard(goal, today) {
         for (let i = 0; i < goals.length; i++) {
             if (goals[i].title == goalTitle && goals[i].duration == goalDuration && goals[i].timeDone == goalTimeDone && goals[i].date == goalDate) {
                 // Remove the goal from the server
-                removeGoalFromServer(goals[i]);
+                await removeGoalFromServer(goals[i]);
 
                 // Remove the goal at index i
                 goals.splice(i, 1);
 
                 // Update local storage
-                updateGoalsStorage();
+                await updateGoalsStorage();
 
                 break;
             }
@@ -366,17 +424,59 @@ function addGoalCard(goal, today) {
     }
     goalDiv.appendChild(deleteButton);
 
+    // Create a button to manually mark the goal as completed
+    const completedButton = document.createElement("button");
+    completedButton.classList.add("goal-completed-button");
+    completedButton.textContent = "✓";
+    completedButton.hidden = true;
+    
+    // When the button is clicked, mark the goal as completed
+    completedButton.onclick = async function() {
+        // Get the goal
+        for (let i = 0; i < goals.length; i++) {
+            if (goals[i].title == goalTitle && goals[i].duration == goalDuration && goals[i].timeDone == goalTimeDone && goals[i].date == goalDate) {
+                // Set the time done to the duration
+                goals[i].timeDone = goals[i].duration;
+                goals[i].completed = true;
+
+                // Update the goal on the server
+                await updateGoalOnServer(goals[i]);
+
+                // Update local storage
+                updateGoalsStorage();
+
+                // Update the UI element
+                goalText.textContent = goalTitle + " - " + goals[i].timeDone + " / " + goals[i].duration + " min completed";
+
+                // Update the chart
+                createProgressChart(goalChartId, goals[i].timeDone, goals[i].duration);
+
+                // Show a toast notification
+                //showToastNotification(`Task '${goals[i].title}' completed! 🎉`);
+            }
+        }
+    }
+    goalDiv.appendChild(completedButton);
+
     // Hide/unhide the delete button when hovering
     goalDiv.onmouseover = function() {
         // Get the delete button and hide it
-        const button = goalDiv.querySelector("button");
-        button.hidden = false;
+        const deleteButton = goalDiv.querySelector(".goal-delete-button");
+        deleteButton.hidden = false;
+
+        // Get the completed button and hide it
+        const completedButton = goalDiv.querySelector(".goal-completed-button");
+        completedButton.hidden = false;
     }
 
     goalDiv.onmouseout = function() {
         // Get the delete button and show it
-        const button = goalDiv.querySelector("button");
-        button.hidden = true;
+        const deleteButton = goalDiv.querySelector(".goal-delete-button");
+        deleteButton.hidden = true;
+
+        // Get the completed button and show it
+        const completedButton = goalDiv.querySelector(".goal-completed-button");
+        completedButton.hidden = true;
     }
 
     // Get the container for the goal div and add the div
@@ -626,7 +726,7 @@ async function checkAuth() {
 }
 
 async function pullGoalsFromServer() {
-    const authResult = checkAuth();
+    const authResult = await checkAuth();
     if (authResult == true) {
         // Get goals from server
         const goalsResponse = await fetch("/api/goals", {

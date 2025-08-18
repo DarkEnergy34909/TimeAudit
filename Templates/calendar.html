@@ -72,7 +72,7 @@
             <button id="stop-button" onclick="stopActivity();" hidden>Stop activity</button>
             <button id="add-button" onclick="openAddMenu(); closeScheduledAddMenu();">Start/log activity</button>
 
-            <button id="generate-schedule-button" onclick="generateSchedule();">✨Generate schedule✨</button>
+            <button id="generate-schedule-button" onclick="openGenerateScheduleMenu();">✨Generate schedule✨</button>
             <button id="confirm-schedule-button" onclick="confirmSchedule();" hidden>✓</button>
             <button id="refresh-schedule-button" onclick="refreshSchedule();" hidden>⟳</button>
             <button id="cancel-schedule-button" onclick="cancelSchedule();" hidden>×</button>
@@ -91,11 +91,6 @@
             </select>-->
         </div>
 
-        <div class="toast-notification">
-            <span class="toast-message">You just started a streak!</span>
-
-            <button class="toast-close-button" onclick="closeToastNotification();">×</button>
-        </div>
         <div class="add-menu" id="add-activity-menu" hidden="true">
             <h2>Start or log an activity</h2>
             <form action="" method="POST">
@@ -111,12 +106,12 @@
                     <option value="Social">Social</option>
                     <option value="Chores/Errands">Chores/Errands</option>
                     <option value="Eat/Drink">Eat/Drink</option>
-                    <option value="Good leisure">Good leisure</option>
-                    <option value="Bad leisure">Bad leisure</option>
+                    <option value="Leisure">Leisure</option>
+                    <option value="Wasted time">Wasted time</option>
                     <option value="Personal care">Personal care</option>
                     <option value="Sleep/Napping">Sleep/Napping</option>
                     <option value="Travel">Travel</option>
-                    <option value="Planning/Reflection">Planning/Reflecting</option>
+                    <option value="Planning/Reflection">Planning/Reflection</option>
                     <option value="Other">Other</option>
                 </select><br><br>
 
@@ -184,6 +179,24 @@
             </form>
         </div>
 
+        <div class="add-menu" id="generate-schedule-menu" hidden>
+            <h2>✨Generate today's schedule✨</h2>
+            <form action="" method="POST">
+                <p>Generating a schedule will use AI to create a plan for your day based on your activities and tasks. You can then confirm or refresh the schedule.</p>
+
+                <label for="generate-schedule-start-time">Start time</label>
+                <input type="time" id="generate-schedule-start-time" class="time-input" name="generate-schedule-start-time" required><br><br>
+
+                <label for="generate-schedule-end-time">End time</label>
+                <input type="time" id="generate-schedule-end-time" class="time-input" name="generate-schedule-end-time" required><br><br>
+
+                <p class="error-text" id="generate-schedule-time-input-error" hidden>Please enter a valid pair of times.</p>
+
+                <button type="button" onclick="closeGenerateScheduleMenu();">Cancel</button>
+                <button type="button" onclick="generateSchedule();">Generate schedule</button>
+            </form>
+        </div>
+
         <div class="change-email-menu" hidden>
             <h2>Change email address</h2>
             
@@ -227,6 +240,12 @@
                  </div>
 
             </div>
+        </div>
+
+        <div class="toast-notification">
+            <span class="toast-message">You just started a streak!</span>
+
+            <button class="toast-close-button" onclick="closeToastNotification();">×</button>
         </div>
         <!--<div class="banner" hidden>
             <span>⚠️ You are logged out. Log in to sync your data between devices. ⚠️</span>

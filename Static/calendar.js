@@ -686,7 +686,7 @@ function addScheduledActivity() {
     };
 
     // Check if the date is in the current week
-    if (isInWeek(firstDayOfCurrentWeek, dateObj)) {
+    if (isInWeek(firstDayOfWeek, dateObj)) {
         // Reset the date object
         dateObj = new Date(date);
 
@@ -976,7 +976,7 @@ async function removeScheduledActivityFromServer(scheduledActivity) {
     }
 }
 
-function addTimeToGoal(activity) {
+async function addTimeToGoal(activity) {
     // Get the goal associated with the activity
     const goalsString = localStorage.getItem("goals");
 
@@ -988,9 +988,16 @@ function addTimeToGoal(activity) {
                 // Goal has been found - update its time
                 goals[i].timeDone += (activity.endTime - activity.startTime);
 
+                // Update the goal server-side (if the user is authenticated)
+                await updateGoalOnServer(goals[i]);
+
                 // If the goal is complete, display a toast notification
                 if (goals[i].timeDone >= goals[i].duration) {
                     showToastNotification(`Task '${goals[i].title}' completed! 🎉`);
+                }
+                else {
+                    // Display a toast notification that the goal was updated
+                    showToastNotification(`Task '${goals[i].title}' updated! Time done: ${goals[i].timeDone} minutes`);
                 }
 
                 break;
@@ -1197,6 +1204,35 @@ function goToNextWeek() {
 
 }
 
+async function updateGoalOnServer(goal) {
+    // Check if authenticated
+    const authStatus = await checkAuth();
+
+    if (!authStatus) {
+        return;
+    }
+
+    // Send a POST request to the server
+    const goalResponse = await fetch("/api/goals/update", {
+        method: "POST",
+        body: JSON.stringify(goal),
+        headers: {
+            "Content-Type": "application/json",
+            "X-Requested-With": "XMLHttpRequest",
+        }
+    })
+
+    const goalData = await goalResponse.json();
+    if (!goalResponse.ok || !goalData.success) {
+        // Send an alert that the goal was NOT updated on the server
+        //alert("Failed to update goal on server. Check your network connection.");
+    }
+    else {
+        // Goal has been updated successfully
+        // Idk what to do here lol
+    }
+}
+
 
 // startTime and endTime are FLOATS (e.g. 8.5 for 08:30)
 function addBlock(title, category, startTime, endTime, day, ongoing) {
@@ -1246,7 +1282,7 @@ function addBlock(title, category, startTime, endTime, day, ongoing) {
     // Create a delete button for the block
     const deleteButton = document.createElement("button");
     deleteButton.textContent = "×";
-    deleteButton.onclick = function() {
+    deleteButton.onclick = async function() {
         // Delete the actual block HTML element
         block.remove();
 
@@ -1268,7 +1304,9 @@ function addBlock(title, category, startTime, endTime, day, ongoing) {
                                 // Save to local storage
                                 localStorage.setItem("goals", JSON.stringify(goals));
 
-                                // TODO: UPDATE SERVER-SIDE
+                                // Update the goal on the server
+                                await updateGoalOnServer(goals[j]);
+
                             }
                         }
                     }
@@ -1368,10 +1406,10 @@ function addBlock(title, category, startTime, endTime, day, ongoing) {
         case "Eat/Drink":
             block.style.backgroundColor = "#F97316"; // Orange
             break;
-        case "Good leisure":
+        case "Leisure":
             block.style.backgroundColor = "#22C55E"; // Green
             break;
-        case "Bad leisure":
+        case "Wasted time":
             block.style.backgroundColor = "#991B1B"; // Crimson
             break;
         case "Personal care":
@@ -1546,12 +1584,12 @@ function addScheduledActivityBlock(title, category, startTime, endTime, day, sug
             block.style.color = "#F97316"; // Orange
             blockText.style.color = "#F97316"; // Orange
             break;
-        case "Good leisure":
+        case "Leisure":
             block.style.borderColor = "#22C55E"; // Green
             block.style.color = "#22C55E"; // Green
             blockText.style.color = "#22C55E"; // Green
             break;
-        case "Bad leisure":
+        case "Wasted time":
             block.style.borderColor = "#991B1B"; // Crimson
             block.style.color = "#991B1B"; // Crimson
             blockText.style.color = "#991B1B"; // Crimson
@@ -1840,7 +1878,7 @@ function loadScheduledActivities() {
     if (scheduledActivitiesString) {
         scheduledActivities = JSON.parse(scheduledActivitiesString);
 
-        // TODO: Add blocks
+        // Add blocks
         for (let i = 0; i < scheduledActivities.length; i++) {
             const scheduledActivity = scheduledActivities[i];
 
@@ -1883,8 +1921,46 @@ function hasGoalsFromToday() {
     }
     return false;
 }
+
+function openGenerateScheduleMenu() {
+    document.querySelector("#generate-schedule-menu").hidden = false; 
+
+    // Clear time inputs
+    document.querySelector("#generate-schedule-start-time").value = "";
+    document.querySelector("#generate-schedule-end-time").value = "";
+
+    // Clear any existing error messages
+    document.querySelector("#generate-schedule-time-input-error").hidden = true;
+}
+
+function closeGenerateScheduleMenu() {
+    document.querySelector("#generate-schedule-menu").hidden = true;
+
+    // Clear time inputs
+    //document.querySelector("#generate-schedule-start-time").value = "";
+    //document.querySelector("#generate-schedule-end-time").value = "";
+
+    // DON'T DO THIS BECAUSE THEY'RE NEEDED FOR REFRESHING THE SCHEDULE
+}
  
 async function generateSchedule() {
+    // Check start time and end time inputs
+    const startTime = document.querySelector("#generate-schedule-start-time").value;
+    const endTime = document.querySelector("#generate-schedule-end-time").value;
+
+    // Convert to minutes format
+    const startTimeMinutes = stringTimeToMinutes(startTime);
+    const endTimeMinutes = stringTimeToMinutes(endTime);
+
+    if (startTime == "" || endTime == "" || startTimeMinutes >= endTimeMinutes) {
+        // Show an error message
+        document.querySelector("#generate-schedule-time-input-error").hidden = false;
+        return;
+    }
+
+    // Close the generate schedule menu
+    closeGenerateScheduleMenu();
+
     // If a request has already been sent, do not send another one
     const loadingScreen = document.querySelector("#generate-schedule-loading-screen");
     if (loadingScreen.style.display == "flex") {
@@ -1925,7 +2001,9 @@ async function generateSchedule() {
             "X-Requested-With": "XMLHttpRequest"
         },
         body: JSON.stringify({
-            date: getIsoString(new Date())
+            date: getIsoString(new Date()),
+            startTime: startTimeMinutes,
+            endTime: endTimeMinutes
         })
     });
 
@@ -2158,9 +2236,11 @@ function updateCurrentActivity() {
         // This was in fact too chopped so update the current activity block instead
         const currentActivityElement = document.querySelector(".flash");
 
-        // Delete the current activity block and add a new one
-        addBlock(currentActivity.title, currentActivity.category, currentActivity.startTime, currentActivity.endTime, getCurrentDay(), true);
-        currentActivityElement.remove();
+        // Delete the current activity block and add a new one, IF IN THE CURRENT WEEK
+        if (isInWeek(firstDayOfWeek, new Date(currentActivity.date))) {
+            addBlock(currentActivity.title, currentActivity.category, currentActivity.startTime, currentActivity.endTime, getCurrentDay(), true);
+            currentActivityElement.remove();
+        }
 
         console.log("updated");
     }
@@ -2172,7 +2252,7 @@ async function sendCurrentActivityToServer() {
     if (authResult == true) {
         // User is authenticated, send the current activity to the server
         const currentActivity = activities[currentActivityIndex];
-        const response = await fetch("/api/activities/running", { // TODODOOooo
+        const response = await fetch("/api/activities/running", { 
             method: "POST",
             headers: {
                 "X-Requested-With": "XMLHttpRequest",
@@ -2536,28 +2616,6 @@ async function deleteAccount() {
         localStorage.removeItem("running_activity");
     }
 }
-/*
-async function updateStreak() {
-    // Send a POST request to the API
-    const updateStreakResponse = await fetch("/api/account/update-streak", {
-        method: "POST",
-        body: {},
-        headers: {
-            "Content-Type": "application/json",
-            "X-Requested-With": "XMLHttpRequest"
-        }
-    })
-
-    const updateStreakData = await updateStreakResponse.json();
-
-    if (updateStreakResponse.ok && updateStreakData.success) {
-        // TODO
-    }
-    else {
-        // TODO
-    }
-} THIS IS COMPLETELY REDUNDANT BECAUSE I DID THIS ON THE SERVER ON CALENDAR PAGE LOAD
-*/ 
 
 function toggleScheduled() {
     // Check the value of the checkbox
