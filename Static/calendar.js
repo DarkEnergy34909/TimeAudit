@@ -1922,7 +1922,14 @@ function hasGoalsFromToday() {
     return false;
 }
 
-function openGenerateScheduleMenu() {
+async function openGenerateScheduleMenu() {
+    // Check if the user is logged in
+    if (await checkAuth() == false) {
+        // Redirect to the login page
+        window.location.href = "/login";
+        return;
+    }
+
     document.querySelector("#generate-schedule-menu").hidden = false; 
 
     // Clear time inputs
@@ -1964,13 +1971,6 @@ async function generateSchedule() {
     // If a request has already been sent, do not send another one
     const loadingScreen = document.querySelector("#generate-schedule-loading-screen");
     if (loadingScreen.style.display == "flex") {
-        return;
-    }
-
-    // Check if the user is logged in
-    if (await checkAuth() == false) {
-        // Redirect to the login page
-        window.location.href = "/login";
         return;
     }
 
