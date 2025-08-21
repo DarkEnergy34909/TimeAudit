@@ -1,6 +1,15 @@
 <!DOCTYPE html>
 <html lang="en" style="margin: 0; padding: 0; overflow-x: hidden;">
     <head>
+        <!-- Google tag (gtag.js) -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBSYWNSLZ"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+
+            gtag('config', 'G-6EBSYWNSLZ');
+        </script>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>TimeAudit | Free AI Time Tracking for Students and Professionals</title>
@@ -40,7 +49,7 @@
             <div class="hero-container">
                 <h1 class="hero">Master your <span class="highlight">time</span>. Build better <span class="highlight">habits</span>.</h1>
 
-                <h3 class="hero-explanation">TimeAudit combines time tracking and AI-powered scheduling to help you take control of your time. Plan, track and analyse your time effortlessly: try now, no sign-up required.</h3>
+                <h3 class="hero-explanation">TimeAudit combines time tracking and AI-powered scheduling to help you take control of your day. Plan, track and analyse your time effortlessly: try now, no sign-up required.</h3>
 
                 <a href="calendar" class="start-tracking-button">Start tracking for free</a>
 
@@ -48,13 +57,21 @@
             </div>
 
             <div class="landing-page-banner">
-                <h2 class="landing-page-subheading">Who is TimeAudit for?</h2>
+                <h2 class="landing-page-subheading">Who uses TimeAudit?</h2>
 
                 <div class="suitable-for-box">
-                    <p class="suitable-for-item">✅ Students</p>
-                    <p class="suitable-for-item">✅ Freelancers</p>
-                    <p class="suitable-for-item">✅ Professionals</p>
-                    <p class="suitable-for-item">✅ Anyone who wants to improve their time management</p>
+                    <div class="suitable-for-container">
+                        <p class="suitable-for-item">Students</p>
+                        <p class="suitable-for-subitem">✅ Track your time and hit your study goals</p>
+                        <p class="suitable-for-subitem">✅ Balance studies and personal life effortlessly with AI scheduling</p>
+                    </div>
+                    <div class="suitable-for-container">
+                        <p class="suitable-for-item">Professionals</p>
+                        <p class="suitable-for-subitem">✅ See where all your time goes and focus on what matters</p>
+                        <p class="suitable-for-subitem">✅ Schedule your tasks effectively and keep on top of deadlines</p>
+                    </div>
+                    <!--<p class="suitable-for-item">✅ Anyone who wants to improve their time management</p>
+                    <p class="suitable-for-subitem">Track your time and build better habits</p>-->
                 </div>
 
                 <a href="calendar" class="start-tracking-button-inverted">Start tracking now</a>
@@ -63,7 +80,7 @@
             <h2 class="landing-page-subheading">How TimeAudit works</h2>
 
             <div class="tutorial-box">
-                <video class="tutorial-video" controls muted loop>
+                <video class="tutorial-video" muted loop autoplay>
                     <source src="{{url_for('static', filename='calendar_demo.mp4') }}" type="video/mp4">
                     Your browser does not support the video tag.
                 </video>
@@ -73,7 +90,7 @@
 
             <div class="tutorial-box">
                 <!--<img class="tutorial-gif" src="{{url_for('static', filename='hero_image.png') }}" alt="Gif showing how to add a goal" width="500" height="300">-->
-                <video class="tutorial-video" controls muted loop>
+                <video class="tutorial-video" muted loop autoplay>
                     <source src="{{url_for('static', filename='goals_demo.mp4') }}" type="video/mp4">
                     Your browser does not support the video tag.
                 </video>

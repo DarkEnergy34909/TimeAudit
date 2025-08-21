@@ -19,6 +19,9 @@ let suggestedScheduledActivities = [];
 // The index of the current activity in the activities array
 let currentActivityIndex = -1;
 
+// A flag to indicate if the page has loaded initially
+let initialPageLoad = true;
+
 // An activity has the following properties
 // title: string (e.g. "Gym")
 // category: string (e.g. "Exercise")
@@ -169,7 +172,7 @@ interact('.scheduled-block').draggable({
             readyForMove = false;
         }
     },
-    inertia: true
+    inertia: false
 });
 
 // Make scheduled calendar blocks vertically resizable
@@ -309,7 +312,7 @@ interact('.scheduled-block').resizable({
             min: { height: 20 }
         })
     ],
-    inertia: true
+    inertia: false
 });
 
 function initialiseEmailAddress() {
@@ -804,7 +807,6 @@ async function saveActivityToServer(activity) {
             if (streakString == "🔥1" && document.querySelector(".streak").textContent != streakString) {
                 showToastNotification("You have started a streak! Keep it up! 🔥");
             }
-
             document.querySelector(".streak").textContent = streakString;
         }
     }
@@ -937,6 +939,12 @@ async function removeActivityFromServer(activity) {
             // Update the streak on the frontend
             const streakString = activityData.streak;
             document.querySelector(".streak").textContent = streakString;
+
+            // If the user has lost their streak, display a toast notification
+            if (streakString == "❄️0" && document.querySelector(".streak").textContent != streakString) {
+                showToastNotification("You have lost your streak. Don't give up!");
+            }
+
         }
     }
     else if (authStatus == false) {
@@ -1316,19 +1324,23 @@ function addBlock(title, category, startTime, endTime, day, ongoing) {
                     currentActivityIndex = -1;
                     localStorage.setItem("current_activity", -1);
 
+                    localStorage.removeItem("running_activity");
+
                     // Hide the stop button and show the add button (at the top of the page)
                     const addButton = document.querySelector("#add-button");
                     const stopButton = document.querySelector("#stop-button");
 
                     addButton.hidden = false;
                     stopButton.hidden = true;
+
+                    // Remove the running activity from the server
+                    await removeCurrentlyRunningActivityFromServer();
                 }
                 // If not, remove the activity from the server
-                //else {
-                //}
-
-                // Remove the activity from the server
-                removeActivityFromServer(activities[i]);
+                else {
+                    // Remove the activity from the server
+                    await removeActivityFromServer(activities[i]);
+                }
 
                 // Remove the activity itself
                 activities.splice(i, 1); // Removes one item from the array at index i
@@ -1789,6 +1801,7 @@ function migrateActivities() {
 
 
 async function loadActivities() {
+    console.log("foo");
 
     // Load activities from local storage
     const activitiesString = localStorage.getItem("activities");
@@ -1810,7 +1823,7 @@ async function loadActivities() {
         activities = JSON.parse(activitiesString);
 
         // ONLY DO THIS IF THE USER IS LOGGED IN
-        if (runningActivityString && await checkAuth() == true) {
+        if (runningActivityString && await checkAuth() == true && initialPageLoad == true) {
             // If there is a running activity, add it to the activities array
             // This is because running activities are not saved to the server until they are stopped
             // and are only saved to local storage
@@ -2270,6 +2283,7 @@ async function sendCurrentActivityToServer() {
 }
 
 function initialiseTopButton() {
+    console.log("bar");
     const addButton = document.querySelector("#add-button");
     const stopButton = document.querySelector("#stop-button");
 
@@ -2653,25 +2667,30 @@ function removeLoadingScreen() {
     document.querySelector(".loading-screen").remove();
 }
 
+function setPageLoadedFlag() {
+    initialPageLoad = false;
+}
+
 async function init() {
     //await syncLocalStorageToServer();
     if (await checkAuth() == true) {
         await pullCurrentlyRunningActivity();
         await pullActivitiesFromServer()
         await pullScheduledActivitiesFromServer();
+        console.log("Fetched from server");
     }
     displayBannerIfExpired();
     populateCalendar();
     setMonthYear(currentDate); 
     setDayHeadings(currentDate);
     onStartNowCheckboxChange(); 
-    await loadActivities();
-    loadScheduledActivities();
-    initialiseTopButton();
     setTimeLinePosition();
     initialiseEmailAddress();
+    await loadActivities();
+    await loadScheduledActivities();
+    initialiseTopButton();
+    setPageLoadedFlag();
     removeLoadingScreen();
-
     // Reset the time line position every second
     //setInterval(setTimeLinePosition, 1000);
     setInterval(updateCalendar, 1000);
