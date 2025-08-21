@@ -45,6 +45,26 @@ def privacy_policy():
 def terms_of_service():
     return render_template("terms.html")
 
+@app.route("/robots.txt", methods= ["GET"])
+def robots_txt():
+    # Create a response object
+    response = make_response("User-agent: *\nDisallow: /api/\nSitemap: https://timeaudit.net/sitemap.xml")
+
+    # Set the content type to text/plain
+    response.headers["Content-Type"] = "text/plain"
+    
+    return response
+
+@app.route("/sitemap.xml", methods=["GET"])
+def sitemap_xml():
+    # Create a response object
+    response = make_response(render_template("sitemap.xml"), 200)
+
+    # Set the content type to application/xml
+    response.headers["Content-Type"] = "application/xml"
+    
+    return response
+
 @app.route("/statistics", methods = ["GET", "POST"])
 def statistics():
     # Check if the user is authenticated
