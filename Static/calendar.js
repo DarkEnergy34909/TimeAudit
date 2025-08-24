@@ -2364,6 +2364,7 @@ async function checkAuth() {
 }
 
 async function displayBannerIfExpired() {
+    /*
     const authResponse = await fetch("/api/auth", {
         method: "GET",
         headers: {
@@ -2373,13 +2374,36 @@ async function displayBannerIfExpired() {
 
     const authData = await authResponse.json();
 
-    if (authData.authenticated == false /*&& authData.expired == true*/) {
+    if (authData.authenticated == false /*&& authData.expired == true) {
         // Unhide banner
         //document.querySelector(".banner").hidden = false;
 
         // Use a toast instead
-        showToastNotification("⚠️ You are currently not logged in. Log in to sync your activities. ⚠️")
+    }
+    */
+    // ABOVE CODE IS REDUNDANT BECAUSE AUTH CHECK IS DONE IN INIT()
+    showToastNotification("⚠️ You are currently not logged in. Log in to sync your activities. ⚠️");
+}
 
+async function clearStorageIfExpired() {
+    const authResponse = await fetch("/api/auth", {
+        method: "GET",
+        headers: {
+            "X-Requested-With": "XMLHttpRequest", // Indicate that this is an AJAX request
+        },
+    })
+
+    const authData = await authResponse.json();
+
+    if (authData.authenticated == false && authData.expired == true) {
+        // Clear local storage
+        localStorage.removeItem("activities");
+        localStorage.removeItem("goals");
+        localStorage.removeItem("scheduled_activities");
+        localStorage.removeItem("running_activity");
+
+        localStorage.setItem("current_activity", -1);
+        currentActivityIndex = -1;
     }
 }
 
@@ -2679,7 +2703,10 @@ async function init() {
         await pullScheduledActivitiesFromServer();
         console.log("Fetched from server");
     }
-    displayBannerIfExpired();
+    else {
+        await clearStorageIfExpired();
+        displayBannerIfExpired();
+    }
     populateCalendar();
     setMonthYear(currentDate); 
     setDayHeadings(currentDate);

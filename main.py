@@ -65,8 +65,8 @@ def sitemap_xml():
     
     return response
 
-@app.route("/statistics", methods = ["GET", "POST"])
-def statistics():
+@app.route("/audit", methods = ["GET", "POST"])
+def audit():
     # Check if the user is authenticated
     if ("token" in request.cookies):
         # Get the token from HttpOnly cookie

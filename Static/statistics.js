@@ -90,7 +90,7 @@ Chart.pluginService.register({
 let activities = [];
 
 // A list of all categories for the donut chart
-let categories = ["Work/Study", "Exercise", "Social", "Chores/Errands", "Eat/Drink", "Good leisure", "Bad leisure", "Personal care", "Sleep/Napping", "Travel", "Planning/Reflection", "Other"];
+let categories = ["Work/Study", "Exercise", "Social", "Chores/Errands", "Eat/Drink", "Leisure", "Wasted time", "Personal care", "Sleep/Napping", "Travel", "Planning/Reflection", "Other"];
 
 // A list of corresponding colours for each category
 let categoryColours = ["#3B82F6", "#FF6B35", "#8B5CF6", "#D6A85D", "#F97316", "#22C55E", "#991B1B", "#A7F3D0", "#1E3A8A", "#60A5FA", "#14B8A6", "#9CA3AF"];
