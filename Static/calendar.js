@@ -729,15 +729,25 @@ async function stopActivity() {
     const addButton = document.querySelector("#add-button");
     addButton.hidden = false;
 
-    // Get the current activity and update the goal
+    // Get the current activity 
     const currentActivity = activities[currentActivityIndex];
-    addTimeToGoal(currentActivity);
 
     // Remove the running activity from the server 
     await removeCurrentlyRunningActivityFromServer();
 
-    // Save the activity to the server (so it is not running anymore)
-    await saveActivityToServer(currentActivity);
+    // If the activity has 0 duration, delete it and don't add to the server
+    if (currentActivity.startTime == currentActivity.endTime) {
+        // Remove activity from local storage
+        activities.splice(currentActivityIndex, 1);
+        localStorage.setItem("activities", JSON.stringify(activities));
+    }
+    else {
+        // Save the activity to the server (so it is not running anymore)
+        await saveActivityToServer(currentActivity);
+
+        // Update the goal if there is one
+        addTimeToGoal(currentActivity);
+    }
     
 
     // Set the current activity index to -1 and update local storage
@@ -1287,6 +1297,12 @@ function addBlock(title, category, startTime, endTime, day, ongoing) {
         timeLabel.hidden = true;
     }
 
+    
+    block.onclick = function() {
+        // Open the edit menu
+        openEditMenu(title, category, startTime, endTime, day, ongoing);
+    }
+
     // Create a delete button for the block
     const deleteButton = document.createElement("button");
     deleteButton.textContent = "×";
@@ -1710,6 +1726,56 @@ function openScheduledAddMenu() {
     addMenu.hidden = false;
 }
 
+function openEditMenu(title, category, startTime, endTime, day, ongoing) {
+    // Get the form inputs
+    const nameInput = document.querySelector("#edit-activity-name");
+    const categoryInput = document.querySelector("#edit-category");
+    const startTimeInput = document.querySelector("#edit-start-time");
+    const endTimeInput = document.querySelector("#edit-end-time");
+    const goalInput = document.querySelector("#edit-link-to-goal");
+
+    // Fill in the menu with the activity info
+    nameInput.value = title;
+    categoryInput.value = category;
+    startTimeInput.value = getTimeFromMinutes(startTime);
+    endTimeInput.value = getTimeFromMinutes(endTime);
+
+    // Populate goal select menu with a list of current goals (and None option)
+    const noneOption = document.createElement("option");
+    noneOption.value = "None";
+    noneOption.textContent = "None";
+    goalInput.appendChild(noneOption);
+
+    const goalsString = localStorage.getItem("goals");
+    if (goalsString != null) {
+        const goals = JSON.parse(goalsString);
+        for (let i = 0; i < goals.length; i++) {
+            // If the goal is on the current day add its name as an option
+            if (goals[i].date == getIsoString(new Date())) {
+                const goalOption = document.createElement("option");
+                goalOption.value = goals[i].title;
+                goalOption.textContent = goals[i].title;
+                
+                goalInput.appendChild(goalOption);
+            }
+        }
+    }
+
+    // If the activity is ongoing, disable time inputs
+    if (ongoing) {
+        startTimeInput.disabled = true;
+        endTimeInput.disabled = true;
+    }
+    else {
+        startTimeInput.disabled = false;
+        endTimeInput.disabled = false;
+    }
+
+    // Get the menu
+    const editMenu = document.querySelector("#edit-activity-menu");
+    editMenu.hidden = false;
+}
+
 function closeAddMenu() {
     // Hide the menu
     const addMenu = document.querySelector(".add-menu");
@@ -1720,6 +1786,12 @@ function closeScheduledAddMenu() {
     // Hide the menu
     const addMenu = document.querySelector("#add-scheduled-activity-menu");
     addMenu.hidden = true;
+}
+
+function closeEditMenu() {
+    // Hide the menu
+    const editMenu = document.querySelector("#edit-activity-menu");
+    editMenu.hidden = true;
 }
 
 function onStartNowCheckboxChange() {
