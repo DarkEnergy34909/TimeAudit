@@ -8,4 +8,5 @@ app.config
 
 # Ignore zip files
 timeaudit.zip
-# TODO: Ignore database file later
+# Ignore database file
+timeaudit.db
