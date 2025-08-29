@@ -553,6 +553,60 @@ def sync_activities_api():
         else:
             return {"error": "activities_sync_failed"}, 500
         
+@app.route("/api/activities/edit", methods=["POST"])
+def update_activity_api():
+    # Get the request data
+    request_data = request.get_json()
+
+    # Get the activity
+    activity = json.loads(request_data["activity"])
+
+    # Get the activity id
+    activity_id = request_data["id"]
+
+    # Get the token
+    token = request.cookies["token"]
+    decoded_token = decode_jwt_token(token)
+
+    # Check if token is valid
+    if ("error" in decoded_token):
+        return {"error": "authentication_failed"}, 400
+    else:
+        # Get the user id
+        user_id = decoded_token["user-id"]
+
+        # Update the activity in the database
+        result = update_activity_in_database(activity, activity_id, user_id)
+
+        if (result):
+            return {"success": True}, 200
+        else:
+            return {"error": "update_activity_failed"}, 500
+        
+@app.route("/api/activities/id", methods=["POST"])
+def activity_id_api():
+    # Get the activity
+    activity = request.get_json()
+
+    # Get the token
+    token = request.cookies["token"]
+    decoded_token = decode_jwt_token(token)
+
+    # Check if token is valid
+    if ("error" in decoded_token):
+        return {"error": "authentication_failed"}, 400
+    else:
+        # Get the user id
+        user_id = decoded_token["user-id"]
+
+        # Get the activity id from the database
+        activity_id = get_activity_id_from_database(activity, user_id)
+
+        if (activity_id != -1):
+            return {"success": True, "id": activity_id}, 200
+        else:
+            return {"error": "get_activity_id_failed"}, 500
+        
 @app.route("/api/scheduled-activities/sync", methods=["POST"])
 def sync_scheduled_activities_api():
     # Get scheduled activities from request
@@ -1269,6 +1323,50 @@ def remove_running_activity_from_database(user_id):
     con.close()
 
     return True
+
+def update_activity_in_database(activity, activity_id, user_id):
+    # Connect to the database
+    con = sqlite3.connect("timeaudit.db")
+    cur = con.cursor()
+
+    # Get the category id from the category
+    res = cur.execute("SELECT CategoryID FROM Category WHERE Name = ?", (activity["category"],))
+    category_id = res.fetchone()[0]
+    con.commit()
+
+    # Get the goal id from the goal
+    goal_id = None
+    if ("goalName" in activity and activity["goalName"] != "None"):
+        res = cur.execute("SELECT GoalID FROM Goal WHERE Title = ?", (activity["goalName"],))
+        goal_id = res.fetchone()[0]
+        con.commit()
+
+    # Update the activity in the database
+    res = cur.execute("UPDATE Activity SET Title = ?, CategoryID = ?, StartTime = ?, EndTime = ?, Date = ?, GoalID = ? WHERE ActivityID = ? AND UserID = ?", (activity["title"], category_id, activity["startTime"], activity["endTime"], activity["date"], goal_id, activity_id, user_id))
+    con.commit()
+
+    # Get number of changed rows
+    changed_rows = cur.rowcount
+
+    if (changed_rows == 1):
+        return True
+    else:
+        return False
+    
+def get_activity_id_from_database(activity, user_id):
+    # Connect to database
+    con = sqlite3.connect("timeaudit.db")
+    cur = con.cursor()
+
+    # Get the activity id from the database
+    res = cur.execute("SELECT ActivityID FROM Activity WHERE Title = ? AND StartTime = ? AND EndTime = ? AND Date = ? AND UserID = ?", (activity["title"], activity["startTime"], activity["endTime"], activity["date"], user_id))
+    activity_id_tuple = res.fetchone()
+
+    if (activity_id_tuple == None):
+        return -1
+    else:
+        return activity_id_tuple[0]
+
 
 def get_currently_running_activity(user_id):
     con = sqlite3.connect("timeaudit.db")

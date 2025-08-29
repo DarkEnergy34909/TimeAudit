@@ -19,6 +19,15 @@ let suggestedScheduledActivities = [];
 // The index of the current activity in the activities array
 let currentActivityIndex = -1;
 
+// The index of the activity currently being edited
+let editedActivityIndex = -1;
+
+// The id of the activity currently being edited
+let editedActivityId = -1;
+
+// The previous goal of the activity currently being edited
+let prevGoal = "None";
+
 // A flag to indicate if the page has loaded initially
 let initialPageLoad = true;
 
@@ -1027,6 +1036,11 @@ async function addTimeToGoal(activity) {
     }
 }
 
+// TODO
+async function removeTimeFromGoal(goalName, activity) {
+
+}
+
 // Returns 0-6 for Monday-Sunday
 function getCurrentDay() {
     // Get the current date
@@ -1685,6 +1699,79 @@ function getTimeFromMinutes(minutes) {
     return formattedTime;
 }
 
+// Gets inputs from edit menu to edit an activity
+async function editActivity() {
+    // Get inputs (use value rather than textcontent for inputs)
+    const name = document.querySelector("#edit-activity-name").value;
+    const category = document.querySelector("#edit-category").value;
+    const startTime = document.querySelector("#edit-start-time").value;
+    const endTime = document.querySelector("#edit-end-time").value;
+    const goal = document.querySelector("#edit-link-to-goal").value;
+
+    // Convert times to minutes
+    const startTimeMinutes = stringTimeToMinutes(startTime);
+    const endTimeMinutes = stringTimeToMinutes(endTime);
+
+    // Validate inputs
+    if (name.trim() === "") {
+        document.querySelector("#edit-activity-name-error").hidden = false;
+        return;
+    }
+
+    // Check if the times are valid
+    if (isNaN(startTimeMinutes) || isNaN(endTimeMinutes) || startTimeMinutes >= endTimeMinutes) {
+        document.querySelector("#edit-time-input-error").hidden = false;
+        return;
+    }
+    
+    // Check if the times are already occupied by an activity and return an error message if so
+    for (let i = 0; i < activities.length; i++) {
+        if (editedActivityIndex != i && (activities[i].date == getIsoString(new Date()) && ((startTimeMinutes >= activities[i].startTime && startTimeMinutes < activities[i].endTime) || (endTimeMinutes > activities[i].startTime && endTimeMinutes <= activities[i].endTime)))) {
+            const errorText = document.getElementById("edit-time-input-error");
+            errorText.hidden = false; // Show the error message
+
+            return;
+        }
+    }
+
+    // Edit the activity in the activities array
+    const dateString = activities[editedActivityIndex].date;
+
+    let editedActivity = {
+        title: name, 
+        category: category,
+        startTime: startTimeMinutes,
+        endTime: endTimeMinutes,
+        date: dateString,
+        goalName: goal
+    }
+
+    activities[editedActivityIndex] = editedActivity;
+
+    // Update local storage
+    localStorage.setItem("activities", JSON.stringify(activities));
+    if (editedActivityIndex  == currentActivityIndex) {
+        localStorage.setItem("running_activity", JSON.stringify(editedActivity));
+    }
+
+    // Update the activity server-side
+    if (editedActivityId != -1) {
+        await updateActivityOnServer(editedActivity);
+    }
+
+    // Update the goal if it has been changed
+    if (prevGoal != goal && goal != "None") {
+        // TODO: await removeTimeFromGoal(prevGoal, activity);
+        await addTimeToGoal(editedActivity);
+    }
+
+    removeActivityBlocks();
+    loadActivities();
+
+    closeEditMenu();
+
+}
+
 function openAddMenu() {
     // Make sure the start time is correct if the checkbox is checked
     onStartNowCheckboxChange();
@@ -1771,9 +1858,79 @@ function openEditMenu(title, category, startTime, endTime, day, ongoing) {
         endTimeInput.disabled = false;
     }
 
+    // Set the currently edited activity index
+    setEditedActivityIndex(title, category, startTime, endTime, day);
+
+    // Set the activity id (if the user is logged in)
+    setEditedActivityId(title, category, startTime, endTime, day);
+
+    // Set the previous goal name
+    prevGoal = goalInput.value;
+
     // Get the menu
     const editMenu = document.querySelector("#edit-activity-menu");
     editMenu.hidden = false;
+}
+
+function setEditedActivityIndex(title, category, startTime, endTime, day) {
+
+    // Iterate through all activities in the activities array
+    for (let i = 0; i < activities.length; i++) {
+        const currentActivity = activities[i];
+        const currentActivityDate = new Date(currentActivity.date);
+        if (currentActivity.title == title && currentActivity.category == category && currentActivity.startTime == startTime && currentActivity.endTime == endTime && (currentActivityDate.getDay() + 6) % 7 == day && isInWeek(firstDayOfWeek, currentActivityDate)) {
+            
+            // Edit the edited activity index (activity has been found)
+            editedActivityIndex = i;
+            console.log("Edited index: " + editedActivityIndex);
+
+            break;
+        }
+    }
+}
+
+async function setEditedActivityId(title, category, startTime, endTime, day) {
+    // Authenticate the user
+    const authResponse = await checkAuth();
+
+    if (authResponse == false) {
+        return;
+    }
+
+    // Get the activity from the activities array
+    let activity = null;
+
+    // Iterate through all activities in the activities array
+    for (let i = 0; i < activities.length; i++) {
+        const currentActivity = activities[i];
+        const currentActivityDate = new Date(currentActivity.date);
+        if (currentActivity.title == title && currentActivity.category == category && currentActivity.startTime == startTime && currentActivity.endTime == endTime && (currentActivityDate.getDay() + 6) % 7 == day && isInWeek(firstDayOfWeek, currentActivityDate)) {
+            activity = activities[i];
+
+        }
+    }
+
+    // If the activity is not found
+    if (activity === null) {
+        return;
+    }
+
+    // Fetch the id from the server
+    const idResponse = await fetch("/api/activities/id", {
+        method: "POST",
+        headers: {
+            "X-Requested-With": "XMLHttpRequest",
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(activity)
+    })
+    const idData = await idResponse.json();
+
+    if (idResponse.ok && idData.id) {
+        // Set the id
+        editedActivityId = idData.id;
+        console.log("ID: " + editedActivityId);
+    }
 }
 
 function closeAddMenu() {
@@ -1792,6 +1949,19 @@ function closeEditMenu() {
     // Hide the menu
     const editMenu = document.querySelector("#edit-activity-menu");
     editMenu.hidden = true;
+
+    // Clear the goal options
+    const goalSelectMenu = document.querySelector("#edit-link-to-goal");
+    goalSelectMenu.textContent = "";
+
+    // Reset the edited activity index
+    editedActivityIndex = -1;
+
+    // Reset the edited activity id
+    editedActivityId = -1;
+
+    // Reset the previous goal
+    prevGoal = "None";
 }
 
 function onStartNowCheckboxChange() {
@@ -2331,6 +2501,38 @@ function updateCurrentActivity() {
     }
 }
 
+async function updateActivityOnServer(activity) {
+    // Check if authenticated
+    const authResult = await checkAuth();
+    if (authResult == true) {
+        // Check if the id has been loaded
+        if (editedActivityId == -1) {
+            return;
+        }
+        // Send activity to edit and the activity id to the server
+        const editActivityResponse = await fetch("/api/activities/edit", {
+            method: "POST",
+            headers: {
+                "X-Requested-With": "XMLHttpRequest",
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                activity: JSON.stringify(activity),
+                id: editedActivityId
+            })
+        })
+
+        const editActivityData = await editActivityResponse.json();
+        if (editActivityResponse.ok && editActivityData.success) {
+            // Notify the user that the activity has been edited successfully
+            showToastNotification(`Activity '${activity.title}' updated successfully!`);
+
+            // Reset the id
+            editedActivityId = -1;
+        }
+    }
+}
+
 async function sendCurrentActivityToServer() {
     // Check if authenticated
     const authResult = await checkAuth();
@@ -2790,8 +2992,8 @@ async function init() {
     initialiseTopButton();
     setPageLoadedFlag();
     removeLoadingScreen();
+
     // Reset the time line position every second
-    //setInterval(setTimeLinePosition, 1000);
     setInterval(updateCalendar, 1000);
 }
 
