@@ -1828,17 +1828,31 @@ function openEditMenu(title, category, startTime, endTime, day, ongoing) {
     endTimeInput.value = getTimeFromMinutes(endTime);
 
     // Populate goal select menu with a list of current goals (and None option)
-    const noneOption = document.createElement("option");
-    noneOption.value = "None";
-    noneOption.textContent = "None";
-    goalInput.appendChild(noneOption);
+    let goalName = "None";
+
+    // First get the current goal
+    for (let i = 0; i < activities.length; i++ ) {
+        const currentActivity = activities[i];
+        const currentActivityDate = new Date(currentActivity.date);
+        if (currentActivity.title == title && currentActivity.category == category && currentActivity.startTime == startTime && currentActivity.endTime == endTime && (currentActivityDate.getDay() + 6) % 7 == day && isInWeek(firstDayOfWeek, currentActivityDate)) {
+            if (currentActivity.goalName) {
+                goalName = currentActivity.goalName;
+            }
+        }
+    }
+
+    // Add the activity's current goal as the first option
+    const firstOption = document.createElement("option");
+    firstOption.value = goalName;
+    firstOption.textContent = goalName;
+    goalInput.appendChild(firstOption);
 
     const goalsString = localStorage.getItem("goals");
     if (goalsString != null) {
         const goals = JSON.parse(goalsString);
         for (let i = 0; i < goals.length; i++) {
             // If the goal is on the current day add its name as an option
-            if (goals[i].date == getIsoString(new Date())) {
+            if (goals[i].date == getIsoString(new Date()) && goals[i].title != goalName) {
                 const goalOption = document.createElement("option");
                 goalOption.value = goals[i].title;
                 goalOption.textContent = goals[i].title;
@@ -1846,6 +1860,14 @@ function openEditMenu(title, category, startTime, endTime, day, ongoing) {
                 goalInput.appendChild(goalOption);
             }
         }
+    }
+
+    // If there is not a None option, add one
+    if (goalName != "None") {
+        const noneOption = document.createElement("option");
+        noneOption.value = "None";
+        noneOption.textContent = "None";
+        goalInput.appendChild(noneOption);
     }
 
     // If the activity is ongoing, disable time inputs
