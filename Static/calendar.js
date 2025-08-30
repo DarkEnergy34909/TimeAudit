@@ -1038,7 +1038,25 @@ async function addTimeToGoal(activity) {
 
 // TODO
 async function removeTimeFromGoal(goalName, activity) {
+    // Iterate through goals
+    const goalsString = localStorage.getItem("goals");
 
+    if (goalsString) {
+        const goals = JSON.parse(goalsString);
+
+        for (let goal of goals) {
+            if (goal.date == activity.date && goal.title == goalName) {
+                // Remove the time from the goal
+                goal.timeDone -= (activity.endTime - activity.startTime);
+
+                // Update local storage
+                localStorage.setItem("goals", goals);
+
+                // Update goal server-side
+                await updateGoalOnServer(goal);
+            }
+        }
+    }
 }
 
 // Returns 0-6 for Monday-Sunday
@@ -1706,7 +1724,7 @@ async function editActivity() {
     const category = document.querySelector("#edit-category").value;
     const startTime = document.querySelector("#edit-start-time").value;
     const endTime = document.querySelector("#edit-end-time").value;
-    const goal = document.querySelector("#edit-link-to-goal").value;
+    const goalName = document.querySelector("#edit-link-to-goal").value;
 
     // Convert times to minutes
     const startTimeMinutes = stringTimeToMinutes(startTime);
@@ -1743,7 +1761,7 @@ async function editActivity() {
         startTime: startTimeMinutes,
         endTime: endTimeMinutes,
         date: dateString,
-        goalName: goal
+        goalName: goalName
     }
 
     activities[editedActivityIndex] = editedActivity;
@@ -1760,10 +1778,17 @@ async function editActivity() {
     }
 
     // Update the goal if it has been changed
-    if (prevGoal != goal && goal != "None") {
-        // TODO: await removeTimeFromGoal(prevGoal, activity);
-        await addTimeToGoal(editedActivity);
+    if (prevGoal != goalName) {
+        // Remove time from the previous goal
+        await removeTimeFromGoal(prevGoal, editedActivity);
+
+        // Add time to the new goal
+        if (goalName != "None") {
+            await addTimeToGoal(editedActivity);
+        }
     }
+
+    
 
     removeActivityBlocks();
     loadActivities();
