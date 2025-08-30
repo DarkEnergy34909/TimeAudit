@@ -1417,6 +1417,8 @@ def get_activities_from_database_as_dicts(user_id):
             goal_name_tuple = cur.execute("SELECT Title FROM Goal WHERE GoalID = ?", (activity[6],)).fetchone()
             if (goal_name_tuple == None):
                 goal_name = "None"
+                # Set the ID to none (cleanup)
+                cur.execute("UPDATE Activity SET GoalID = NULL WHERE ActivityID = ?;", (activity[0],))
             else:
                 goal_name = goal_name_tuple[0]
 

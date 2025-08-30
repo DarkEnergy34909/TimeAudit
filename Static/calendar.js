@@ -1338,7 +1338,10 @@ function addBlock(title, category, startTime, endTime, day, ongoing) {
     // Create a delete button for the block
     const deleteButton = document.createElement("button");
     deleteButton.textContent = "×";
-    deleteButton.onclick = async function() {
+    deleteButton.onclick = async function(event) {
+        // Stop event bubbling up to parent (block)
+        event.stopPropagation();
+
         // Delete the actual block HTML element
         block.remove();
 
@@ -1399,6 +1402,7 @@ function addBlock(title, category, startTime, endTime, day, ongoing) {
         }
         // Update local storage
         localStorage.setItem("activities", JSON.stringify(activities));
+
     }
 
     // Hide the delete button for now
