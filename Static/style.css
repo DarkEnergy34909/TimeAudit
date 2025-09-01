@@ -130,6 +130,15 @@ a {
     margin: 40px;
 }
 
+.hero-video {
+    /*box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+    box-shadow: 0 8px 12px rgba(37, 99, 235, 0.3); /* Blue shadow */
+    border-radius: 10px; /* Rounded corners */
+    max-width: 90%;
+    height: auto; /* Maintain aspect ratio */
+    margin: 40px;
+}
+
 .hero-explanation {
     color: black; /* Dark Blue */
     font-size: 1.2rem;
@@ -1166,7 +1175,7 @@ a {
 }
 
 .block:hover {
-    /*cursor: pointer;*/
+    cursor: pointer;
     /*(transform: scale(1.05); /* Slightly enlarge the block */
     filter: brightness(1.2); /* Brighten the block */
     z-index: 20; /* Bring to the front on hover */

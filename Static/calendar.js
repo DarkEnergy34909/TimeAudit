@@ -25,6 +25,9 @@ let editedActivityIndex = -1;
 // The id of the activity currently being edited
 let editedActivityId = -1;
 
+// The block currently being edited
+let editedBlock = null;
+
 // The previous goal of the activity currently being edited
 let prevGoal = "None";
 
@@ -1331,6 +1334,9 @@ function addBlock(title, category, startTime, endTime, day, ongoing) {
 
     
     block.onclick = function() {
+        // Set the edited block
+        editedBlock = block;
+
         // Open the edit menu
         openEditMenu(title, category, startTime, endTime, day, ongoing);
     }
@@ -1794,8 +1800,14 @@ async function editActivity() {
 
     
 
-    removeActivityBlocks();
-    loadActivities();
+    //removeActivityBlocks();
+    //loadActivities();
+    // Get the day for the block
+    const day = ((new Date(dateString)).getDay() + 6) % 7;
+
+    // Replace the existing block
+    addBlock(name, category, startTimeMinutes, endTimeMinutes, day);
+    editedBlock.remove();
 
     closeEditMenu();
 
@@ -2013,6 +2025,9 @@ function closeEditMenu() {
 
     // Reset the previous goal
     prevGoal = "None";
+
+    // Reset the edited block 
+    editedBlock = null;
 }
 
 function onStartNowCheckboxChange() {

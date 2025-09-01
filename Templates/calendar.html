@@ -19,6 +19,7 @@
         <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Poppins">
         <script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>
         <script src="{{ url_for('static', filename='calendar.js') }}" defer></script>
+        <meta name="robots" content="noindex">
     </head>
 
     <body onresize="if (canShowLogged()) {removeActivityBlocks(); loadActivities(); } if (canShowScheduled()) {removeScheduledActivityBlocks(); loadScheduledActivities(); } " style="font-family: 'Poppins';">
