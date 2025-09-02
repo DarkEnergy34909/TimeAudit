@@ -1558,11 +1558,17 @@ a {
 }
 
 .completed {
-    background-color: #d1fae5; /* Light green background for completed goals */
+    /*background-color: #d1fae5; /* Light green background for completed goals */
+    color: #22c55e; /* Green text for completed goals */
 }
 
 .uncompleted {
-    background-color: #fee2e2; /* Light red background for uncompleted goals */
+    /*background-color: #fee2e2; /* Light red background for uncompleted goals */
+    color: #ef4444; /* Red text for uncompleted goals */
+}
+
+.due-today {
+    color: #f59e0b; /* Orange text for goals due today */
 }
 
 /* Login menu */

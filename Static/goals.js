@@ -178,6 +178,8 @@ function addGoal() {
     // Get the goal attributes
     const goalName = document.querySelector("#goal-name").value;
     const goalDuration = (parseInt(document.querySelector("#goal-duration-minutes").value)) + (60 * parseInt(document.querySelector("#goal-duration-hours").value));
+    const goalDateString = document.querySelector("#goal-deadline").value;
+    const goalDateObj = new Date(goalDateString);
 
     // If the goal name is empty, display an error message
     if (goalName == "") {
@@ -191,13 +193,33 @@ function addGoal() {
         document.querySelector("#duration-error").hidden = false;
         return;
     }
+
+    // Check if the date is valid
+    if (goalDateObj.toString() === "Invalid Date") {
+        const errorText = document.getElementById("deadline-error");
+        errorText.hidden = false; // Show the error message
+        console.log("Invalid date");
+        return;
+    }
+
+    // Convert the date to ISO string format
+    const isoDate = getIsoString(goalDateObj);
+
+    // Check if the date is in the past
+    if (isoDate < getIsoString(new Date())) {
+        const errorText = document.getElementById("deadline-error");
+        errorText.hidden = false; // Show the error message
+        console.log("Date is in the past");
+        return;
+    }
+
     // Create a goal object
     const newGoal = {
         title: goalName,
         duration: goalDuration, 
         timeDone: 0,
         completed: false,
-        date: getIsoString(new Date())
+        date: isoDate
     }
 
     // Save the goal
@@ -213,11 +235,13 @@ function addGoal() {
     // Clear the form inputs
     document.querySelector("#goal-name").value = "";
     document.querySelector("#goal-duration-hours").value = "0";
-    document.querySelector("#goal-duration-minutes").value = "1";
+    document.querySelector("#goal-duration-minutes").value = "0";
+    document.querySelector("#goal-deadline").value = "";
 
     // Hide the error messages
     document.querySelector("#goal-name-error").hidden = true;
     document.querySelector("#duration-error").hidden = true;
+    document.querySelector("#deadline-error").hidden = true;
 
     // Close the menu
     closeAddMenu();
@@ -330,7 +354,7 @@ async function updateGoalOnServer(goal) {
 }
 
 // Creates a UI element for the goal
-function addGoalCard(goal, today) {
+function addGoalCard(goal, outstanding) {
     const goalTitle = goal.title;
     const goalDuration = goal.duration;
     const goalTimeDone = goal.timeDone;
@@ -341,24 +365,25 @@ function addGoalCard(goal, today) {
     goalDiv.classList.add("goal-card");
 
     // Set a colour for the goal card if necessary
-    if (!today) {
+    if (!outstanding) {
+        /*
         if (goalTimeDone >= goalDuration) {
             goalDiv.classList.add("completed");
         }
         else {
             // This line def shouldn't happen so if it does there's a bug
             goalDiv.classList.add("uncompleted");
-        }
+        }*/
 
         // Create a date for the goal
         const goalDateElement = document.createElement("span");
         goalDateElement.classList.add("goal-date");
+        goalDateElement.classList.add("completed");
         goalDateElement.textContent = `Completed ${goalDate}`;
         goalDiv.appendChild(goalDateElement);
     }
     else {
         if (goalTimeDone < goalDuration && goalDate < getIsoString(new Date())) {
-            goalDiv.classList.add("uncompleted");
 
             // Work out how many days ago the goal was due
             const daysOverdue = parseInt((new Date() - new Date(goalDate)) / (1000 * 60 * 60 * 24));
@@ -366,6 +391,7 @@ function addGoalCard(goal, today) {
             // Add due text
             const goalDueElement = document.createElement("span");
             goalDueElement.classList.add("goal-date");
+            goalDueElement.classList.add("uncompleted");
             if (daysOverdue == 1) {
                 goalDueElement.textContent = "Due yesterday";
             }
@@ -375,11 +401,34 @@ function addGoalCard(goal, today) {
             goalDiv.appendChild(goalDueElement);
 
         }
+        else if (goalTimeDone >= goalDuration) {
+
+            // Add completed text
+            const goalCompletedElement = document.createElement("span");
+            goalCompletedElement.classList.add("goal-date");
+            goalCompletedElement.classList.add("completed");
+            goalCompletedElement.textContent = "Completed today";
+            goalDiv.appendChild(goalCompletedElement);
+        }
         else {
+            // Work out in how many days the goal is due
+            const daysDue = parseInt(((new Date(goalDate) - new Date()) / (1000 * 60 * 60 * 24)) + 1);
+
             // Add due text
             const goalDueElement = document.createElement("span");
             goalDueElement.classList.add("goal-date");
-            goalDueElement.textContent = "Due today";
+
+            if (daysDue == 0) {
+                goalDueElement.classList.add("due-today");
+                goalDueElement.textContent = "Due today";
+            }
+            else if (daysDue == 1) {
+                goalDueElement.textContent = "Due tomorrow";
+            }
+            else {
+                goalDueElement.textContent = `Due in ${daysDue} days`;
+            }
+
             goalDiv.appendChild(goalDueElement);
         }
     }
@@ -398,7 +447,7 @@ function addGoalCard(goal, today) {
     // Create the chart element
     const goalChart = document.createElement("canvas");
     //const goalChartId = goalTitle + "-" + goalDuration + "-" + goalDate + "-chart";
-    const goalChartId = goalTitle + "-chart";
+    const goalChartId = goalTitle + goalDate + "-chart";
     goalChart.id = goalChartId;
     goalChart.width = "100";
     goalChart.height = "100";
@@ -452,39 +501,54 @@ function addGoalCard(goal, today) {
     }
     goalDiv.appendChild(deleteButton);
 
-    // Create a button to manually mark the goal as completed
-    const completedButton = document.createElement("button");
-    completedButton.classList.add("goal-completed-button");
-    completedButton.textContent = "✓";
-    completedButton.hidden = true;
+    // Should only be able to mark the goal as complete if it is outstanding
+    if (outstanding) {
+        // Create a button to manually mark the goal as completed
+        const completedButton = document.createElement("button");
+        completedButton.classList.add("goal-completed-button");
+        completedButton.textContent = "✓";
+        completedButton.hidden = true;
     
-    // When the button is clicked, mark the goal as completed
-    completedButton.onclick = async function() {
-        // Get the goal
-        for (let i = 0; i < goals.length; i++) {
-            if (goals[i].title == goalTitle && goals[i].duration == goalDuration && goals[i].timeDone == goalTimeDone && goals[i].date == goalDate) {
-                // Set the time done to the duration
-                goals[i].timeDone = goals[i].duration;
-                goals[i].completed = true;
+        // When the button is clicked, mark the goal as completed
+        completedButton.onclick = async function() {
+            // Get the goal
+            for (let i = 0; i < goals.length; i++) {
+                if (goals[i].title == goalTitle && goals[i].duration == goalDuration && goals[i].timeDone == goalTimeDone && goals[i].date == goalDate) {
+                    // Set the time done to the duration
+                    goals[i].timeDone = goals[i].duration;
+                    goals[i].completed = true;
 
-                // Update the goal on the server
-                await updateGoalOnServer(goals[i]);
+                    // Update the goal on the server
+                    await updateGoalOnServer(goals[i]);
 
-                // Update local storage
-                updateGoalsStorage();
+                    // Update local storage
+                    updateGoalsStorage();
 
-                // Update the UI element
-                goalText.textContent = goalTitle + " - " + goals[i].timeDone + " / " + goals[i].duration + " min completed";
+                    // Update the UI element
+                    goalText.textContent = goalTitle + " - " + goals[i].timeDone + " / " + goals[i].duration + " min completed";
+                    const completedText = goalDiv.querySelector(".goal-date");
 
-                // Update the chart
-                createProgressChart(goalChartId, goals[i].timeDone, goals[i].duration);
+                    // Remove any existing classes from the completed text
+                    if (completedText.classList.contains("uncompleted")) {
+                        completedText.classList.remove("uncompleted");
+                    }
+                    else if (completedText.classList.contains("due-today")) {
+                        completedText.classList.remove("due-today");
+                    }
 
-                // Show a toast notification
-                //showToastNotification(`Task '${goals[i].title}' completed! 🎉`);
+                    completedText.classList.add("completed");
+                    completedText.textContent = "Completed today";
+
+                    // Update the chart
+                    createProgressChart(goalChartId, goals[i].timeDone, goals[i].duration);
+
+                    // Show a toast notification
+                    //showToastNotification(`Task '${goals[i].title}' completed! 🎉`);
+                }
             }
         }
+        goalDiv.appendChild(completedButton);
     }
-    goalDiv.appendChild(completedButton);
 
     // Hide/unhide the delete button when hovering
     goalDiv.onmouseover = function() {
@@ -492,9 +556,11 @@ function addGoalCard(goal, today) {
         const deleteButton = goalDiv.querySelector(".goal-delete-button");
         deleteButton.hidden = false;
 
-        // Get the completed button and hide it
-        const completedButton = goalDiv.querySelector(".goal-completed-button");
-        completedButton.hidden = false;
+        if (outstanding) {
+            // Get the completed button and hide it
+            const completedButton = goalDiv.querySelector(".goal-completed-button");
+            completedButton.hidden = false;
+        }
     }
 
     goalDiv.onmouseout = function() {
@@ -502,9 +568,11 @@ function addGoalCard(goal, today) {
         const deleteButton = goalDiv.querySelector(".goal-delete-button");
         deleteButton.hidden = true;
 
-        // Get the completed button and show it
-        const completedButton = goalDiv.querySelector(".goal-completed-button");
-        completedButton.hidden = true;
+        if (outstanding) {
+            // Get the completed button and show it
+            const completedButton = goalDiv.querySelector(".goal-completed-button");
+            completedButton.hidden = true;
+        }
     }
 
     // Get the container for the goal div and add the div
