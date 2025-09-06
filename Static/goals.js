@@ -83,12 +83,20 @@ Chart.pluginService.register({
   }
 });
 
+// Options for displaying dates
+const dateOptions = {
+    year: "numeric",
+    month: "short",
+    day: "numeric"
+};
+
 
 // A goal has the following properties:
 // title: string (e.g. "Get money")
 // duration: int (e.g. 60 for 60 minutes)
 // timeDone: int (e.g. 30 for 30 minutes of the goal done)
-// date: string (ISO)
+// date: string (ISO - the deadline of the goal)
+// dateCompleted: string (ISO - when the goal was actually met)
 
 let goals = [];
 
@@ -145,6 +153,10 @@ function closeChangeEmailMenu() {
 }
 
 function openAddMenu() {
+    // Put the deadline as today by default
+    const deadlineInput = document.querySelector("#goal-deadline");
+    deadlineInput.value = getIsoString(new Date());
+
     const addMenu = document.querySelector(".add-menu");
     addMenu.hidden = false;
 }
@@ -219,7 +231,8 @@ function addGoal() {
         duration: goalDuration, 
         timeDone: 0,
         completed: false,
-        date: isoDate
+        date: isoDate,
+        dateCompleted: ""
     }
 
     // Save the goal
@@ -359,6 +372,7 @@ function addGoalCard(goal, outstanding) {
     const goalDuration = goal.duration;
     const goalTimeDone = goal.timeDone;
     const goalDate = goal.date;
+    const goalDateCompleted = goal.dateCompleted;
     
     // Create a div for the goal
     const goalDiv = document.createElement("div");
@@ -366,23 +380,18 @@ function addGoalCard(goal, outstanding) {
 
     // Set a colour for the goal card if necessary
     if (!outstanding) {
-        /*
-        if (goalTimeDone >= goalDuration) {
-            goalDiv.classList.add("completed");
-        }
-        else {
-            // This line def shouldn't happen so if it does there's a bug
-            goalDiv.classList.add("uncompleted");
-        }*/
+        // Get the date of the goal as a locale date string
+        const localeDate = new Date(goalDateCompleted).toLocaleDateString(undefined, dateOptions);
 
         // Create a date for the goal
         const goalDateElement = document.createElement("span");
         goalDateElement.classList.add("goal-date");
         goalDateElement.classList.add("completed");
-        goalDateElement.textContent = `Completed ${goalDate}`;
+        goalDateElement.textContent = `Completed ${localeDate}`;
         goalDiv.appendChild(goalDateElement);
     }
     else {
+        // OVERDUE GOALS
         if (goalTimeDone < goalDuration && goalDate < getIsoString(new Date())) {
 
             // Work out how many days ago the goal was due
@@ -401,6 +410,8 @@ function addGoalCard(goal, outstanding) {
             goalDiv.appendChild(goalDueElement);
 
         }
+
+        // COMPLETED TODAY GOALS
         else if (goalTimeDone >= goalDuration) {
 
             // Add completed text
@@ -410,6 +421,8 @@ function addGoalCard(goal, outstanding) {
             goalCompletedElement.textContent = "Completed today";
             goalDiv.appendChild(goalCompletedElement);
         }
+
+        // NOT-DUE-YET GOALS
         else {
             // Work out in how many days the goal is due
             const daysDue = parseInt(((new Date(goalDate) - new Date()) / (1000 * 60 * 60 * 24)) + 1);
@@ -516,7 +529,8 @@ function addGoalCard(goal, outstanding) {
                 if (goals[i].title == goalTitle && goals[i].duration == goalDuration && goals[i].timeDone == goalTimeDone && goals[i].date == goalDate) {
                     // Set the time done to the duration
                     goals[i].timeDone = goals[i].duration;
-                    goals[i].completed = true;
+                    //goals[i].completed = true; // I DONT REMEMBER EVER DOING THIS
+                    goals[i].dateCompleted = getIsoString(new Date());
 
                     // Update the goal on the server
                     await updateGoalOnServer(goals[i]);
@@ -602,7 +616,7 @@ function getIsoString(date) {
     return isoString; 
 }
  
-function loadGoals(dueGoals) {
+function loadGoals(outstanding) {
     const goalsString = localStorage.getItem("goals");
 
     if (goalsString) {
@@ -612,9 +626,9 @@ function loadGoals(dueGoals) {
 
         for (let i = 0; i < goals.length; i++) {
             // If getting today's goals
-            if (dueGoals) {
+            if (outstanding) {
                 // If the goal's date is today (or after), add it to the page
-                if (goals[i].date >= getIsoString(new Date()) || goals[i].timeDone < goals[i].duration) {
+                if (goals[i].dateCompleted == "" || goals[i].dateCompleted == getIsoString(new Date()) /*goals[i].date >= getIsoString(new Date()) || goals[i].timeDone < goals[i].duration*/) {
                     // Add goal to current goals
                     currentGoals.push(goals[i]);
                     //addGoalCard(goals[i], true); // true = today - goal cards are white
@@ -623,7 +637,7 @@ function loadGoals(dueGoals) {
             }
             else {
                 // If the goal's date is before today, add it to the page
-                if (goals[i].date < getIsoString(new Date()) && goals[i].timeDone >= goals[i].duration) {
+                if (goals[i].dateCompleted != "" && goals[i].dateCompleted != getIsoString(new Date())/*goals[i].date < getIsoString(new Date()) && goals[i].timeDone >= goals[i].duration*/) {
                     // Add goal to current goals
                     currentGoals.push(goals[i]);
                     //addGoalCard(goals[i], false); // false = not today - goal cards are green/red
@@ -633,21 +647,21 @@ function loadGoals(dueGoals) {
         }
 
         // Reverse currentGoals so it is sorted descending IF the goals aren't due goals
-        if (!dueGoals) {
+        if (!outstanding) {
             currentGoals.reverse();
         }
 
         // Add to the page
         for (let i = 0; i < currentGoals.length; i++) {
-            addGoalCard(currentGoals[i], dueGoals);
+            addGoalCard(currentGoals[i], outstanding);
         }
 
         if (!added) {
-            if (dueGoals) {
+            if (outstanding) {
                 const goalsMenu = document.querySelector(".goals-menu");
 
                 const goalMessage = document.createElement("span");
-                goalMessage.textContent = "You have no current tasks. Add a task to get started.";
+                goalMessage.textContent = "You have no outstanding tasks. Add a task to get started.";
                 goalMessage.classList.add("no-goals-text");
 
                 goalsMenu.appendChild(goalMessage);
@@ -656,7 +670,7 @@ function loadGoals(dueGoals) {
                 const goalsMenu = document.querySelector(".goals-menu");
 
                 const goalMessage = document.createElement("span");
-                goalMessage.textContent = "You have no previous tasks.";
+                goalMessage.textContent = "You have no completed tasks. Get a move on!";
                 goalMessage.classList.add("no-goals-text");
 
                 goalsMenu.appendChild(goalMessage);
@@ -664,11 +678,11 @@ function loadGoals(dueGoals) {
         }
     }
     else {
-        if (dueGoals) {
+        if (outstanding) {
             const goalsMenu = document.querySelector(".goals-menu");
 
             const goalMessage = document.createElement("span");
-            goalMessage.textContent = "You have no current tasks. Add a task to get started.";
+            goalMessage.textContent = "You have no outstanding tasks. Add a task to get started.";
             goalMessage.classList.add("no-goals-text");
 
             goalsMenu.appendChild(goalMessage);
@@ -677,7 +691,7 @@ function loadGoals(dueGoals) {
             const goalsMenu = document.querySelector(".goals-menu");
 
             const goalMessage = document.createElement("span");
-            goalMessage.textContent = "You have no previous tasks.";
+            goalMessage.textContent = "You have no previous tasks. Get a move on!";
             goalMessage.classList.add("no-goals-text");
 
             goalsMenu.appendChild(goalMessage);

@@ -818,7 +818,7 @@ async function saveActivityToServer(activity) {
 
         if (!activitiesResponse.ok ||!activitiesData.success) {
             // Send an alert that the activity was NOT posted to the server
-            //alert("Failed to post activity to the server. Check your network connection.");
+            showToastNotification("Failed to post activity to the server. Check your network connection.");
         }
         else {
             //alert("Posted activity successfully");
@@ -1014,9 +1014,15 @@ async function addTimeToGoal(activity) {
         const goals = JSON.parse(goalsString);
 
         for (let i = 0; i < goals.length; i++) {
-            if (goals[i].title == activity.goalName && goals[i].date == activity.date) {
+            // If the goal corresponds to the activity and has NOT been completed already (or has been completed today)
+            if (goals[i].title == activity.goalName && (goals[i].dateCompleted == "" || goals[i].dateCompleted == getIsoString(new Date()))) {
                 // Goal has been found - update its time
                 goals[i].timeDone += (activity.endTime - activity.startTime);
+
+                // If the goal is complete, set the date completed
+                if (goals[i].timeDone >= goals[i].duration) {
+                    goals[i].dateCompleted = getIsoString(new Date());
+                }
 
                 // Update the goal server-side (if the user is authenticated)
                 await updateGoalOnServer(goals[i]);
@@ -1048,9 +1054,14 @@ async function removeTimeFromGoal(goalName, activity) {
         const goals = JSON.parse(goalsString);
 
         for (let goal of goals) {
-            if (goal.date == activity.date && goal.title == goalName) {
+            if ((goal.title == goalName && activity.date == goal.date) || (goal.title == goalName && goal.dateCompleted == activity.date) || (goal.title == goalName && goal.dateCompleted == getIsoString(new Date()))) {
                 // Remove the time from the goal
                 goal.timeDone -= (activity.endTime - activity.startTime);
+
+                // If the goal is no longer completed as a result, set dateCompleted to empty
+                if (goal.timeDone < goal.duration) {
+                    goal.dateCompleted = "";
+                }
 
                 // Update local storage
                 localStorage.setItem("goals", goals);
@@ -1836,8 +1847,8 @@ function openAddMenu() {
     if (goalsString != null) {
         const goals = JSON.parse(goalsString);
         for (let i = 0; i < goals.length; i++) {
-            // If the goal is on the current day add its name as an option
-            if (goals[i].date == getIsoString(new Date())) {
+            // If the goal is on the current day or in the future, or if it is not completed, add its name as an option
+            if (goals[i].date >= getIsoString(new Date()) || goals[i].dateCompleted == "") {
                 const goalOption = document.createElement("option");
                 goalOption.value = goals[i].title;
                 goalOption.textContent = goals[i].title;
@@ -1855,6 +1866,14 @@ function openScheduledAddMenu() {
 }
 
 function openEditMenu(title, category, startTime, endTime, day, ongoing) {
+    // Get the menu
+    const editMenu = document.querySelector("#edit-activity-menu");
+    
+    // If the menu is already unhidden, do nothing
+    if (!editMenu.hidden) {
+        return;
+    }
+
     // Get the form inputs
     const nameInput = document.querySelector("#edit-activity-name");
     const categoryInput = document.querySelector("#edit-category");
@@ -1892,8 +1911,8 @@ function openEditMenu(title, category, startTime, endTime, day, ongoing) {
     if (goalsString != null) {
         const goals = JSON.parse(goalsString);
         for (let i = 0; i < goals.length; i++) {
-            // If the goal is on the current day add its name as an option
-            if (goals[i].date == getIsoString(new Date()) && goals[i].title != goalName) {
+            // If the goal is on the current day or in the future, or if it is not completed, add it as an option (but not if current goal)
+            if (goals[i].date >= getIsoString(new Date()) || goals[i].dateCompleted == "" && goals[i].title != goalName) {
                 const goalOption = document.createElement("option");
                 goalOption.value = goals[i].title;
                 goalOption.textContent = goals[i].title;
@@ -1930,8 +1949,7 @@ function openEditMenu(title, category, startTime, endTime, day, ongoing) {
     // Set the previous goal name
     prevGoal = goalInput.value;
 
-    // Get the menu
-    const editMenu = document.querySelector("#edit-activity-menu");
+    // Unhide the menu
     editMenu.hidden = false;
 }
 

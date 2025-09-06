@@ -445,11 +445,12 @@ function getGoalData() {
         const goalTimeDone = goals[i].timeDone;
         const goalDuration = goals[i].duration;
         const goalDate = goals[i].date;
+        const goalDateCompleted = goals[i].dateCompleted;
 
         // Get the date of the goal as a date object
-        const goalDateObj = new Date(goalDate);
+        const goalDateObj = new Date(goalDateCompleted);
 
-        if (goalDateObj.getTime() >= date7DaysAgo) {
+        if (goalDateCompleted != "" && goalDateObj.getTime() >= date7DaysAgo) {
             // Get the index number
             const index = Math.floor((goalDateObj.getTime() - date7DaysAgo) / (24 * 60 * 60 * 1000));
 

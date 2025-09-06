@@ -893,7 +893,7 @@ def generate_user_schedule(user_id, date, startTime, endTime):
     context_prompt = """
     You are a helpful assistant that creates daily schedules for users based on their goals, past logged activities, and scheduled plans. 
     Generate a schedule for the user on the given date which:
-    1. Covers all their goals (e.g. 2hrs revision)
+    1. Covers all their goals (e.g. 2hrs revision) (for goals, date is the deadline (inclusive), if dateCompleted is not empty, the goal is already done and should NOT be included in the schedule)
     2. Does not conflict with any activities already scheduled (scheduled_activities) on this date (if an activity is already scheduled, it should NOT be included in the schedule)
     3. Fits in time limits given (in minutes since midnight)
     4. Includes short breaks between activities if possible
@@ -1131,9 +1131,10 @@ def add_goals_to_database(goals, user_id):
         goal_duration = goal["duration"]
         goal_time_done = goal["timeDone"]
         goal_date = goal["date"]
+        goal_date_completed = goal["dateCompleted"]
 
         # Insert the goal into the database
-        res = cur.execute("INSERT INTO Goal (Title, Duration, TimeDone, Date, UserID) VALUES (?, ?, ?, ?, ?);", (goal_title, goal_duration, goal_time_done, goal_date, user_id))
+        res = cur.execute("INSERT INTO Goal (Title, Duration, TimeDone, Date, UserID, DateCompleted) VALUES (?, ?, ?, ?, ?, ?);", (goal_title, goal_duration, goal_time_done, goal_date, user_id, goal_date_completed))
     con.commit()
     con.close()
     return True
@@ -1148,10 +1149,11 @@ def add_goal_to_database(goal, user_id):
     goal_duration = goal["duration"]
     goal_time_done = goal["timeDone"]
     goal_date = goal["date"]
+    goal_date_completed = goal["dateCompleted"]
 
     # Insert the goal into the database
-    res = cur.execute("INSERT INTO Goal (Title, Duration, TimeDone, Date, UserID) VALUES (?, ?, ?, ?, ?);", (goal_title, goal_duration, goal_time_done, goal_date, user_id))
-    
+    res = cur.execute("INSERT INTO Goal (Title, Duration, TimeDone, Date, UserID, DateCompleted) VALUES (?, ?, ?, ?, ?, ?);", (goal_title, goal_duration, goal_time_done, goal_date, user_id, goal_date_completed))
+
     # Commit to database
     con.commit()
     con.close()
@@ -1164,7 +1166,7 @@ def update_goal_in_database(goal, user_id):
     cur = con.cursor()
 
     # Update the goal in the database
-    res = cur.execute("UPDATE Goal SET TimeDone = ? WHERE Title = ? AND Duration = ? AND Date = ? AND UserID = ?;", (goal["timeDone"], goal["title"], goal["duration"], goal["date"], user_id))
+    res = cur.execute("UPDATE Goal SET TimeDone = ?, DateCompleted = ? WHERE Title = ? AND Duration = ? AND Date = ? AND UserID = ?;", (goal["timeDone"], goal["dateCompleted"], goal["title"], goal["duration"], goal["date"], user_id))
 
     # Commit to database
     con.commit()
@@ -1250,7 +1252,7 @@ def get_goals_from_database_as_tuples(user_id):
     cur = con.cursor()
 
     # Get all the goals associated with that user
-    res = cur.execute("SELECT * FROM Goal WHERE UserID = ?;", (user_id,))
+    res = cur.execute("SELECT * FROM Goal WHERE UserID = ? ORDER BY DateCompleted, Date;", (user_id,))
     goals = res.fetchall()
     con.commit()
     con.close()
@@ -1265,7 +1267,7 @@ def get_goals_from_database_as_dicts(user_id):
     goal_tuples = get_goals_from_database_as_tuples(user_id)
 
     for goal in goal_tuples:
-        goal_dict = {"title": goal[1], "duration": goal[2], "timeDone": goal[3], "date": goal[4]}
+        goal_dict = {"title": goal[1], "duration": goal[2], "timeDone": goal[3], "date": goal[4], "dateCompleted": goal[6]}
 
         dict_list.append(goal_dict)
 
@@ -1529,11 +1531,15 @@ def add_activities_to_database(activities, user_id):
             print(f"Activity goal name: {activity_goal_name}")
 
             # Get the GoalID of the goal associated with that activity (if there is one)
-            res = cur.execute("SELECT * FROM Goal WHERE Title = ? AND Date = ? AND UserID = ?", (activity_goal_name, activity_date, user_id))
+            res = cur.execute("SELECT * FROM Goal WHERE Title = ? AND DateCompleted = ? AND UserID = ? ORDER BY Date DESC", (activity_goal_name, "", user_id))
             one_item_tuple = res.fetchone()
             if (one_item_tuple == None):
-                print("Error: No such goal exists.")
-                return False
+                # Get a completed goal instead
+                res = cur.execute("SELECT * FROM Goal WHERE Title = ? AND UserID = ? ORDER BY Date DESC", (activity_goal_name, user_id))
+                one_item_tuple = res.fetchone()
+                if (one_item_tuple == None):
+                    print("Error: No such goal exists.")
+                    return False
             goal_id = one_item_tuple[0]
 
         # Insert activity into db
@@ -1799,6 +1805,7 @@ def initialise_database():
                 Duration INTEGER,
                 TimeDone INTEGER,
                 Date TEXT,
+                DateCompleted TEXT,
                 UserID INTEGER,
                 FOREIGN KEY (UserID) REFERENCES User(UserID)
                 )""")
