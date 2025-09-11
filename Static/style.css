@@ -1882,3 +1882,9 @@ a {
     margin-left: auto;
     margin-right: auto;
 }
+
+/* Prevent FOUC */
+html {
+    visibility: visible;
+    opacity: 1;
+}

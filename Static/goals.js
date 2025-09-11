@@ -242,7 +242,7 @@ function addGoal() {
     saveGoalToServer(newGoal);
 
     // Create a new UI element for the goal
-    addGoalCard(newGoal, true);
+    addGoalCard(newGoal, true, true); // Add an outstanding goal to the top of the list
 
 
     // Clear the form inputs
@@ -367,7 +367,7 @@ async function updateGoalOnServer(goal) {
 }
 
 // Creates a UI element for the goal
-function addGoalCard(goal, outstanding) {
+function addGoalCard(goal, outstanding, justAdded=false) {
     const goalTitle = goal.title;
     const goalDuration = goal.duration;
     const goalTimeDone = goal.timeDone;
@@ -591,7 +591,14 @@ function addGoalCard(goal, outstanding) {
 
     // Get the container for the goal div and add the div
     const goalsList = document.querySelector("#goals-list");
-    goalsList.appendChild(goalDiv);
+
+    // If the user has just added the goal, prepend it to the start of the list
+    if (justAdded) {
+        goalsList.prepend(goalDiv);
+    }
+    else {
+        goalsList.appendChild(goalDiv);
+    }
 
     // Create the actual chart object
     createProgressChart(goalChartId, goalTimeDone, goalDuration);

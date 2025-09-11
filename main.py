@@ -840,12 +840,15 @@ def generate_schedule_api():
 
     # Get the date from the request
     request_data = request.get_json()
-    date = request_data["date"]
+    # date = request_data["date"]
     startTime = request_data["startTime"]
     endTime = request_data["endTime"]
+    startDate = request_data["startDate"]
+    endDate = request_data["endDate"]
+
 
     # Generate the user's schedule
-    schedule = generate_user_schedule(user_id, date, startTime, endTime) 
+    schedule = generate_user_schedule(user_id, startDate, endDate, startTime, endTime) 
     #schedule = '[{"title": "Maths revision", "category": "Work/Study", "startTime": 510, "endTime": 600, "date": "2025-08-01"}]'  # Placeholder for testing
 
     return {"success": True, "schedule": schedule}, 200
@@ -866,7 +869,7 @@ def get_categories():
     return categories
 
 
-def generate_user_schedule(user_id, date, startTime, endTime): 
+def generate_user_schedule(user_id, startDate, endDate, startTime, endTime): 
     # Get scheduled activities from the database
     scheduled_activities = get_scheduled_activities_from_database_as_dicts(user_id)
     #print(scheduled_activities)
@@ -892,7 +895,7 @@ def generate_user_schedule(user_id, date, startTime, endTime):
     # The initial context prompt for the AI
     context_prompt = """
     You are a helpful assistant that creates daily schedules for users based on their goals, past logged activities, and scheduled plans. 
-    Generate a schedule for the user on the given date which:
+    Generate a schedule for the user in the given date range (inclusive) which:
     1. Covers all their goals (e.g. 2hrs revision) (for goals, date is the deadline (inclusive), if dateCompleted is not empty, the goal is already done and should NOT be included in the schedule)
     2. Does not conflict with any activities already scheduled (scheduled_activities) on this date (if an activity is already scheduled, it should NOT be included in the schedule)
     3. Fits in time limits given (in minutes since midnight)
@@ -905,7 +908,8 @@ def generate_user_schedule(user_id, date, startTime, endTime):
     """
 
     prompt_content = json.dumps({
-        "date": date,
+        "startDate": startDate,
+        "endDate": endDate,
         "startTime": startTime,
         "endTime": endTime,
         "categories": categories,

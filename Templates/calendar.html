@@ -1,6 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
     <head>
+        <style>
+            /* Prevent FOUC */
+            html {
+                visibility: hidden;
+                opacity: 0;
+            }
+        </style>
         <!-- Google tag (gtag.js) -->
         <script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBSYWNSLZ"></script>
         <script>
@@ -236,9 +243,9 @@
         </div>
 
         <div class="add-menu" id="generate-schedule-menu" hidden>
-            <h2>✨Generate today's schedule✨</h2>
+            <h2>✨Generate schedule✨</h2>
             <form action="" method="POST">
-                <p>Generating a schedule will use AI to create a plan for your day based on your activities and tasks. You can then confirm or refresh the schedule.</p>
+                <p>Generating a schedule will use AI to create a plan for you based on your activities and tasks. You can then confirm or refresh the schedule.</p>
 
                 <label for="generate-schedule-start-time">Start time</label>
                 <input type="time" id="generate-schedule-start-time" class="time-input" name="generate-schedule-start-time" required><br><br>
@@ -247,6 +254,14 @@
                 <input type="time" id="generate-schedule-end-time" class="time-input" name="generate-schedule-end-time" required><br><br>
 
                 <p class="error-text" id="generate-schedule-time-input-error" hidden>Please enter a valid pair of times.</p>
+
+                <label for="generate-schedule-start-date">Start date</label>
+                <input type="date" id="generate-schedule-start-date" name="generate-schedule-start-date" required><br><br>
+
+                <label for="generate-schedule-end-date">End date</label>
+                <input type="date" id="generate-schedule-end-date" name="generate-schedule-end-date" required><br><br>
+
+                <p class="error-text" id="generate-schedule-date-error" hidden>Please enter a valid date range. The maximum duration is 7 days.</p>
 
                 <button type="button" onclick="closeGenerateScheduleMenu();">Cancel</button>
                 <button type="button" onclick="generateSchedule();">Generate schedule</button>

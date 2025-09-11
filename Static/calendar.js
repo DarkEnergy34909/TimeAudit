@@ -1824,9 +1824,22 @@ async function editActivity() {
 
 }
 
+// Closes all menus
+function closeAllMenus() {
+    closeAddMenu();
+    closeScheduledAddMenu();
+    closeEditMenu();
+    closeGenerateScheduleMenu();
+    closeChangeEmailMenu();
+    closeDeleteAccountMenu();
+}
+
 function openAddMenu() {
     // Make sure the start time is correct if the checkbox is checked
     onStartNowCheckboxChange();
+
+    // Hide any other open menus
+    closeAllMenus();
 
     // Unhide the menu
     const addMenu = document.querySelector("#add-activity-menu");
@@ -1860,6 +1873,9 @@ function openAddMenu() {
 }
 
 function openScheduledAddMenu() {
+    // Hide any other open menus
+    closeAllMenus();
+
     // Unhide the menu
     const addMenu = document.querySelector("#add-scheduled-activity-menu");
     addMenu.hidden = false;
@@ -2269,6 +2285,10 @@ async function openGenerateScheduleMenu() {
         return;
     }
 
+    // Close any other menus
+    closeAllMenus();
+
+    // Unhide the generate schedule menu
     document.querySelector("#generate-schedule-menu").hidden = false; 
 
     // Clear time inputs
@@ -2282,6 +2302,10 @@ async function openGenerateScheduleMenu() {
 function closeGenerateScheduleMenu() {
     document.querySelector("#generate-schedule-menu").hidden = true;
 
+    // Clear any existing error messages
+    document.querySelector("#generate-schedule-time-input-error").hidden = true;
+    document.querySelector("#generate-schedule-date-error").hidden = true;
+
     // Clear time inputs
     //document.querySelector("#generate-schedule-start-time").value = "";
     //document.querySelector("#generate-schedule-end-time").value = "";
@@ -2294,13 +2318,36 @@ async function generateSchedule() {
     const startTime = document.querySelector("#generate-schedule-start-time").value;
     const endTime = document.querySelector("#generate-schedule-end-time").value;
 
+    // Get date inputs
+    const startDate = document.querySelector("#generate-schedule-start-date").value;
+    const endDate = document.querySelector("#generate-schedule-end-date").value;
+
     // Convert to minutes format
     const startTimeMinutes = stringTimeToMinutes(startTime);
     const endTimeMinutes = stringTimeToMinutes(endTime);
 
-    if (startTime == "" || endTime == "" || startTimeMinutes >= endTimeMinutes) {
+    if (startTime == "" || endTime == "" || startTimeMinutes >= endTimeMinutes || isNaN(startTimeMinutes) || isNaN(endTimeMinutes)) {
         // Show an error message
         document.querySelector("#generate-schedule-time-input-error").hidden = false;
+        return;
+    }
+
+    // Validate the given dates
+    const startDateObj = new Date(startDate);
+    const endDateObj = new Date(endDate);
+
+    if (startDate == "" || endDate == "" || startDate > endDate || startDateObj.toString() == "Invalid Date" || endDateObj.toString() == "Invalid Date" || getIsoString(startDateObj) < getIsoString(new Date())) {
+        // Show an error message
+        document.querySelector("#generate-schedule-date-error").hidden = false;
+        return;
+    }
+
+    // Check whether the dates are more than 7 days apart
+    const daysApart = parseInt((endDateObj - startDateObj) / (1000 * 60 * 60 * 24));
+
+    if (daysApart > 6 || daysApart < 0) {
+        // Show error message
+        document.querySelector("#generate-schedule-date-error").hidden = false;
         return;
     }
 
@@ -2340,9 +2387,11 @@ async function generateSchedule() {
             "X-Requested-With": "XMLHttpRequest"
         },
         body: JSON.stringify({
-            date: getIsoString(new Date()),
+            //date: getIsoString(new Date()),
             startTime: startTimeMinutes,
-            endTime: endTimeMinutes
+            endTime: endTimeMinutes,
+            startDate: getIsoString(startDateObj),
+            endDate: getIsoString(endDateObj)
         })
     });
 
@@ -2378,7 +2427,15 @@ function showSuggestedActivities() {
     // Show the suggested activities
     for (let i = 0; i < suggestedScheduledActivities.length; i++) {
         const suggestedActivity = suggestedScheduledActivities[i];
-        addScheduledActivityBlock(suggestedActivity.title, suggestedActivity.category, suggestedActivity.startTime, suggestedActivity.endTime, getCurrentDay(), true);
+
+        // Get the day of the activity
+        const suggestedActivityDate = new Date(suggestedActivity.date);
+        const suggestedActivityDay = (suggestedActivityDate.getDay() + 6) % 7;
+        
+        // If the activity is in the current week, add it to the calendar
+        if (isInWeek(firstDayOfWeek, suggestedActivityDate)) {
+            addScheduledActivityBlock(suggestedActivity.title, suggestedActivity.category, suggestedActivity.startTime, suggestedActivity.endTime, suggestedActivityDay, true);   
+        }
     }
 }
 
@@ -2401,8 +2458,17 @@ function confirmSchedule() {
         // Add the scheduled activity to the scheduled activities array
         saveScheduledActivity(suggestedActivity);
 
-        // Add the block to the calendar
-        addScheduledActivityBlock(suggestedActivity.title, suggestedActivity.category, suggestedActivity.startTime, suggestedActivity.endTime, getCurrentDay());
+
+
+        // Get the day of the activity
+        const suggestedActivityDate = new Date(suggestedActivity.date);
+        const suggestedActivityDay = (suggestedActivityDate.getDay() + 6) % 7;
+
+
+        // Add the block to the calendar if the activity is in the current week
+        if (isInWeek(firstDayOfWeek, suggestedActivityDate)) {
+            addScheduledActivityBlock(suggestedActivity.title, suggestedActivity.category, suggestedActivity.startTime, suggestedActivity.endTime, suggestedActivityDay);
+        }
 
     }
 
