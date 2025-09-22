@@ -2367,12 +2367,6 @@ async function generateSchedule() {
         return;
     }
 
-    // If the user has no scheduled activities, prompt them to add some
-    //if (scheduledActivities.length == 0) {
-        //showToastNotification("⚠️ No scheduled activities for today found. Please add some scheduled activities to generate a schedule. ⚠️");
-        //return;
-    //}
-
     // Show the loading screen
     loadingScreen.style.display = "flex";
 

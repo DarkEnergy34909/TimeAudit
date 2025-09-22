@@ -6,6 +6,27 @@
   user-select: none; /* Standard syntax */
 }
 
+/* Prevent dragging on phones */
+.title-bar,
+.top-bar,
+.nav-bar,
+.month-bar {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    touch-action: none; /* Disable all touch actions */
+    -webkit-touch-callout: none; /* Disable iOS callout */
+    -webkit-tap-highlight-color: transparent; /* Remove tap highlight */
+}
+
+html, body {
+    touch-action: pan-y; /* Only allow vertical scrolling */
+    overscroll-behavior-x: none; /* Prevent horizontal overscroll bounce */
+}
+
 body {
     font-family: sans-serif;
     background-color: #f9f9f9;
@@ -201,7 +222,8 @@ a {
         margin-right: 10px; /* Adjust margin for smaller screens */
         display: inline-block; /* Ensure buttons are inline */
     }
-    .top-start-tracking-button {
+
+    .top-start-tracking-button, .login-button {
         margin-right: 20px;
     }
 }
@@ -718,7 +740,7 @@ a {
 
 @media (max-width: 700px) {
     .month-bar {
-        width: 100vw;
+        display: none;
     }
 }
 
@@ -992,7 +1014,12 @@ a {
 
 @media (max-width: 700px) {
     .add-menu {
+        position: fixed;
         font-size: 0.9rem;
+        width: 100vw;
+        height: auto;
+        max-height: 100vh;
+        overflow-y: auto;
     }
     .delete-account-menu {
         font-size: 0.9rem;
